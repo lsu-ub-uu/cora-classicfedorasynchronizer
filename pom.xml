@@ -33,8 +33,8 @@
 		<storage.version>4.3-SNAPSHOT</storage.version>
 		<xmlconverter.version>1.6.0</xmlconverter.version>
 		<converter.version>1.5.0</converter.version>
-<!-- 		<indexmessenger.version>1.5.0</indexmessenger.version> -->
-<!-- 		<activemq.version>1.3.0</activemq.version> -->
+		<messaging.version>2.4.0</messaging.version>
+		<activemq.version>1.3.0</activemq.version>
 	</properties>
 
 	<scm>
@@ -104,23 +104,17 @@
 			<artifactId>converter</artifactId>
 			<version>${converter.version}</version>
 		</dependency>
-<!-- 		<dependency> -->
-<!-- 			<groupId>se.uu.ub.cora</groupId> -->
-<!-- 			<artifactId>indexmessenger</artifactId> -->
-<!-- 			<version>${indexmessenger.version}</version> -->
-<!-- 		</dependency> -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>se.uu.ub.cora</groupId> -->
-<!-- 			<artifactId>activemq</artifactId> -->
-<!-- 			<version>${activemq.version}</version> -->
-<!-- 			<scope>runtime</scope> -->
-<!-- 		</dependency> -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>javax.transaction</groupId> -->
-<!-- 			<artifactId>javax.transaction-api</artifactId> -->
-<!-- 			<version>1.2</version> -->
-<!-- 			<scope>runtime</scope> -->
-<!-- 		</dependency> -->
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>messaging</artifactId>
+			<version>${messaging.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>activemq</artifactId>
+			<version>${activemq.version}</version>
+			<scope>runtime</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>

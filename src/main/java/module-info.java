@@ -4,4 +4,5 @@ module se.uu.ub.cora.classicfedorasynchronizer {
 	requires se.uu.ub.cora.httphandler;
 	requires se.uu.ub.cora.storage;
 	requires se.uu.ub.cora.converter;
+	requires se.uu.ub.cora.messaging;
 }
