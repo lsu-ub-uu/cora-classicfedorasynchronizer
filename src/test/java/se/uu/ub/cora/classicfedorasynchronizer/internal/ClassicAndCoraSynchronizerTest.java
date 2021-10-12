@@ -25,7 +25,6 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.data.DataGroupFactory;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 
@@ -37,7 +36,7 @@ public class ClassicAndCoraSynchronizerTest {
 	private FedoraConverterFactorySpy fedoraConverterFactory;
 	private RecordStorageSpy dbStorage;
 	private String dataDivider = "diva";
-	private DataGroupFactory dataGroupFactory;
+	private DataGroupFactorySpy dataGroupFactory;
 
 	@BeforeMethod
 	public void setUp() {
@@ -49,7 +48,6 @@ public class ClassicAndCoraSynchronizerTest {
 		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
 		synchronizer = new ClassicCoraSynchronizerImp(dbStorage, httpHandlerFactory,
 				fedoraConverterFactory, baseURL);
-
 	}
 
 	@Test
@@ -64,7 +62,6 @@ public class ClassicAndCoraSynchronizerTest {
 		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
 	}
 
-	// credentials? only for update?
 	@Test
 	public void testSychronizeRecordFactoredHttpHandler() {
 		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
@@ -99,6 +96,18 @@ public class ClassicAndCoraSynchronizerTest {
 		assertEquals(dbStorage.recordTypes.get(0), "person");
 		assertEquals(dbStorage.recordIds.get(0), "someRecordId");
 		assertEquals(dbStorage.dataDivider, "diva");
+
+		assertCorrectlyFactoredAndUsedDataGroups();
+
+	}
+
+	private void assertCorrectlyFactoredAndUsedDataGroups() {
+		assertEquals(dataGroupFactory.nameInDatas.size(), 2);
+		assertEquals(dataGroupFactory.nameInDatas.get(0), "collectedData");
+		assertSame(dbStorage.collectedDataDataGroups.get(0),
+				dataGroupFactory.factoredDataGroups.get(0));
+		assertEquals(dataGroupFactory.nameInDatas.get(1), "collectedDataLinks");
+		assertSame(dbStorage.linkListDataGroups.get(0), dataGroupFactory.factoredDataGroups.get(1));
 	}
 
 	@Test

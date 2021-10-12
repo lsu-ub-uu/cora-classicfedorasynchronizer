@@ -37,6 +37,8 @@ public class RecordStorageSpy implements RecordStorage {
 	public List<DataGroup> createDataGroups = new ArrayList<>();
 	public String methodName = "";
 	public String dataDivider = "";
+	public List<DataGroup> collectedDataDataGroups = new ArrayList<>();
+	public List<DataGroup> linkListDataGroups = new ArrayList<>();
 
 	@Override
 	public DataGroup read(String type, String id) {
@@ -57,8 +59,10 @@ public class RecordStorageSpy implements RecordStorage {
 	public void create(String type, String id, DataGroup record, DataGroup collectedTerms,
 			DataGroup linkList, String dataDivider) {
 		recordTypes.add(type);
-		createDataGroups.add(record);
 		recordIds.add(id);
+		createDataGroups.add(record);
+		collectedDataDataGroups.add(collectedTerms);
+		linkListDataGroups.add(linkList);
 		this.dataDivider = dataDivider;
 		methodName = "create";
 	}
@@ -79,8 +83,10 @@ public class RecordStorageSpy implements RecordStorage {
 	public void update(String type, String id, DataGroup record, DataGroup collectedTerms,
 			DataGroup linkList, String dataDivider) {
 		recordTypes.add(type);
-		createDataGroups.add(record);
 		recordIds.add(id);
+		createDataGroups.add(record);
+		collectedDataDataGroups.add(collectedTerms);
+		linkListDataGroups.add(linkList);
 		this.dataDivider = dataDivider;
 		methodName = "update";
 

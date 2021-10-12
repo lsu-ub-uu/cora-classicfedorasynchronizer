@@ -4,6 +4,7 @@ import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizer;
 import se.uu.ub.cora.classicfedorasynchronizer.FedoraConverterFactory;
 import se.uu.ub.cora.classicfedorasynchronizer.FedoraToCoraConverter;
 import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.httphandler.HttpHandler;
 import se.uu.ub.cora.httphandler.HttpHandlerFactory;
 import se.uu.ub.cora.storage.RecordNotFoundException;
@@ -33,21 +34,35 @@ public class ClassicCoraSynchronizerImp implements ClassicCoraSynchronizer {
 
 	@Override
 	public void synchronize(String recordType, String recordId, String action, String dataDivider) {
+		//SynchronizerProvider.factorSynchronizer(recordType);
+		//i SynchronizerPovider finns en factory som är Diva-specifik??
+		//synchronizer.update || synchronizer.create
 		HttpHandler httpHandler = setUpHttpHandlerForRead(recordId);
 		throwErrorIfRecordNotFound(recordType, recordId, httpHandler);
 
-		String responseText = httpHandler.getResponseText();
-		DataGroup dataGroup = convert(responseText);
-		// TODO: collectedTerms, linklist
+		DataGroup dataGroup = convert(httpHandler);
+		// DataGroup personDomainPart, convert(personDomainPart)
 		if ("create".equals(action)) {
-			recordStorage.create(recordType, recordId, dataGroup, null, null, dataDivider);
+			recordStorage.create(recordType, recordId, dataGroup, createCollectedTerms(),
+					createLinkList(), dataDivider);
+			// create personDomainPart
 		} else {
-			recordStorage.update(recordType, recordId, dataGroup, null, null, dataDivider);
+			recordStorage.update(recordType, recordId, dataGroup, createCollectedTerms(),
+					createLinkList(), dataDivider);
+			// update personDomainPart
 		}
-
 	}
 
-	private DataGroup convert(String responseText) {
+	private DataGroup createLinkList() {
+		return DataGroupProvider.getDataGroupUsingNameInData("collectedDataLinks");
+	}
+
+	private DataGroup createCollectedTerms() {
+		return DataGroupProvider.getDataGroupUsingNameInData("collectedData");
+	}
+
+	private DataGroup convert(HttpHandler httpHandler) {
+		String responseText = httpHandler.getResponseText();
 		FedoraToCoraConverter toCoraConverter = fedoraConverterFactory // *
 				.factorToCoraConverter("person");
 		return toCoraConverter.fromXML(responseText);
