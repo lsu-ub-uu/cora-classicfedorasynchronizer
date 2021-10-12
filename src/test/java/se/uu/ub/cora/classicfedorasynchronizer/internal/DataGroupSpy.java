@@ -40,6 +40,8 @@ public class DataGroupSpy implements DataGroup {
 	// public List<String> requestedAtomicNameInDatas = new ArrayList<>();
 	public String recordType;
 	public String recordId;
+	public int numberOfDomainParts = 0;
+	private String repeatId;
 
 	public DataGroupSpy(String nameInData) {
 		this.nameInData = nameInData;
@@ -53,14 +55,14 @@ public class DataGroupSpy implements DataGroup {
 
 	@Override
 	public void setRepeatId(String repeatId) {
-		// TODO Auto-generated method stub
+		this.repeatId = repeatId;
 
 	}
 
 	@Override
 	public String getRepeatId() {
 		// TODO Auto-generated method stub
-		return null;
+		return repeatId;
 	}
 
 	@Override
@@ -96,11 +98,19 @@ public class DataGroupSpy implements DataGroup {
 
 	@Override
 	public List<DataElement> getAllChildrenWithNameInData(String nameInData) {
+		List<DataElement> childrenToReturn = new ArrayList<>();
+		if ("personDomainPart".equals(nameInData)) {
+			for (int i = 0; i < numberOfDomainParts; i++) {
+				DataGroupSpy dataGroupSpy = new DataGroupSpy("personDomainPart");
+				dataGroupSpy.setRepeatId(String.valueOf(i));
+				childrenToReturn.add(dataGroupSpy);
+			}
+		}
 		// getAllGroupsUsedNameInDatas.add(nameInData);
 		// if (childrenToReturn.containsKey(nameInData)) {
 		// return childrenToReturn.get(nameInData);
 		// }
-		return null;
+		return childrenToReturn;
 	}
 
 	@Override
@@ -118,6 +128,9 @@ public class DataGroupSpy implements DataGroup {
 
 	@Override
 	public String getFirstAtomicValueWithNameInData(String nameInData) {
+		if ("linkedRecordId".equals(nameInData)) {
+			return recordId;
+		}
 		// requestedAtomicNameInDatas.add(nameInData);
 		// for (DataElement dataElement : children) {
 		// if (nameInData.equals(dataElement.getNameInData())) {
@@ -159,17 +172,16 @@ public class DataGroupSpy implements DataGroup {
 
 	@Override
 	public List<DataGroup> getAllGroupsWithNameInData(String nameInData) {
-		// getAllGroupsUsedNameInDatas.add(nameInData);
-		List<DataGroup> matchingDataGroups = new ArrayList<>();
-		// if (childrenToReturn.containsKey(nameInData)) {
-		// for (DataElement dataElement : childrenToReturn.get(nameInData)) {
-		// if (nameInData.equals(dataElement.getNameInData())
-		// && dataElement instanceof DataGroup) {
-		// matchingDataGroups.add((DataGroup) dataElement);
-		// }
-		// }
-		// }
-		return matchingDataGroups;
+		List<DataGroup> childrenToReturn = new ArrayList<>();
+		if ("personDomainPart".equals(nameInData)) {
+			for (int i = 0; i < numberOfDomainParts; i++) {
+				DataGroupSpy dataGroupSpy = new DataGroupSpy("personDomainPart", "personDomainPart",
+						"authority-person:" + i + ":test");
+				dataGroupSpy.setRepeatId(String.valueOf(i));
+				childrenToReturn.add(dataGroupSpy);
+			}
+		}
+		return childrenToReturn;
 	}
 
 	@Override

@@ -34,9 +34,10 @@ public class RecordStorageSpy implements RecordStorage {
 	// public Map<String, DataGroupDomainSpy> returnOnRead = new HashMap<>();
 	// public List<String> createRecordTypes = new ArrayList<>();
 	// public List<String> createRecordIds = new ArrayList<>();
-	public List<DataGroup> createDataGroups = new ArrayList<>();
+	public List<DataGroup> handledDataGroups = new ArrayList<>();
+	// public List<DataGroup> updateDataGroups = new ArrayList<>();
 	public String methodName = "";
-	public String dataDivider = "";
+	public List<String> dataDividers = new ArrayList<>();
 	public List<DataGroup> collectedDataDataGroups = new ArrayList<>();
 	public List<DataGroup> linkListDataGroups = new ArrayList<>();
 
@@ -60,10 +61,10 @@ public class RecordStorageSpy implements RecordStorage {
 			DataGroup linkList, String dataDivider) {
 		recordTypes.add(type);
 		recordIds.add(id);
-		createDataGroups.add(record);
+		handledDataGroups.add(record);
 		collectedDataDataGroups.add(collectedTerms);
 		linkListDataGroups.add(linkList);
-		this.dataDivider = dataDivider;
+		dataDividers.add(dataDivider);
 		methodName = "create";
 	}
 
@@ -84,10 +85,10 @@ public class RecordStorageSpy implements RecordStorage {
 			DataGroup linkList, String dataDivider) {
 		recordTypes.add(type);
 		recordIds.add(id);
-		createDataGroups.add(record);
+		handledDataGroups.add(record);
 		collectedDataDataGroups.add(collectedTerms);
 		linkListDataGroups.add(linkList);
-		this.dataDivider = dataDivider;
+		dataDividers.add(dataDivider);
 		methodName = "update";
 
 	}

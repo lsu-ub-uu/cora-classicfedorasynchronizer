@@ -18,18 +18,30 @@
  */
 package se.uu.ub.cora.classicfedorasynchronizer.internal;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import se.uu.ub.cora.classicfedorasynchronizer.FedoraConverterFactory;
 import se.uu.ub.cora.classicfedorasynchronizer.FedoraToCoraConverter;
 
 public class FedoraConverterFactorySpy implements FedoraConverterFactory {
 
-	public String type;
-	public FedoraToCoraConverterSpy factoredFedoraConverter;
+	public List<String> types = new ArrayList<>();
+	public List<FedoraToCoraConverterSpy> factoredFedoraConverters = new ArrayList<>();
+	// public DataGroupSpy convertedGroup;
+	public List<DataGroupSpy> convertedGroups = new ArrayList<>();
+	private int numberOfConvertersReturned = 0;
 
 	@Override
 	public FedoraToCoraConverter factorToCoraConverter(String type) {
-		this.type = type;
-		factoredFedoraConverter = new FedoraToCoraConverterSpy();
+		this.types.add(type);
+		FedoraToCoraConverterSpy factoredFedoraConverter = new FedoraToCoraConverterSpy();
+		if (!convertedGroups.isEmpty()) {
+			factoredFedoraConverter.convertedGroup = convertedGroups
+					.get(numberOfConvertersReturned);
+		}
+		numberOfConvertersReturned++;
+		factoredFedoraConverters.add(factoredFedoraConverter);
 		return factoredFedoraConverter;
 	}
 	//

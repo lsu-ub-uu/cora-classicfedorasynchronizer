@@ -1,5 +1,7 @@
 package se.uu.ub.cora.classicfedorasynchronizer.internal;
 
+import java.util.List;
+
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizer;
 import se.uu.ub.cora.classicfedorasynchronizer.FedoraConverterFactory;
 import se.uu.ub.cora.classicfedorasynchronizer.FedoraToCoraConverter;
@@ -34,21 +36,40 @@ public class ClassicCoraSynchronizerImp implements ClassicCoraSynchronizer {
 
 	@Override
 	public void synchronize(String recordType, String recordId, String action, String dataDivider) {
-		//SynchronizerProvider.factorSynchronizer(recordType);
-		//i SynchronizerPovider finns en factory som är Diva-specifik??
-		//synchronizer.update || synchronizer.create
 		HttpHandler httpHandler = setUpHttpHandlerForRead(recordId);
 		throwErrorIfRecordNotFound(recordType, recordId, httpHandler);
+		String responseText = httpHandler.getResponseText();
+		FedoraToCoraConverter toCoraConverter = fedoraConverterFactory
+				.factorToCoraConverter("person");
 
-		DataGroup dataGroup = convert(httpHandler);
+		DataGroup dataGroup = toCoraConverter.fromXML(responseText);
+		List<DataGroup> domainParts = dataGroup.getAllGroupsWithNameInData("personDomainPart");
+
 		// DataGroup personDomainPart, convert(personDomainPart)
 		if ("create".equals(action)) {
 			recordStorage.create(recordType, recordId, dataGroup, createCollectedTerms(),
 					createLinkList(), dataDivider);
+
+			// for(String personDomainPartId : personDomainPartIds){
+			// FedoraToCoraConverter toCoraConverter = fedoraConverterFactory // *
+			// .factorToCoraConverter("personDomainPart");
+			// recordStorage.create("personDomainPart", recordId, personDomainPartDataGroup,
+			// createCollectedTerms(),
+			// createLinkList(), dataDivider);
 			// create personDomainPart
 		} else {
 			recordStorage.update(recordType, recordId, dataGroup, createCollectedTerms(),
 					createLinkList(), dataDivider);
+			for (DataGroup domainPartLink : domainParts) {
+				FedoraToCoraConverter domainPartConverter = fedoraConverterFactory
+						.factorToCoraConverter("personDomainPart");
+				DataGroup personDomainPart = domainPartConverter.fromXML(responseText);
+				String linkedRecordId = domainPartLink
+						.getFirstAtomicValueWithNameInData("linkedRecordId");
+				// TODO:kolla att id är samma som linkedRecordId i testet
+				recordStorage.update("personDomainPart", "authority-person:0:test",
+						personDomainPart, createCollectedTerms(), createLinkList(), dataDivider);
+			}
 			// update personDomainPart
 		}
 	}
@@ -63,7 +84,7 @@ public class ClassicCoraSynchronizerImp implements ClassicCoraSynchronizer {
 
 	private DataGroup convert(HttpHandler httpHandler) {
 		String responseText = httpHandler.getResponseText();
-		FedoraToCoraConverter toCoraConverter = fedoraConverterFactory // *
+		FedoraToCoraConverter toCoraConverter = fedoraConverterFactory
 				.factorToCoraConverter("person");
 		return toCoraConverter.fromXML(responseText);
 	}

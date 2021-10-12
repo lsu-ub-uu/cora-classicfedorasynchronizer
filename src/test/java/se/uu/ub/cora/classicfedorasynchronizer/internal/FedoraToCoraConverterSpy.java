@@ -26,13 +26,15 @@ import se.uu.ub.cora.data.DataGroup;
 public class FedoraToCoraConverterSpy implements FedoraToCoraConverter {
 
 	public String xml;
-	public DataGroupSpy factoredGroup;
+	public DataGroupSpy convertedGroup;
 
 	@Override
 	public DataGroup fromXML(String xml) {
 		this.xml = xml;
-		factoredGroup = new DataGroupSpy("someNameInData");
-		return factoredGroup;
+		if (convertedGroup == null) {
+			convertedGroup = new DataGroupSpy("someNameInData");
+		}
+		return convertedGroup;
 	}
 
 	@Override
