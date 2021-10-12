@@ -21,6 +21,6 @@ package se.uu.ub.cora.classicfedorasynchronizer;
 
 public interface ClassicCoraSynchronizer {
 
-	void synchronize(String recordType, String recordId);
+	void synchronize(String recordType, String recordId, String action, String dataDivider);
 
 }

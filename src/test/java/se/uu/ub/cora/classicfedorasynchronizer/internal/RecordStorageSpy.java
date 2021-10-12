@@ -28,18 +28,20 @@ import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordStorageSpy implements RecordStorage {
 
-	public List<String> readRecordTypes = new ArrayList<>();
-	public List<String> readRecordIds = new ArrayList<>();
+	public List<String> recordTypes = new ArrayList<>();
+	public List<String> recordIds = new ArrayList<>();
 	// public List<DataGroupDomainSpy> returnedDataGroups = new ArrayList<>();
 	// public Map<String, DataGroupDomainSpy> returnOnRead = new HashMap<>();
-	public List<String> createRecordTypes = new ArrayList<>();
-	public List<String> createRecordIds = new ArrayList<>();
+	// public List<String> createRecordTypes = new ArrayList<>();
+	// public List<String> createRecordIds = new ArrayList<>();
 	public List<DataGroup> createDataGroups = new ArrayList<>();
+	public String methodName = "";
+	public String dataDivider = "";
 
 	@Override
 	public DataGroup read(String type, String id) {
-		readRecordTypes.add(type);
-		readRecordIds.add(id);
+		recordTypes.add(type);
+		recordIds.add(id);
 		// if (returnOnRead.containsKey(type + "_" + id)) {
 		// DataGroupDomainSpy presetReturnValue = returnOnRead.get(type + "_" + id);
 		// returnedDataGroups.add(presetReturnValue);
@@ -54,9 +56,11 @@ public class RecordStorageSpy implements RecordStorage {
 	@Override
 	public void create(String type, String id, DataGroup record, DataGroup collectedTerms,
 			DataGroup linkList, String dataDivider) {
-		createRecordTypes.add(type);
+		recordTypes.add(type);
 		createDataGroups.add(record);
-		createRecordIds.add(id);
+		recordIds.add(id);
+		this.dataDivider = dataDivider;
+		methodName = "create";
 	}
 
 	@Override
@@ -74,7 +78,11 @@ public class RecordStorageSpy implements RecordStorage {
 	@Override
 	public void update(String type, String id, DataGroup record, DataGroup collectedTerms,
 			DataGroup linkList, String dataDivider) {
-		// TODO Auto-generated method stub
+		recordTypes.add(type);
+		createDataGroups.add(record);
+		recordIds.add(id);
+		this.dataDivider = dataDivider;
+		methodName = "update";
 
 	}
 

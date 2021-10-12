@@ -25,6 +25,8 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.data.DataGroupFactory;
+import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 
 public class ClassicAndCoraSynchronizerTest {
@@ -34,6 +36,8 @@ public class ClassicAndCoraSynchronizerTest {
 	private String baseURL;
 	private FedoraConverterFactorySpy fedoraConverterFactory;
 	private RecordStorageSpy dbStorage;
+	private String dataDivider = "diva";
+	private DataGroupFactory dataGroupFactory;
 
 	@BeforeMethod
 	public void setUp() {
@@ -41,6 +45,8 @@ public class ClassicAndCoraSynchronizerTest {
 		httpHandlerFactory = new HttpHandlerFactorySpy();
 		fedoraConverterFactory = new FedoraConverterFactorySpy();
 		dbStorage = new RecordStorageSpy();
+		dataGroupFactory = new DataGroupFactorySpy();
+		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
 		synchronizer = new ClassicCoraSynchronizerImp(dbStorage, httpHandlerFactory,
 				fedoraConverterFactory, baseURL);
 
@@ -55,13 +61,13 @@ public class ClassicAndCoraSynchronizerTest {
 			+ "Record not found for recordType: person and recordId: someRecordId")
 	public void testRecordNotFound() {
 		httpHandlerFactory.responseCode = 404;
-		synchronizer.synchronize("person", "someRecordId");
+		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
 	}
 
 	// credentials? only for update?
 	@Test
 	public void testSychronizeRecordFactoredHttpHandler() {
-		synchronizer.synchronize("person", "someRecordId");
+		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
 		HttpHandlerSpy httpHandler = httpHandlerFactory.factoredHttpHandlerSpy;
 		assertEquals(httpHandlerFactory.url,
 				baseURL + "objects/" + "someRecordId" + "/datastreams/METADATA/content");
@@ -71,20 +77,39 @@ public class ClassicAndCoraSynchronizerTest {
 
 	@Test
 	public void testFactoredFedoraToCoraConverter() {
-		synchronizer.synchronize("person", "someRecordId");
+		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
 		assertEquals(fedoraConverterFactory.type, "person");
 	}
 
 	@Test
-	public void testSyncronizeRecordResultHandledCorrectly() {
-		synchronizer.synchronize("person", "someRecordId");
+	public void testSyncronizeRecordResultHandledCorrectlyForCreate() {
+		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
+
 		HttpHandlerSpy factoredHttpHandler = httpHandlerFactory.factoredHttpHandlerSpy;
 		FedoraToCoraConverterSpy factoredFedoraConverter = fedoraConverterFactory.factoredFedoraConverter;
+		assertCorrectCommonResultHandledCorrectly(factoredHttpHandler, factoredFedoraConverter);
+		assertEquals(dbStorage.methodName, "create");
+	}
+
+	private void assertCorrectCommonResultHandledCorrectly(HttpHandlerSpy factoredHttpHandler,
+			FedoraToCoraConverterSpy factoredFedoraConverter) {
 		assertEquals(factoredFedoraConverter.xml, factoredHttpHandler.responseText);
 
 		assertSame(factoredFedoraConverter.factoredGroup, dbStorage.createDataGroups.get(0));
-		assertEquals(dbStorage.createRecordTypes.get(0), "person");
-		assertEquals(dbStorage.createRecordIds.get(0), "someRecordId");
+		assertEquals(dbStorage.recordTypes.get(0), "person");
+		assertEquals(dbStorage.recordIds.get(0), "someRecordId");
+		assertEquals(dbStorage.dataDivider, "diva");
+	}
+
+	@Test
+	public void testSyncronizeRecordResultHandledCorrectlyForUpdate() {
+
+		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
+
+		HttpHandlerSpy factoredHttpHandler = httpHandlerFactory.factoredHttpHandlerSpy;
+		FedoraToCoraConverterSpy factoredFedoraConverter = fedoraConverterFactory.factoredFedoraConverter;
+		assertCorrectCommonResultHandledCorrectly(factoredHttpHandler, factoredFedoraConverter);
+		assertEquals(dbStorage.methodName, "update");
 	}
 
 }

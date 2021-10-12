@@ -19,8 +19,8 @@ public class ClassicCoraSynchronizerImp implements ClassicCoraSynchronizer {
 	private RecordStorage recordStorage;
 
 	public ClassicCoraSynchronizerImp(RecordStorage recordStorage,
-			HttpHandlerFactory httpHandlerFactory,
-			FedoraConverterFactory fedoraConverterFactory, String baseURL) {
+			HttpHandlerFactory httpHandlerFactory, FedoraConverterFactory fedoraConverterFactory,
+			String baseURL) {
 		this.recordStorage = recordStorage;
 		this.httpHandlerFactory = httpHandlerFactory;
 		this.fedoraConverterFactory = fedoraConverterFactory;
@@ -32,13 +32,25 @@ public class ClassicCoraSynchronizerImp implements ClassicCoraSynchronizer {
 	}
 
 	@Override
-	public void synchronize(String recordType, String recordId) {
+	public void synchronize(String recordType, String recordId, String action, String dataDivider) {
 		HttpHandler httpHandler = setUpHttpHandlerForRead(recordId);
 		throwErrorIfRecordNotFound(recordType, recordId, httpHandler);
 
 		String responseText = httpHandler.getResponseText();
-		convertAndStore(recordType, recordId, responseText);
+		DataGroup dataGroup = convert(responseText);
+		// TODO: collectedTerms, linklist
+		if ("create".equals(action)) {
+			recordStorage.create(recordType, recordId, dataGroup, null, null, dataDivider);
+		} else {
+			recordStorage.update(recordType, recordId, dataGroup, null, null, dataDivider);
+		}
 
+	}
+
+	private DataGroup convert(String responseText) {
+		FedoraToCoraConverter toCoraConverter = fedoraConverterFactory // *
+				.factorToCoraConverter("person");
+		return toCoraConverter.fromXML(responseText);
 	}
 
 	private HttpHandler setUpHttpHandlerForRead(String recordId) {
@@ -55,17 +67,4 @@ public class ClassicCoraSynchronizerImp implements ClassicCoraSynchronizer {
 					+ " and recordId: " + recordId);
 		}
 	}
-
-	private void convertAndStore(String recordType, String recordId, String responseText) {
-		FedoraToCoraConverter toCoraConverter = fedoraConverterFactory // *
-				.factorToCoraConverter("person");
-		DataGroup dataGroup = toCoraConverter.fromXML(responseText);
-		// TODO: create i vissa fall, update i andra - hur veta?
-		// TODO: collectedTerms, linklist, dataDivider
-		recordStorage.create(recordType, recordId, dataGroup, null, null, "");
-	}
-
-	// * internt gör den
-	// transformation.transform(xmlToTransform);
-	// converter.convert(coraXml);
 }
