@@ -17,10 +17,11 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.classicfedorasynchronizer.messaging;
+package se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning;
 
 import java.util.Map;
 
+import se.uu.ub.cora.classicfedorasynchronizer.messaging.FedoraMessageException;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 
@@ -37,7 +38,7 @@ public class FedoraMessageParser implements MessageParser {
 	public void parseHeadersAndMessage(Map<String, String> headers, String message) {
 		try {
 			tryToParseMessage(headers, message);
-		} catch (IndexMessageException exception) {
+		} catch (FedoraMessageException exception) {
 			handleError(exception);
 		}
 	}
@@ -50,7 +51,7 @@ public class FedoraMessageParser implements MessageParser {
 
 	private void throwErrorIfNoPid(Map<String, String> headers) {
 		if (headers.get("pid") == null) {
-			throw IndexMessageException.withMessage("No pid found in header");
+			throw FedoraMessageException.withMessage("No pid found in header");
 		}
 	}
 
@@ -116,7 +117,7 @@ public class FedoraMessageParser implements MessageParser {
 		return isDeleteMessage(message, methodName) || isPurgeMessage(methodName);
 	}
 
-	private void handleError(IndexMessageException e) {
+	private void handleError(FedoraMessageException e) {
 		logger.logErrorUsingMessage(e.getMessage());
 	}
 
@@ -131,12 +132,12 @@ public class FedoraMessageParser implements MessageParser {
 	}
 
 	@Override
-	public boolean shouldWorkOrderBeCreatedForMessage() {
+	public boolean synchronizationRequiered() {
 		return synchronizationRequired;
 	}
 
 	@Override
-	public String getModificationType() {
+	public String getAction() {
 		return modificationType;
 	}
 

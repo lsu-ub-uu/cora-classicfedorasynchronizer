@@ -16,26 +16,21 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.classicfedorasynchronizer.messaging;
+package se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning;
 
-public final class IndexMessageException extends RuntimeException {
+public class MessageParserFactorySpy implements MessageParserFactory {
+	public boolean factorWasCalled = false;
+	public boolean createWorkOrder = true;
+	public MessageParserSpy messageParserSpy;
+	public String modificationType = "update";
 
-	private static final long serialVersionUID = 1L;
-
-	public static IndexMessageException withMessage(String message) {
-		return new IndexMessageException(message);
-	}
-
-	public static IndexMessageException withMessageAndException(String message, Exception e) {
-		return new IndexMessageException(message, e);
-	}
-
-	private IndexMessageException(String message) {
-		super(message);
-	}
-
-	private IndexMessageException(String message, Exception e) {
-		super(message, e);
+	@Override
+	public MessageParser factor() {
+		factorWasCalled = true;
+		messageParserSpy = new MessageParserSpy();
+		messageParserSpy.synchronizationRequired = createWorkOrder;
+		messageParserSpy.modificationType = modificationType;
+		return messageParserSpy;
 	}
 
 }

@@ -17,7 +17,7 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.classicfedorasynchronizer.messaging;
+package se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -34,6 +34,9 @@ import java.util.Map;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.classicfedorasynchronizer.messaging.LoggerFactorySpy;
+import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.FedoraMessageParser;
+import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.MessageParser;
 import se.uu.ub.cora.logger.LoggerProvider;
 
 public class FedoraMessageParserTest {
@@ -80,7 +83,7 @@ public class FedoraMessageParserTest {
 		headers.remove("methodName");
 
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertFalse(messageParser.shouldWorkOrderBeCreatedForMessage());
+		assertFalse(messageParser.synchronizationRequiered());
 	}
 
 	@Test
@@ -88,7 +91,7 @@ public class FedoraMessageParserTest {
 		headers.put("methodName", "NOTmodifyDatastreamByReference");
 
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertFalse(messageParser.shouldWorkOrderBeCreatedForMessage());
+		assertFalse(messageParser.synchronizationRequiered());
 	}
 
 	@Test
@@ -97,7 +100,7 @@ public class FedoraMessageParserTest {
 		headers.put("methodName", "modifyDatastreamByReference");
 
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertTrue(messageParser.shouldWorkOrderBeCreatedForMessage());
+		assertTrue(messageParser.synchronizationRequiered());
 	}
 
 	@Test
@@ -108,7 +111,7 @@ public class FedoraMessageParserTest {
 		headers.put("methodName", "modifyObject");
 
 		messageParser.parseHeadersAndMessage(headers, messageWhenDelete);
-		assertTrue(messageParser.shouldWorkOrderBeCreatedForMessage());
+		assertTrue(messageParser.synchronizationRequiered());
 	}
 
 	@Test
@@ -117,7 +120,7 @@ public class FedoraMessageParserTest {
 		headers.put("methodName", "modifyObject");
 
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertFalse(messageParser.shouldWorkOrderBeCreatedForMessage());
+		assertFalse(messageParser.synchronizationRequiered());
 	}
 
 	@Test
@@ -125,14 +128,14 @@ public class FedoraMessageParserTest {
 		headers.put("methodName", "purgeObject");
 
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertTrue(messageParser.shouldWorkOrderBeCreatedForMessage());
+		assertTrue(messageParser.synchronizationRequiered());
 	}
 
 	@Test
 	public void testMethodNameAddDatastreamWorkOrderShouldBeCreated() throws Exception {
 		headers.put("methodName", "addDatastream");
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertTrue(messageParser.shouldWorkOrderBeCreatedForMessage());
+		assertTrue(messageParser.synchronizationRequiered());
 	}
 
 	@Test
@@ -140,7 +143,7 @@ public class FedoraMessageParserTest {
 		headers.put("pid", "diva2:45677");
 
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertFalse(messageParser.shouldWorkOrderBeCreatedForMessage());
+		assertFalse(messageParser.synchronizationRequiered());
 	}
 
 	@Test
@@ -148,7 +151,7 @@ public class FedoraMessageParserTest {
 		headers.replace("pid", null);
 
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertFalse(messageParser.shouldWorkOrderBeCreatedForMessage());
+		assertFalse(messageParser.synchronizationRequiered());
 	}
 
 	@Test
@@ -156,7 +159,7 @@ public class FedoraMessageParserTest {
 		headers.remove("pid");
 
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertFalse(messageParser.shouldWorkOrderBeCreatedForMessage());
+		assertFalse(messageParser.synchronizationRequiered());
 	}
 
 	@Test
@@ -179,34 +182,34 @@ public class FedoraMessageParserTest {
 		messageParser.parseHeadersAndMessage(headers, message);
 		assertNull(messageParser.getRecordId());
 		assertNull(messageParser.getRecordType());
-		assertNull(messageParser.getModificationType());
+		assertNull(messageParser.getAction());
 	}
 
 	@Test
 	public void testMessageParserReturnsCorrectId() throws Exception {
 		messageParser.parseHeadersAndMessage(headers, message);
 		assertEquals(messageParser.getRecordId(), headers.get("pid"));
-		assertTrue(messageParser.shouldWorkOrderBeCreatedForMessage());
+		assertTrue(messageParser.synchronizationRequiered());
 	}
 
 	@Test
 	public void testMessageParserReturnsCorrectType() throws Exception {
 		messageParser.parseHeadersAndMessage(headers, message);
 		assertEquals(messageParser.getRecordType(), "person");
-		assertTrue(messageParser.shouldWorkOrderBeCreatedForMessage());
+		assertTrue(messageParser.synchronizationRequiered());
 	}
 
 	@Test
 	public void testGetModificationTypeWhenUpdate() {
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertEquals(messageParser.getModificationType(), "update");
+		assertEquals(messageParser.getAction(), "update");
 	}
 
 	@Test
 	public void testGetModificationTypeWhenCreate() {
 		headers.put("methodName", "addDatastream");
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertEquals(messageParser.getModificationType(), "update");
+		assertEquals(messageParser.getAction(), "update");
 	}
 
 	@Test
@@ -216,8 +219,8 @@ public class FedoraMessageParserTest {
 		headers.put("methodName", "modifyObject");
 		messageParser.parseHeadersAndMessage(headers, messageWhenDelete);
 
-		assertTrue(messageParser.shouldWorkOrderBeCreatedForMessage());
-		assertEquals(messageParser.getModificationType(), "delete");
+		assertTrue(messageParser.synchronizationRequiered());
+		assertEquals(messageParser.getAction(), "delete");
 	}
 
 	@Test
@@ -225,8 +228,8 @@ public class FedoraMessageParserTest {
 		headers.put("methodName", "purgeObject");
 		messageParser.parseHeadersAndMessage(headers, message);
 
-		assertTrue(messageParser.shouldWorkOrderBeCreatedForMessage());
-		assertEquals(messageParser.getModificationType(), "delete");
+		assertTrue(messageParser.synchronizationRequiered());
+		assertEquals(messageParser.getAction(), "delete");
 	}
 
 }

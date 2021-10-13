@@ -21,67 +21,45 @@ package se.uu.ub.cora.classicfedorasynchronizer.messaging;
 import java.text.MessageFormat;
 import java.util.Map;
 
+import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizer;
+import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactory;
+import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.MessageParser;
+import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.MessageParserFactory;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class FedoraMessageReceiver implements MessageReceiver {
 
-	private static final String RECORD_TYPE = "recordType";
-	private static final String RECORD_ID = "recordId";
 	private Logger logger = LoggerProvider.getLoggerForClass(FedoraMessageReceiver.class);
 	private MessageParserFactory messageParserFactory;
+	private ClassicCoraSynchronizerFactory classicCoraSynchronizerFactory;
 
-	public FedoraMessageReceiver(MessageParserFactory messageParserFactory) {
+	public FedoraMessageReceiver(MessageParserFactory messageParserFactory,
+			ClassicCoraSynchronizerFactory classicCoraSynchronizerFactory) {
 		this.messageParserFactory = messageParserFactory;
+		this.classicCoraSynchronizerFactory = classicCoraSynchronizerFactory;
 	}
 
 	@Override
 	public void receiveMessage(Map<String, String> headers, String message) {
 		MessageParser messageParser = messageParserFactory.factor();
-		messageParser.parseHeadersAndMessage(headers, message);
-		if (messageParser.shouldWorkOrderBeCreatedForMessage()) {
-			// createWorkOrder(messageParser);
-			// synchronize(String recordType, String recordId, String action, String dataDivider);
+		ClassicCoraSynchronizer synchronizer = classicCoraSynchronizerFactory.factor();
 
+		messageParser.parseHeadersAndMessage(headers, message);
+		if (messageParser.synchronizationRequiered()) {
+			String recordType = messageParser.getRecordType();
+			String recordId = messageParser.getRecordId();
+			String action = messageParser.getAction();
+			synchronizer.synchronize(recordType, recordId, action, "diva");
+			writeLogMessage(recordType, recordId, action);
 		}
 	}
 
-	// private ClientDataGroup createWorkOrderDataGroup(MessageParser messageParser,
-	// Map<String, String> logValues) {
-	// ClientDataGroup workOrder = ClientDataGroup.withNameInData("workOrder");
-	// addRecordType(messageParser, workOrder, logValues);
-	// addRecordId(messageParser, workOrder, logValues);
-	// addWorkOrderType(messageParser, workOrder);
-	// return workOrder;
-	// }
-	//
-	// private void addWorkOrderType(MessageParser messageParser, ClientDataGroup workOrder) {
-	// String modificationType = messageParser.getModificationType();
-	// String workOrderType = "delete".equals(modificationType) ? "removeFromIndex" : "index";
-	// workOrder.addChild(ClientDataAtomic.withNameInDataAndValue("type", workOrderType));
-	// }
-	//
-	// private void addRecordId(MessageParser messageParser, ClientDataGroup workOrder,
-	// Map<String, String> logValues) {
-	// String parsedId = messageParser.getRecordId();
-	// workOrder.addChild(ClientDataAtomic.withNameInDataAndValue(RECORD_ID, parsedId));
-	// logValues.put(RECORD_ID, parsedId);
-	// }
-	//
-	// private void addRecordType(MessageParser messageParser, ClientDataGroup workOrder,
-	// Map<String, String> logValues) {
-	// String parsedType = messageParser.getRecordType();
-	// ClientDataGroup recordTypeGroup = ClientDataGroup
-	// .asLinkWithNameInDataAndTypeAndId(RECORD_TYPE, RECORD_TYPE, parsedType);
-	// workOrder.addChild(recordTypeGroup);
-	// logValues.put(RECORD_TYPE, parsedType);
-	// }
-
-	private void writeLogMessage(Map<String, String> logValues) {
-		String logM = "Index workOrder created for type: {0} and id: {1}";
-		logger.logInfoUsingMessage(
-				MessageFormat.format(logM, logValues.get(RECORD_TYPE), logValues.get(RECORD_ID)));
+	private void writeLogMessage(String recordType, String recordId, String action) {
+		String logM = "Synchronizer called for type: {0}, "
+				+ " id: {1}, action: {2} and dataDivider: diva ";
+		logger.logInfoUsingMessage(MessageFormat.format(logM, recordType, recordId, action));
 	}
 
 	@Override
@@ -92,6 +70,10 @@ public class FedoraMessageReceiver implements MessageReceiver {
 	public MessageParserFactory onlyForTestGetMessageParserFactory() {
 		// needed for test
 		return messageParserFactory;
+	}
+
+	public ClassicCoraSynchronizerFactory onlyForTestGetClassicCoraSynchronizerFactory() {
+		return classicCoraSynchronizerFactory;
 	}
 
 }

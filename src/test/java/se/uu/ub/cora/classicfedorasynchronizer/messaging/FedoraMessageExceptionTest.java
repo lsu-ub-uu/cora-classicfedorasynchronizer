@@ -18,11 +18,24 @@
  */
 package se.uu.ub.cora.classicfedorasynchronizer.messaging;
 
-public class FedoraMessageParserFactory implements MessageParserFactory {
+import static org.testng.Assert.assertEquals;
 
-	@Override
-	public MessageParser factor() {
-		return new FedoraMessageParser();
+import org.testng.annotations.Test;
+
+public class FedoraMessageExceptionTest {
+	@Test
+	public void testInit() {
+		String message = "message";
+		FedoraMessageException exception = FedoraMessageException.withMessage(message);
+		assertEquals(exception.getMessage(), "message");
 	}
 
+	@Test
+	public void testWithMessageAndException() throws Exception {
+		Exception e = new Exception("some message");
+		FedoraMessageException exception = FedoraMessageException.withMessageAndException("second message", e);
+		assertEquals(exception.getMessage(), "second message");
+		assertEquals(exception.getCause().getMessage(), "some message");
+
+	}
 }
