@@ -30,41 +30,42 @@ import se.uu.ub.cora.messaging.MessageListener;
 import se.uu.ub.cora.messaging.MessageReceiver;
 import se.uu.ub.cora.messaging.MessagingProvider;
 
-public class DivaIndexMessengerStarter {
+public class MessengerListenerStarter {
 
-	// protected static IndexMessengerListener indexMessengerListener;
+	private static final int NUMBER_OF_ARGUMENTS = 5;
 
-	private static Logger logger = LoggerProvider
-			.getLoggerForClass(DivaIndexMessengerStarter.class);
+	private static Logger logger = LoggerProvider.getLoggerForClass(MessengerListenerStarter.class);
 
-	private DivaIndexMessengerStarter() {
+	private MessengerListenerStarter() {
 	}
 
 	public static void main(String[] args) {
-		logger.logInfoUsingMessage("DivaIndexMessengerStarter starting...");
-		tryToCreateIndexMessengerListener(args);
+		logger.logInfoUsingMessage("MessengerListenerStarter starting...");
+		tryToCreateMessengerListener(args);
+		logger.logInfoUsingMessage("MessengerListenerStarter started");
 	}
 
-	private static void tryToCreateIndexMessengerListener(String[] args) {
+	private static void tryToCreateMessengerListener(String[] args) {
 		try {
-			Properties properties = loadProperties(args);
-			createIndexMessengerListener(properties);
-			logger.logInfoUsingMessage("DivaIndexMessengerStarter started");
+			startMessengerListener(args);
 		} catch (Exception ex) {
-			logger.logFatalUsingMessageAndException("Unable to start DivaIndexMessengerStarter ",
+			logger.logFatalUsingMessageAndException("Unable to start MessengerListenerStarter ",
 					ex);
 		}
 	}
 
+	private static void startMessengerListener(String[] args) throws IOException {
+		Properties properties = loadProperties(args);
+		createIndexMessengerListener(properties);
+	}
+
 	private static Properties loadProperties(String[] args) throws IOException {
 		if (propertiesShouldBeReadFromFile(args)) {
-			String propertiesFileName = getFilenameFromArgsOrDefault(args);
-			return readPropertiesFromFile(propertiesFileName);
+			return readPropertiesFromFile(args);
 		} else if (propertiesProvidedAsArguments(args)) {
 			return loadProperitesFromArgs(args);
 		}
-		throw new RuntimeException("Number of arguments should be 9.");
-
+		throw new RuntimeException("Number of arguments should be " + NUMBER_OF_ARGUMENTS + ".");
 	}
 
 	private static boolean propertiesShouldBeReadFromFile(String[] args) {
@@ -75,12 +76,9 @@ public class DivaIndexMessengerStarter {
 		return args.length == 1;
 	}
 
-	private static boolean propertiesProvidedAsArguments(String[] args) {
-		return args.length == 9;
-	}
-
-	private static Properties readPropertiesFromFile(String propertiesFileName) throws IOException {
-		try (InputStream input = DivaIndexMessengerStarter.class.getClassLoader()
+	private static Properties readPropertiesFromFile(String[] args) throws IOException {
+		String propertiesFileName = getFilenameFromArgsOrDefault(args);
+		try (InputStream input = MessengerListenerStarter.class.getClassLoader()
 				.getResourceAsStream(propertiesFileName)) {
 			return loadProperitesFromFile(input);
 		}
@@ -90,7 +88,11 @@ public class DivaIndexMessengerStarter {
 		if (args.length > 0) {
 			return args[0];
 		}
-		return "divaIndexer.properties";
+		return "fedoraJms.properties";
+	}
+
+	private static boolean propertiesProvidedAsArguments(String[] args) {
+		return args.length == NUMBER_OF_ARGUMENTS;
 	}
 
 	private static Properties loadProperitesFromArgs(String[] args) {
@@ -100,11 +102,6 @@ public class DivaIndexMessengerStarter {
 		properties.put("messaging.routingKey", args[2]);
 		properties.put("messaging.username", args[3]);
 		properties.put("messaging.password", args[4]);
-		properties.put("appTokenVerifierUrl", args[5]);
-		properties.put("baseUrl", args[6]);
-		properties.put("cora.userId", args[7]);
-		properties.put("cora.appToken", args[8]);
-
 		return properties;
 	}
 
@@ -116,37 +113,19 @@ public class DivaIndexMessengerStarter {
 	}
 
 	private static void createIndexMessengerListener(Properties properties) {
-		MessageParserFactory messageParserFactory = new DivaMessageParserFactory();
 		JmsMessageRoutingInfo routingInfo = createMessageRoutingInfoFromProperties(properties);
 
-		String logM = "Will listen for index messages from: {0} using port: {1}";
+		String logM = "Will listen for change messages from: {0} using port: {1}";
 		String formattedLogMessage = MessageFormat.format(logM, routingInfo.hostname,
 				routingInfo.port);
 		logger.logInfoUsingMessage(formattedLogMessage);
 
-		// indexMessengerListener = new IndexMessengerListener( messageParserFactory,
-		// routingInfo);
-
 		MessageListener topicMessageListener = MessagingProvider
 				.getTopicMessageListener(routingInfo);
-
+		MessageParserFactory messageParserFactory = new FedoraMessageParserFactory();
 		MessageReceiver messageReceiver = new IndexMessageReceiver(messageParserFactory);
-
 		topicMessageListener.listen(messageReceiver);
-
 	}
-
-	// private static CoraClientFactory createCoraClientFactoryFromProperties(Properties properties)
-	// {
-	// String baseUrl = extractPropertyThrowErrorIfNotFound(properties, "baseUrl");
-	// String appTokenVerifierUrl = extractPropertyThrowErrorIfNotFound(properties,
-	// "appTokenVerifierUrl");
-	// String logM2 = "Sending indexOrders to: {0} using appToken from: {1}";
-	// String formattedLogMessage2 = MessageFormat.format(logM2, baseUrl, appTokenVerifierUrl);
-	// logger.logInfoUsingMessage(formattedLogMessage2);
-	// return CoraClientFactoryImp.usingAppTokenVerifierUrlAndBaseUrl(appTokenVerifierUrl,
-	// baseUrl);
-	// }
 
 	private static String extractPropertyThrowErrorIfNotFound(Properties properties,
 			String propertyName) {
