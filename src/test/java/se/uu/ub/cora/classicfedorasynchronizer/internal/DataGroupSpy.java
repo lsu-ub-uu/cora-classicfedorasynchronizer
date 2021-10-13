@@ -30,18 +30,11 @@ import se.uu.ub.cora.data.DataGroup;
 public class DataGroupSpy implements DataGroup {
 
 	public String nameInData;
-	// public List<DataElement> children = new ArrayList<>();
-	// public List<DataElement> groupChildren = new ArrayList<>();
-	// public List<String> getAllGroupsUsedNameInDatas = new ArrayList<>();
-	// public Map<String, List<DataElement>> childrenToReturn = new HashMap<>();
-	// public List<String> removeAllGroupsUsedNameInDatas = new ArrayList<>();
-	// public List<DataElement> addedChildren = new ArrayList<>();
-	// public List<String> returnContainsTrueNameInDatas = new ArrayList<>();
-	// public List<String> requestedAtomicNameInDatas = new ArrayList<>();
 	public String recordType;
 	public String recordId;
 	public int numberOfDomainParts = 0;
 	private String repeatId;
+	public List<DataGroup> groupChildrenToReturn;
 
 	public DataGroupSpy(String nameInData) {
 		this.nameInData = nameInData;
@@ -78,15 +71,11 @@ public class DataGroupSpy implements DataGroup {
 
 	@Override
 	public boolean containsChildWithNameInData(String nameInData) {
-		// return returnContainsTrueNameInDatas.contains(nameInData);
 		return false;
 	}
 
 	@Override
 	public void addChildren(Collection<DataElement> dataElements) {
-		// for (DataElement dataElement : dataElements) {
-		// addedChildren.add(dataElement);
-		// }
 
 	}
 
@@ -106,10 +95,6 @@ public class DataGroupSpy implements DataGroup {
 				childrenToReturn.add(dataGroupSpy);
 			}
 		}
-		// getAllGroupsUsedNameInDatas.add(nameInData);
-		// if (childrenToReturn.containsKey(nameInData)) {
-		// return childrenToReturn.get(nameInData);
-		// }
 		return childrenToReturn;
 	}
 
@@ -131,15 +116,6 @@ public class DataGroupSpy implements DataGroup {
 		if ("linkedRecordId".equals(nameInData)) {
 			return recordId;
 		}
-		// requestedAtomicNameInDatas.add(nameInData);
-		// for (DataElement dataElement : children) {
-		// if (nameInData.equals(dataElement.getNameInData())) {
-		// if (dataElement instanceof DataAtomic) {
-		// return ((DataAtomic) dataElement).getValue();
-		// }
-		// }
-		// }
-		// throw new RuntimeException("Atomic value not found for childNameInData:" + nameInData);
 		return null;
 	}
 
@@ -151,37 +127,26 @@ public class DataGroupSpy implements DataGroup {
 
 	@Override
 	public DataGroup getFirstGroupWithNameInData(String childNameInData) {
-		// for (DataElement dataElement : children) {
-		// if (childNameInData.equals(dataElement.getNameInData())) {
-		// if (dataElement instanceof DataGroup) {
-		// return ((DataGroup) dataElement);
-		// }
-		// }
-		// }
 		return null;
 	}
 
 	@Override
 	public void addChild(DataElement dataElement) {
-		// if (dataElement instanceof DataGroup) {
-		// groupChildren.add(dataElement);
-		// }
-		// children.add(dataElement);
 
 	}
 
 	@Override
 	public List<DataGroup> getAllGroupsWithNameInData(String nameInData) {
-		List<DataGroup> childrenToReturn = new ArrayList<>();
+		groupChildrenToReturn = new ArrayList<>();
 		if ("personDomainPart".equals(nameInData)) {
 			for (int i = 0; i < numberOfDomainParts; i++) {
 				DataGroupSpy dataGroupSpy = new DataGroupSpy("personDomainPart", "personDomainPart",
 						"authority-person:" + i + ":test");
 				dataGroupSpy.setRepeatId(String.valueOf(i));
-				childrenToReturn.add(dataGroupSpy);
+				groupChildrenToReturn.add(dataGroupSpy);
 			}
 		}
-		return childrenToReturn;
+		return groupChildrenToReturn;
 	}
 
 	@Override

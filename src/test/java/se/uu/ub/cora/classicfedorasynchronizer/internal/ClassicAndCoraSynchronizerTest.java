@@ -28,6 +28,7 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 
@@ -40,6 +41,7 @@ public class ClassicAndCoraSynchronizerTest {
 	private RecordStorageSpy dbStorage;
 	private String dataDivider = "diva";
 	private DataGroupFactorySpy dataGroupFactory;
+	private List<DataGroupSpy> dataGroupsReturnedFromConverter;
 
 	@BeforeMethod
 	public void setUp() {
@@ -89,12 +91,12 @@ public class ClassicAndCoraSynchronizerTest {
 		HttpHandlerSpy factoredHttpHandler = httpHandlerFactory.factoredHttpHandlerSpy;
 		FedoraToCoraConverterSpy factoredFedoraConverter = fedoraConverterFactory.factoredFedoraConverters
 				.get(0);
-		assertCorrectCommonResultHandledCorrectly(factoredHttpHandler, factoredFedoraConverter);
+		assertCorrectCommonResultHandledCorrectly(factoredHttpHandler, factoredFedoraConverter, 2);
 		assertEquals(dbStorage.methodName, "create");
 	}
 
 	private void assertCorrectCommonResultHandledCorrectly(HttpHandlerSpy factoredHttpHandler,
-			FedoraToCoraConverterSpy factoredFedoraConverter) {
+			FedoraToCoraConverterSpy factoredFedoraConverter, int numberOfFactoredDataGroups) {
 		assertEquals(factoredFedoraConverter.xml, factoredHttpHandler.responseText);
 
 		assertSame(factoredFedoraConverter.convertedGroup, dbStorage.handledDataGroups.get(0));
@@ -102,12 +104,12 @@ public class ClassicAndCoraSynchronizerTest {
 		assertEquals(dbStorage.recordIds.get(0), "someRecordId");
 		assertEquals(dbStorage.dataDividers.get(0), "diva");
 
-		assertCorrectlyFactoredAndUsedDataGroups();
+		assertCorrectlyFactoredAndUsedDataGroups(numberOfFactoredDataGroups);
 
 	}
 
-	private void assertCorrectlyFactoredAndUsedDataGroups() {
-		assertEquals(dataGroupFactory.nameInDatas.size(), 2);
+	private void assertCorrectlyFactoredAndUsedDataGroups(int numberOfFactoredDataGroups) {
+		assertEquals(dataGroupFactory.nameInDatas.size(), numberOfFactoredDataGroups);
 		assertEquals(dataGroupFactory.nameInDatas.get(0), "collectedData");
 		assertSame(dbStorage.collectedDataDataGroups.get(0),
 				dataGroupFactory.factoredDataGroups.get(0));
@@ -122,14 +124,19 @@ public class ClassicAndCoraSynchronizerTest {
 		HttpHandlerSpy factoredHttpHandler = httpHandlerFactory.factoredHttpHandlerSpy;
 		FedoraToCoraConverterSpy factoredFedoraConverter = fedoraConverterFactory.factoredFedoraConverters
 				.get(0);
-		assertCorrectCommonResultHandledCorrectly(factoredHttpHandler, factoredFedoraConverter);
+		assertCorrectCommonResultHandledCorrectly(factoredHttpHandler, factoredFedoraConverter, 2);
 		assertEquals(dbStorage.methodName, "update");
 	}
 
+	/************************* with domainParts *******************************/
 	@Test
-	public void testFactoredFedoraToCoraConverterUpdateWhenDomainParts() {
+	public void testFactoredFedoraToCoraConverterWhenDomainPartsForUpdate() {
 		setUpPersonWithDomainParts();
 		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
+		assertCorrectFactoredAndUsedConverters();
+	}
+
+	private void assertCorrectFactoredAndUsedConverters() {
 		assertEquals(fedoraConverterFactory.types.get(0), "person");
 		assertEquals(fedoraConverterFactory.types.get(1), "personDomainPart");
 		assertEquals(fedoraConverterFactory.types.get(2), "personDomainPart");
@@ -143,9 +150,21 @@ public class ClassicAndCoraSynchronizerTest {
 	}
 
 	@Test
-	public void testConvertedDataGroupSentToUpdateWhenDomainParts() {
+	public void testFactoredFedoraToCoraConverterWhenDomainPartsForCreate() {
+		setUpPersonWithDomainParts();
+		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
+		assertCorrectFactoredAndUsedConverters();
+	}
+
+	@Test
+	public void testConvertedDataGroupSentToStorageWhenDomainPartsForUpdate() {
 		setUpPersonWithDomainParts();
 		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
+		assertConvertedGroupsAreSentToStorage();
+
+	}
+
+	private void assertConvertedGroupsAreSentToStorage() {
 		List<FedoraToCoraConverterSpy> factoredFedoraConverters = fedoraConverterFactory.factoredFedoraConverters;
 		assertSame(factoredFedoraConverters.get(1).convertedGroup,
 				dbStorage.handledDataGroups.get(1));
@@ -153,31 +172,50 @@ public class ClassicAndCoraSynchronizerTest {
 				dbStorage.handledDataGroups.get(2));
 		assertSame(factoredFedoraConverters.get(3).convertedGroup,
 				dbStorage.handledDataGroups.get(3));
+	}
+
+	@Test
+	public void testConvertedDataGroupSentToStorageWhenDomainPartsForCreate() {
+		setUpPersonWithDomainParts();
+		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
+		assertConvertedGroupsAreSentToStorage();
 
 	}
 
 	@Test
-	public void testDbCallsUpdateWhenDomainParts() {
+	public void testDbCallsWhenDomainPartsForUpdate() {
 		setUpPersonWithDomainParts();
 		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
-		assertEquals(dbStorage.recordTypes.get(0), "person");
-		assertEquals(dbStorage.recordIds.get(0), "someRecordId");
-		assertEquals(dbStorage.dataDividers.get(0), "diva");
-
-		assertEquals(dbStorage.recordTypes.get(1), "personDomainPart");
-		assertEquals(dbStorage.recordIds.get(1), "authority-person:0:test");
-		assertEquals(dbStorage.dataDividers.get(1), "diva");
-
-		assertEquals(dbStorage.recordTypes.get(2), "personDomainPart");
-		assertEquals(dbStorage.recordIds.get(2), "authority-person:1:test");
-		assertEquals(dbStorage.dataDividers.get(2), "diva");
-
+		assertCorrectDomainPartDataSentToStorage();
 	}
 
-	// TODO: kolla att persondomainparts som kommer tillbaka från converter skickas till db
+	private void assertCorrectDomainPartDataSentToStorage() {
+		assertEquals(dbStorage.recordTypes.get(0), "person");
+		assertEquals(dbStorage.recordIds.get(0), "someRecordId");
+		assertEquals(dbStorage.dataDividers.get(0), dataDivider);
+
+		assertEquals(dbStorage.recordTypes.get(1), "personDomainPart");
+		assertEquals(dbStorage.dataDividers.get(1), dataDivider);
+		assertEquals(dbStorage.recordTypes.get(2), "personDomainPart");
+		assertEquals(dbStorage.dataDividers.get(2), dataDivider);
+		assertEquals(dbStorage.recordTypes.get(3), "personDomainPart");
+		assertEquals(dbStorage.dataDividers.get(3), dataDivider);
+
+		List<DataGroup> domainParts = dataGroupsReturnedFromConverter.get(0).groupChildrenToReturn;
+		assertEquals(dbStorage.recordIds.get(1), ((DataGroupSpy) domainParts.get(0)).recordId);
+		assertEquals(dbStorage.recordIds.get(2), ((DataGroupSpy) domainParts.get(1)).recordId);
+		assertEquals(dbStorage.recordIds.get(3), ((DataGroupSpy) domainParts.get(2)).recordId);
+	}
 
 	@Test
-	public void testSynchronizeRecordResultHandledCorrectlyForUpdateWithDomainPart() {
+	public void testDbCallsWhenDomainPartsForCreate() {
+		setUpPersonWithDomainParts();
+		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
+		assertCorrectDomainPartDataSentToStorage();
+	}
+
+	@Test
+	public void testSynchronizeRecordResultHandledCorrectlyWhenDomainPartsForUpdate() {
 		setUpPersonWithDomainParts();
 		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
 
@@ -185,20 +223,34 @@ public class ClassicAndCoraSynchronizerTest {
 		FedoraToCoraConverterSpy factoredFedoraConverter = fedoraConverterFactory.factoredFedoraConverters
 				.get(0);
 
-		assertCorrectCommonResultHandledCorrectly(factoredHttpHandler, factoredFedoraConverter);
+		assertCorrectCommonResultHandledCorrectly(factoredHttpHandler, factoredFedoraConverter, 8);
 		assertEquals(dbStorage.methodName, "update");
 
 	}
 
 	private void setUpPersonWithDomainParts() {
-		List<DataGroupSpy> dataGroups = new ArrayList<>();
+		dataGroupsReturnedFromConverter = new ArrayList<>();
 		DataGroupSpy person = new DataGroupSpy("person");
 		person.numberOfDomainParts = 3;
-		dataGroups.add(person);
-		dataGroups.add(new DataGroupSpy("personDomainPart"));
-		dataGroups.add(new DataGroupSpy("personDomainPart"));
-		dataGroups.add(new DataGroupSpy("personDomainPart"));
-		fedoraConverterFactory.convertedGroups = dataGroups;
+		dataGroupsReturnedFromConverter.add(person);
+		dataGroupsReturnedFromConverter.add(new DataGroupSpy("personDomainPart"));
+		dataGroupsReturnedFromConverter.add(new DataGroupSpy("personDomainPart"));
+		dataGroupsReturnedFromConverter.add(new DataGroupSpy("personDomainPart"));
+		fedoraConverterFactory.convertedGroups = dataGroupsReturnedFromConverter;
+	}
+
+	@Test
+	public void testSynchronizeRecordResultHandledCorrectlyWhenDomainPartsForCreate() {
+		setUpPersonWithDomainParts();
+		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
+
+		HttpHandlerSpy factoredHttpHandler = httpHandlerFactory.factoredHttpHandlerSpy;
+		FedoraToCoraConverterSpy factoredFedoraConverter = fedoraConverterFactory.factoredFedoraConverters
+				.get(0);
+
+		assertCorrectCommonResultHandledCorrectly(factoredHttpHandler, factoredFedoraConverter, 8);
+		assertEquals(dbStorage.methodName, "create");
+
 	}
 
 }

@@ -25,19 +25,19 @@ import se.uu.ub.cora.classicfedorasynchronizer.NotImplementedException;
 import se.uu.ub.cora.xmlutils.transformer.CoraTransformation;
 import se.uu.ub.cora.xmlutils.transformer.CoraTransformationFactory;
 
-public class FedoraConverterFactoryImp implements FedoraConverterFactory {
+public class DivaFedoraConverterFactoryImp implements FedoraConverterFactory {
 
 	private static final String PERSON_XSLT_PATH = "person/coraPerson.xsl";
 	private static final String PERSON_DOMAIN_PART_XSLT_PATH = "person/coraPersonDomainPart.xsl";
 	private String fedoraURL;
 	private CoraTransformationFactory coraTransformationFactory;
 
-	public static FedoraConverterFactoryImp usingFedoraURLAndTransformerFactory(String fedoraURL,
+	public static DivaFedoraConverterFactoryImp usingFedoraURLAndTransformerFactory(String fedoraURL,
 			CoraTransformationFactory transformationFactory) {
-		return new FedoraConverterFactoryImp(fedoraURL, transformationFactory);
+		return new DivaFedoraConverterFactoryImp(fedoraURL, transformationFactory);
 	}
 
-	private FedoraConverterFactoryImp(String fedoraURL,
+	private DivaFedoraConverterFactoryImp(String fedoraURL,
 			CoraTransformationFactory coraTransformationFactory) {
 		this.fedoraURL = fedoraURL;
 		this.coraTransformationFactory = coraTransformationFactory;
