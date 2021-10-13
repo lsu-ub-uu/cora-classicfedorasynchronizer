@@ -18,24 +18,24 @@
  */
 package se.uu.ub.cora.classicfedorasynchronizer.messaging;
 
-import static org.testng.Assert.assertEquals;
+public final class FedoraMessageException extends RuntimeException {
 
-import org.testng.annotations.Test;
+	private static final long serialVersionUID = 1L;
 
-public class IndexMessageExceptionTest {
-	@Test
-	public void testInit() {
-		String message = "message";
-		IndexMessageException exception = IndexMessageException.withMessage(message);
-		assertEquals(exception.getMessage(), "message");
+	public static FedoraMessageException withMessage(String message) {
+		return new FedoraMessageException(message);
 	}
 
-	@Test
-	public void testWithMessageAndException() throws Exception {
-		Exception e = new Exception("some message");
-		IndexMessageException exception = IndexMessageException.withMessageAndException("second message", e);
-		assertEquals(exception.getMessage(), "second message");
-		assertEquals(exception.getCause().getMessage(), "some message");
-
+	public static FedoraMessageException withMessageAndException(String message, Exception e) {
+		return new FedoraMessageException(message, e);
 	}
+
+	private FedoraMessageException(String message) {
+		super(message);
+	}
+
+	private FedoraMessageException(String message, Exception e) {
+		super(message, e);
+	}
+
 }

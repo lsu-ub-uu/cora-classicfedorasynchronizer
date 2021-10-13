@@ -17,7 +17,7 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.classicfedorasynchronizer.messaging;
+package se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -34,6 +34,9 @@ import java.util.Map;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.classicfedorasynchronizer.messaging.LoggerFactorySpy;
+import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.FedoraMessageParser;
+import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.MessageParser;
 import se.uu.ub.cora.logger.LoggerProvider;
 
 public class FedoraMessageParserTest {

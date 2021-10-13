@@ -16,10 +16,10 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.classicfedorasynchronizer.messaging;
+package se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning;
 
 public class MessageParserFactorySpy implements MessageParserFactory {
-	boolean factorWasCalled = false;
+	public boolean factorWasCalled = false;
 	public boolean createWorkOrder = true;
 	public MessageParserSpy messageParserSpy;
 	public String modificationType = "update";

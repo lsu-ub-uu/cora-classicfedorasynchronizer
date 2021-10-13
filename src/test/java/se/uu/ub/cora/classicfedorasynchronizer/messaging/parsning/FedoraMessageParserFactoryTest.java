@@ -16,13 +16,18 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.classicfedorasynchronizer.messaging;
+package se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning;
 
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.classicfedorasynchronizer.messaging.LoggerFactorySpy;
+import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.FedoraMessageParser;
+import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.FedoraMessageParserFactory;
+import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.MessageParser;
+import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.MessageParserFactory;
 import se.uu.ub.cora.logger.LoggerProvider;
 
 public class FedoraMessageParserFactoryTest {

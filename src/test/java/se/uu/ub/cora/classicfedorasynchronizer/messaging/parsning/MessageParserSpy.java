@@ -17,10 +17,11 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.classicfedorasynchronizer.messaging;
+package se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning;
 
 import java.util.Map;
 
+import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.MessageParser;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class MessageParserSpy implements MessageParser {

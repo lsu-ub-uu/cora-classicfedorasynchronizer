@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, 2021 Uppsala University Library
+ * Copyright 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,26 +16,26 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package se.uu.ub.cora.classicfedorasynchronizer.messaging;
 
-import java.util.Map;
+import static org.testng.Assert.assertEquals;
 
-public interface MessageParser {
+import org.testng.annotations.Test;
 
-	void parseHeadersAndMessage(Map<String, String> headers, String message);
+public class FedoraMessageExceptionTest {
+	@Test
+	public void testInit() {
+		String message = "message";
+		FedoraMessageException exception = FedoraMessageException.withMessage(message);
+		assertEquals(exception.getMessage(), "message");
+	}
 
-	boolean synchronizationRequiered();
+	@Test
+	public void testWithMessageAndException() throws Exception {
+		Exception e = new Exception("some message");
+		FedoraMessageException exception = FedoraMessageException.withMessageAndException("second message", e);
+		assertEquals(exception.getMessage(), "second message");
+		assertEquals(exception.getCause().getMessage(), "some message");
 
-	String getRecordType();
-
-	String getRecordId();
-
-	/**
-	 * getAction() returns the type of action that caused the message to be sent.
-	 * 
-	 * @return a String, the action type that caused the message.
-	 */
-	String getAction();
-
+	}
 }

@@ -23,6 +23,9 @@ import java.text.MessageFormat;
 import java.util.Properties;
 
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactory;
+import se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory;
+import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.FedoraMessageParserFactory;
+import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.MessageParserFactory;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.messaging.JmsMessageRoutingInfo;
