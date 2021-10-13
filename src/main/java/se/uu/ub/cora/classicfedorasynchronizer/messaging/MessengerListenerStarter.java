@@ -19,7 +19,6 @@
 package se.uu.ub.cora.classicfedorasynchronizer.messaging;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.Properties;
 
@@ -31,9 +30,6 @@ import se.uu.ub.cora.messaging.MessageReceiver;
 import se.uu.ub.cora.messaging.MessagingProvider;
 
 public class MessengerListenerStarter {
-
-	private static final int NUMBER_OF_ARGUMENTS = 5;
-
 	private static Logger logger = LoggerProvider.getLoggerForClass(MessengerListenerStarter.class);
 
 	private MessengerListenerStarter() {
@@ -41,11 +37,11 @@ public class MessengerListenerStarter {
 
 	public static void main(String[] args) {
 		logger.logInfoUsingMessage("MessengerListenerStarter starting...");
-		tryToCreateMessengerListener(args);
+		tryToStartMessengerListener(args);
 		logger.logInfoUsingMessage("MessengerListenerStarter started");
 	}
 
-	private static void tryToCreateMessengerListener(String[] args) {
+	private static void tryToStartMessengerListener(String[] args) {
 		try {
 			startMessengerListener(args);
 		} catch (Exception ex) {
@@ -55,76 +51,33 @@ public class MessengerListenerStarter {
 	}
 
 	private static void startMessengerListener(String[] args) throws IOException {
-		Properties properties = loadProperties(args);
-		createIndexMessengerListener(properties);
-	}
-
-	private static Properties loadProperties(String[] args) throws IOException {
-		if (propertiesShouldBeReadFromFile(args)) {
-			return readPropertiesFromFile(args);
-		} else if (propertiesProvidedAsArguments(args)) {
-			return loadProperitesFromArgs(args);
-		}
-		throw new RuntimeException("Number of arguments should be " + NUMBER_OF_ARGUMENTS + ".");
-	}
-
-	private static boolean propertiesShouldBeReadFromFile(String[] args) {
-		return args.length == 0 || fileNameProvidedAsArgument(args);
-	}
-
-	private static boolean fileNameProvidedAsArgument(String[] args) {
-		return args.length == 1;
-	}
-
-	private static Properties readPropertiesFromFile(String[] args) throws IOException {
-		String propertiesFileName = getFilenameFromArgsOrDefault(args);
-		try (InputStream input = MessengerListenerStarter.class.getClassLoader()
-				.getResourceAsStream(propertiesFileName)) {
-			return loadProperitesFromFile(input);
-		}
-	}
-
-	private static String getFilenameFromArgsOrDefault(String[] args) {
-		if (args.length > 0) {
-			return args[0];
-		}
-		return "fedoraJms.properties";
-	}
-
-	private static boolean propertiesProvidedAsArguments(String[] args) {
-		return args.length == NUMBER_OF_ARGUMENTS;
-	}
-
-	private static Properties loadProperitesFromArgs(String[] args) {
-		Properties properties = new Properties();
-		properties.put("messaging.hostname", args[0]);
-		properties.put("messaging.port", args[1]);
-		properties.put("messaging.routingKey", args[2]);
-		properties.put("messaging.username", args[3]);
-		properties.put("messaging.password", args[4]);
-		return properties;
-	}
-
-	private static Properties loadProperitesFromFile(InputStream input) throws IOException {
-		Properties properties = new Properties();
-
-		properties.load(input);
-		return properties;
-	}
-
-	private static void createIndexMessengerListener(Properties properties) {
-		JmsMessageRoutingInfo routingInfo = createMessageRoutingInfoFromProperties(properties);
-
-		String logM = "Will listen for change messages from: {0} using port: {1}";
-		String formattedLogMessage = MessageFormat.format(logM, routingInfo.hostname,
-				routingInfo.port);
-		logger.logInfoUsingMessage(formattedLogMessage);
+		JmsMessageRoutingInfo routingInfo = constructRoutingInfoFromArguments(args);
 
 		MessageListener topicMessageListener = MessagingProvider
 				.getTopicMessageListener(routingInfo);
-		MessageParserFactory messageParserFactory = new FedoraMessageParserFactory();
-		MessageReceiver messageReceiver = new IndexMessageReceiver(messageParserFactory);
+
+		MessageReceiver messageReceiver = createMessageReceiver();
+
+		logStartListeningMessages(routingInfo);
 		topicMessageListener.listen(messageReceiver);
+	}
+
+	private static MessageReceiver createMessageReceiver() {
+		MessageParserFactory messageParserFactory = new FedoraMessageParserFactory();
+		return new FedoraMessageReceiver(messageParserFactory);
+	}
+
+	private static JmsMessageRoutingInfo constructRoutingInfoFromArguments(String[] args)
+			throws IOException {
+		Properties properties = MessengerListnerPropertiesLoader.loadProperties(args);
+		return createMessageRoutingInfoFromProperties(properties);
+	}
+
+	private static void logStartListeningMessages(JmsMessageRoutingInfo routingInfo) {
+		String message = "Will listen for change messages from: {0} using port: {1}";
+		String formattedLogMessage = MessageFormat.format(message, routingInfo.hostname,
+				routingInfo.port);
+		logger.logInfoUsingMessage(formattedLogMessage);
 	}
 
 	private static String extractPropertyThrowErrorIfNotFound(Properties properties,

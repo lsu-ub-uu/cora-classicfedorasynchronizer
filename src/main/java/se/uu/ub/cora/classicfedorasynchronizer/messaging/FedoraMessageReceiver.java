@@ -25,14 +25,14 @@ import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
-public class IndexMessageReceiver implements MessageReceiver {
+public class FedoraMessageReceiver implements MessageReceiver {
 
 	private static final String RECORD_TYPE = "recordType";
 	private static final String RECORD_ID = "recordId";
-	private Logger logger = LoggerProvider.getLoggerForClass(IndexMessageReceiver.class);
+	private Logger logger = LoggerProvider.getLoggerForClass(FedoraMessageReceiver.class);
 	private MessageParserFactory messageParserFactory;
 
-	public IndexMessageReceiver(MessageParserFactory messageParserFactory) {
+	public FedoraMessageReceiver(MessageParserFactory messageParserFactory) {
 		this.messageParserFactory = messageParserFactory;
 	}
 
@@ -42,6 +42,8 @@ public class IndexMessageReceiver implements MessageReceiver {
 		messageParser.parseHeadersAndMessage(headers, message);
 		if (messageParser.shouldWorkOrderBeCreatedForMessage()) {
 			// createWorkOrder(messageParser);
+			// synchronize(String recordType, String recordId, String action, String dataDivider);
+
 		}
 	}
 

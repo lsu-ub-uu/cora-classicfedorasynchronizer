@@ -48,10 +48,6 @@ public class MessengerListenerStarterTest {
 		messagingFactorySpy = new MessagingFactorySpy();
 		MessagingProvider.setMessagingFactory(messagingFactorySpy);
 
-		// args = new String[] { "args-dev-diva-drafts", "args-61617", "args-fedora.apim.*",
-		// "args-admin", "args-admin", "args-someAppTokenVerifierUrl", "args-someBaseUrl",
-		// "args-userIdForCora", "args-appTokenForCora" };
-
 		args = new String[] { "args-dev-diva-drafts", "args-61617", "args-fedora.apim.*",
 				"args-admin", "args-admin" };
 	}
@@ -135,7 +131,7 @@ public class MessengerListenerStarterTest {
 	public void testMainMethodMessageParserFactorySetUpCorrectly() throws Exception {
 		MessengerListenerStarter.main(args);
 		MessageListenerSpy messageListener = messagingFactorySpy.messageListenerSpy;
-		IndexMessageReceiver messageReceiver = (IndexMessageReceiver) messageListener.messageReceiver;
+		FedoraMessageReceiver messageReceiver = (FedoraMessageReceiver) messageListener.messageReceiver;
 		assertTrue(messageReceiver
 				.onlyForTestGetMessageParserFactory() instanceof FedoraMessageParserFactory);
 	}

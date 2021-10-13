@@ -32,13 +32,13 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
-public class IndexMessageReceiverTest {
+public class FedoraMessageReceiverTest {
 	private String message;
 	private Map<String, String> headers;
 	private MessageReceiver receiver;
 
 	private LoggerFactorySpy loggerFactory;
-	private String testedClassname = "IndexMessageReceiver";
+	private String testedClassname = "FedoraMessageReceiver";
 	private MessageParserFactorySpy messageParserFactorySpy;
 
 	@BeforeMethod
@@ -56,7 +56,7 @@ public class IndexMessageReceiverTest {
 				+ "\"action\":\"UPDATE\",\"dsId\":null,"
 				+ "\"headers\":{\"ACTION\":\"UPDATE\",\"PID\":\"alvin-place:1\"}}";
 		messageParserFactorySpy = new MessageParserFactorySpy();
-		receiver = new IndexMessageReceiver(messageParserFactorySpy);
+		receiver = new FedoraMessageReceiver(messageParserFactorySpy);
 	}
 
 	@Test
