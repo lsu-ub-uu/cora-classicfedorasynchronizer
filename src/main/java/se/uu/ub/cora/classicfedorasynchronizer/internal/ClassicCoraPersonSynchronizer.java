@@ -56,6 +56,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	private HttpHandler httpHandler;
 	private DataGroup personDataGroup;
 	private CoraIndexer coraIndexer;
+	private String action;
 
 	public ClassicCoraPersonSynchronizer(RecordStorage recordStorage,
 			HttpHandlerFactory httpHandlerFactory, FedoraConverterFactory fedoraConverterFactory,
@@ -75,6 +76,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	public void synchronize(String recordType, String recordId, String action, String dataDivider) {
 		this.recordType = recordType;
 		this.recordId = recordId;
+		this.action = action;
 		this.dataDivider = dataDivider;
 		createHttpHandlerForRead(recordId);
 		throwErrorIfRecordNotFound(recordType, recordId, httpHandler);
@@ -124,7 +126,8 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 
 	private void createAndIndexPerson() {
 		createForMainDataGroup(personDataGroup);
-		coraIndexer.handleWorkorderType(INDEX, recordType, recordId);
+		int responseCode = coraIndexer.handleWorkorderType(INDEX, recordType, recordId);
+		logErrorIfResponseNotOk(responseCode, recordType);
 	}
 
 	private void createForMainDataGroup(DataGroup dataGroup) {
@@ -136,7 +139,13 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		String linkedRecordId = domainPartLink.getFirstAtomicValueWithNameInData("linkedRecordId");
 		recordStorage.create(PERSON_DOMAIN_PART, linkedRecordId, personDomainPart,
 				createCollectedTerms(), createLinkList(), dataDivider);
-		coraIndexer.handleWorkorderType(INDEX, PERSON_DOMAIN_PART, linkedRecordId);
+		indexDomainPart(linkedRecordId);
+	}
+
+	private void indexDomainPart(String linkedRecordId) {
+		int responseCode = coraIndexer.handleWorkorderType(INDEX, PERSON_DOMAIN_PART,
+				linkedRecordId);
+		logErrorIfResponseNotOk(responseCode, PERSON_DOMAIN_PART);
 	}
 
 	private DataGroup convertDomainPart(String responseText) {
@@ -162,7 +171,15 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 
 	private void updateAndIndexPerson() {
 		updateForMainDataGroup(personDataGroup);
-		coraIndexer.handleWorkorderType(INDEX, recordType, recordId);
+		int responseCode = coraIndexer.handleWorkorderType(INDEX, recordType, recordId);
+		logErrorIfResponseNotOk(responseCode, recordType);
+	}
+
+	private void logErrorIfResponseNotOk(int responseCode, String type) {
+		if (responseCode != 200) {
+			logger.logErrorUsingMessage(
+					"Error when indexing record from synchronizer, " + action + " " + type + ".");
+		}
 	}
 
 	private void updateForMainDataGroup(DataGroup dataGroup) {
@@ -175,6 +192,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		String linkedRecordId = domainPartLink.getFirstAtomicValueWithNameInData("linkedRecordId");
 		recordStorage.update(PERSON_DOMAIN_PART, linkedRecordId, personDomainPart,
 				createCollectedTerms(), createLinkList(), dataDivider);
-		coraIndexer.handleWorkorderType(INDEX, PERSON_DOMAIN_PART, linkedRecordId);
+		indexDomainPart(linkedRecordId);
 	}
+
 }
