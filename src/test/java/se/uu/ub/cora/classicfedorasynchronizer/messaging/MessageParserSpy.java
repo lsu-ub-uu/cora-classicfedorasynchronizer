@@ -21,6 +21,8 @@ package se.uu.ub.cora.classicfedorasynchronizer.messaging;
 
 import java.util.Map;
 
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+
 public class MessageParserSpy implements MessageParser {
 
 	public Map<String, String> headers;
@@ -28,36 +30,53 @@ public class MessageParserSpy implements MessageParser {
 	public boolean getParsedIdWasCalled = false;
 	public boolean getParsedTypeWasCalled = false;
 	public boolean getModificationTypeWasCalled = false;
-	public boolean createWorkOrder = true;
+	public boolean synchronizationRequired = true;
 	public String modificationType = "update";
+
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	@Override
 	public void parseHeadersAndMessage(Map<String, String> headers, String message) {
+		MCR.addCall("headers", headers, "message", message);
+
 		this.headers = headers;
 		this.message = message;
-
 	}
 
 	@Override
 	public String getRecordId() {
+		MCR.addCall();
 		getParsedIdWasCalled = true;
-		return "someParsedIdFromMessageParserSpy";
+
+		String recordId = "someParsedIdFromMessageParserSpy";
+		MCR.addReturned(recordId);
+		return recordId;
 	}
 
 	@Override
 	public String getRecordType() {
+		MCR.addCall();
 		getParsedTypeWasCalled = true;
-		return "someParsedTypeFromMessageParserSpy";
+
+		String recordType = "someParsedTypeFromMessageParserSpy";
+		MCR.addReturned(recordType);
+		return recordType;
 	}
 
 	@Override
-	public boolean shouldWorkOrderBeCreatedForMessage() {
-		return createWorkOrder;
+	public boolean synchronizationRequiered() {
+		MCR.addCall();
+
+		MCR.addReturned(synchronizationRequired);
+		return synchronizationRequired;
 	}
 
 	@Override
-	public String getModificationType() {
+	public String getAction() {
+		MCR.addCall();
 		getModificationTypeWasCalled = true;
+
+		MCR.addReturned(modificationType);
 		return modificationType;
 	}
 

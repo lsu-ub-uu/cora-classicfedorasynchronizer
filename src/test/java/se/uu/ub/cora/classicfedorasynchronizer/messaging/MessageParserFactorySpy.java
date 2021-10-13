@@ -28,7 +28,7 @@ public class MessageParserFactorySpy implements MessageParserFactory {
 	public MessageParser factor() {
 		factorWasCalled = true;
 		messageParserSpy = new MessageParserSpy();
-		messageParserSpy.createWorkOrder = createWorkOrder;
+		messageParserSpy.synchronizationRequired = createWorkOrder;
 		messageParserSpy.modificationType = modificationType;
 		return messageParserSpy;
 	}

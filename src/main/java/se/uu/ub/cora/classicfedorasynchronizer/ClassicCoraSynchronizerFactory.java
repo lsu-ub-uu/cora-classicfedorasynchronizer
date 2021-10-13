@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, 2021 Uppsala University Library
+ * Copyright 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,26 +16,10 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+package se.uu.ub.cora.classicfedorasynchronizer;
 
-package se.uu.ub.cora.classicfedorasynchronizer.messaging;
+public interface ClassicCoraSynchronizerFactory {
 
-import java.util.Map;
-
-public interface MessageParser {
-
-	void parseHeadersAndMessage(Map<String, String> headers, String message);
-
-	boolean synchronizationRequiered();
-
-	String getRecordType();
-
-	String getRecordId();
-
-	/**
-	 * getAction() returns the type of action that caused the message to be sent.
-	 * 
-	 * @return a String, the action type that caused the message.
-	 */
-	String getAction();
+	ClassicCoraSynchronizer factor();
 
 }

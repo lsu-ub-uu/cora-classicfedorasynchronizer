@@ -29,6 +29,8 @@ import java.util.Map;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy;
+import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
@@ -40,11 +42,13 @@ public class FedoraMessageReceiverTest {
 	private LoggerFactorySpy loggerFactory;
 	private String testedClassname = "FedoraMessageReceiver";
 	private MessageParserFactorySpy messageParserFactorySpy;
+	private ClassicCoraSynchronizerFactorySpy synchronizerFactory;
 
 	@BeforeMethod
 	public void setUp() {
 		loggerFactory = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactory);
+		synchronizerFactory = new ClassicCoraSynchronizerFactorySpy();
 
 		headers = new HashMap<>();
 		headers.put("__TypeId__", "epc.messaging.amqp.EPCFedoraMessage");
@@ -56,7 +60,14 @@ public class FedoraMessageReceiverTest {
 				+ "\"action\":\"UPDATE\",\"dsId\":null,"
 				+ "\"headers\":{\"ACTION\":\"UPDATE\",\"PID\":\"alvin-place:1\"}}";
 		messageParserFactorySpy = new MessageParserFactorySpy();
-		receiver = new FedoraMessageReceiver(messageParserFactorySpy);
+		receiver = new FedoraMessageReceiver(messageParserFactorySpy, synchronizerFactory);
+	}
+
+	@Test
+	public void testSynchronizerFactoryFactorsInReceiveMessage() {
+		synchronizerFactory.MCR.assertMethodNotCalled("factor");
+		receiver.receiveMessage(headers, message);
+		synchronizerFactory.MCR.assertMethodWasCalled("factor");
 	}
 
 	@Test
@@ -65,13 +76,13 @@ public class FedoraMessageReceiverTest {
 		assertTrue(messageParserFactorySpy.factorWasCalled);
 	}
 
-	@Test
-	public void testReceiveMessageCreatesCoraClientForWorkOrder() {
-		receiver.receiveMessage(headers, message);
-
-		// assertTrue(coraClientSpy.createWasCalled);
-		// assertEquals(coraClientSpy.createdRecordType, "workOrder");
-	}
+	// @Test
+	// public void testReceiveMessageCreatesCoraClientForWorkOrder() {
+	// receiver.receiveMessage(headers, message);
+	//
+	// // assertTrue(coraClientSpy.createWasCalled);
+	// // assertEquals(coraClientSpy.createdRecordType, "workOrder");
+	// }
 
 	@Test
 	public void testReceiveMessageUsesMessageParserToGetTypeAndId() throws Exception {
@@ -82,110 +93,104 @@ public class FedoraMessageReceiverTest {
 	}
 
 	@Test
-	public void testReceiveMessageUsesParserToGetId() throws Exception {
-		receiver.receiveMessage(headers, message);
-		MessageParserSpy messageParserSpy = messageParserFactorySpy.messageParserSpy;
-		assertTrue(messageParserSpy.getParsedIdWasCalled);
-
-		// ClientDataGroup createdDataGroup = coraClientSpy.createdDataGroup;
-		// String recordIdFromWorkOrder = createdDataGroup
-		// .getFirstAtomicValueWithNameInData("recordId");
-		// assertEquals(recordIdFromWorkOrder, messageParserSpy.getRecordId());
-	}
-
-	@Test
-	public void testReceiveMessageUsesParserToGetType() throws Exception {
+	public void testReceiveMessageUsesParserParameters() throws Exception {
 		receiver.receiveMessage(headers, message);
 
 		MessageParserSpy messageParserSpy = messageParserFactorySpy.messageParserSpy;
-		assertTrue(messageParserSpy.getParsedTypeWasCalled);
 
-		// ClientDataGroup createdDataGroup = coraClientSpy.createdDataGroup;
-		// ClientDataGroup recordTypeGroup = createdDataGroup
-		// .getFirstGroupWithNameInData("recordType");
-		// String recordTypeFromWorkOrder = recordTypeGroup
-		// .getFirstAtomicValueWithNameInData("linkedRecordId");
-		// assertEquals(recordTypeFromWorkOrder, messageParserSpy.getRecordType());
+		messageParserSpy.MCR.assertParameters("parseHeadersAndMessage", 0, headers, message);
+		messageParserSpy.MCR.assertReturn("synchronizationRequiered", 0, true);
+
+		messageParserSpy.MCR.assertReturn("getRecordType", 0, "someParsedTypeFromMessageParserSpy");
+		messageParserSpy.MCR.assertReturn("getRecordId", 0, "someParsedIdFromMessageParserSpy");
+		messageParserSpy.MCR.assertReturn("getAction", 0, "update");
 	}
 
 	@Test
-	public void testCorrectWorkOrderTypeWhenModificationTypeUpdate() throws Exception {
+	public void testCallSynchronizerCorrectValues() throws Exception {
 		receiver.receiveMessage(headers, message);
 
 		MessageParserSpy messageParserSpy = messageParserFactorySpy.messageParserSpy;
-		// assertTrue(messageParserSpy.getMoficationTypeWaatedDataGroup =
-		// coraClientSpy.createdDataGroup;
-		// ClientDataGroup recordTypeGroup = createdDataGroup
-		// .getFirstGroupWithNameInData("recordType");
-		// String recordTypeFromWorkOrder = recordTypeGroup
-		// .getFirstAtomicValueWithNameInData("linkedRecordId");
-		// assertEquals(recosCalled);
 
-		// ClientDataGroup createdDataGroup = coraClientSpy.createdDataGroup;
-		// String indexType = createdDataGroup.getFirstAtomicValueWithNameInData("type");
-		// assertEquals(indexType, "index");
+		ClassicCoraSynchronizerSpy synchronizer = (ClassicCoraSynchronizerSpy) synchronizerFactory.MCR
+				.getReturnValue("factor", 0);
+
+		String recordType = (String) messageParserSpy.MCR.getReturnValue("getRecordType", 0);
+		String recordId = (String) messageParserSpy.MCR.getReturnValue("getRecordId", 0);
+		String action = (String) messageParserSpy.MCR.getReturnValue("getAction", 0);
+
+		synchronizer.MCR.assertParameters("synchronize", 0, recordType, recordId, action, "diva");
+
 	}
 
 	@Test
-	public void testCorrectWorkOrderTypeWhenModificationTypeDelete() throws Exception {
-		messageParserFactorySpy.modificationType = "delete";
-		receiver.receiveMessage(headers, message);
-
-		MessageParserSpy messageParserSpy = messageParserFactorySpy.messageParserSpy;
-		// assertTrue(messageParserSpy.getMoficationTypeWasCalled);
-		//
-		// ClientDataGroup createdDataGroup = coraClientSpy.createdDataGroup;
-		// String indexType = createdDataGroup.getFirstAtomicValueWithNameInData("type");
-		// assertEquals(indexType, "removeFromIndex");
-	}
-
-	@Test
-	public void testNOWorkOrderCreatedWhenParserReturnsFalse() throws Exception {
-		messageParserFactorySpy.createWorkOrder = false;
-
-		receiver.receiveMessage(headers, message);
-
-		// assertFalse(coraClientSpy.createWasCalled);
-	}
-
-	@Test
-	public void testLogInfoWhenWorkOrderCreated() throws Exception {
-		assertEquals(loggerFactory.getNoOfInfoLogMessagesUsingClassname(testedClassname), 0);
-
-		receiver.receiveMessage(headers, message);
-
-		assertEquals(loggerFactory.getNoOfInfoLogMessagesUsingClassname(testedClassname), 1);
-	}
-
-	@Test
-	public void testLogInfoWhenWorkOrderCreatedCorrectMessage() throws Exception {
+	public void testWriteLogWhenSynchronizeIsCalledAndRecordHasToBeSynchronized() throws Exception {
 		receiver.receiveMessage(headers, message);
 
 		String firstInfoLogMessage = loggerFactory
 				.getInfoLogMessageUsingClassNameAndNo(testedClassname, 0);
 		assertEquals(firstInfoLogMessage,
-				"Index workOrder created for type: someParsedTypeFromMessageParserSpy "
-						+ "and id: someParsedIdFromMessageParserSpy");
+				"Synchronizer called for type: someParsedTypeFromMessageParserSpy, "
+						+ " id: someParsedIdFromMessageParserSpy, action: update and dataDivider: diva ");
 	}
 
 	@Test
-	public void testLogErrorWhenWorkOrderFailedToBeCreated() throws Exception {
-		// coraClientSpy.throwErrorOnCreate = true;
-		assertEquals(loggerFactory.getNoOfErrorLogMessagesUsingClassName(testedClassname), 0);
-
+	public void testWriteLogWhenSynchronizeIsCalledAndRecordIsNotSynchronized() throws Exception {
+		messageParserFactorySpy.createWorkOrder = false;
 		receiver.receiveMessage(headers, message);
 
-		assertEquals(loggerFactory.getNoOfErrorLogMessagesUsingClassName(testedClassname), 1);
-		String firstErrorLogMessage = loggerFactory
-				.getErrorLogMessageUsingClassNameAndNo(testedClassname, 0);
-		assertEquals(firstErrorLogMessage,
-				"Index workOrder NOT created for type: someParsedTypeFromMessageParserSpy "
-						+ "and id: someParsedIdFromMessageParserSpy");
-		Exception firstErrorException = loggerFactory
-				.getErrorLogErrorUsingClassNameAndNo(testedClassname, 0);
-		assertEquals(firstErrorException.getMessage(), "Error from CoraClientSpy on create");
-		assertEquals(loggerFactory.getNoOfInfoLogMessagesUsingClassname(testedClassname), 0);
+		Object noOfErrorLogMessagesUsingClassName = loggerFactory
+				.getNoOfErrorLogMessagesUsingClassName(testedClassname);
+
+		assertEquals(noOfErrorLogMessagesUsingClassName, 0);
 	}
+
+	// @Test
+	// public void testNOWorkOrderCreatedWhenParserReturnsFalse() throws Exception {
+	//
+	// receiver.receiveMessage(headers, message);
+	//
+	// // assertFalse(coraClientSpy.createWasCalled);
+	// }
+
+	// @Test
+	// public void testLogInfoWhenWorkOrderCreated() throws Exception {
+	// assertEquals(loggerFactory.getNoOfInfoLogMessagesUsingClassname(testedClassname), 0);
+	//
+	// receiver.receiveMessage(headers, message);
+	//
+	// assertEquals(loggerFactory.getNoOfInfoLogMessagesUsingClassname(testedClassname), 1);
+	// }
+	//
+	// @Test
+	// public void testLogInfoWhenWorkOrderCreatedCorrectMessage() throws Exception {
+	// receiver.receiveMessage(headers, message);
+	//
+	// String firstInfoLogMessage = loggerFactory
+	// .getInfoLogMessageUsingClassNameAndNo(testedClassname, 0);
+	// assertEquals(firstInfoLogMessage,
+	// "Index workOrder created for type: someParsedTypeFromMessageParserSpy "
+	// + "and id: someParsedIdFromMessageParserSpy");
+	// }
+	//
+	// @Test
+	// public void testLogErrorWhenWorkOrderFailedToBeCreated() throws Exception {
+	// // coraClientSpy.throwErrorOnCreate = true;
+	// assertEquals(loggerFactory.getNoOfErrorLogMessagesUsingClassName(testedClassname), 0);
+	//
+	// receiver.receiveMessage(headers, message);
+	//
+	// assertEquals(loggerFactory.getNoOfErrorLogMessagesUsingClassName(testedClassname), 1);
+	// String firstErrorLogMessage = loggerFactory
+	// .getErrorLogMessageUsingClassNameAndNo(testedClassname, 0);
+	// assertEquals(firstErrorLogMessage,
+	// "Index workOrder NOT created for type: someParsedTypeFromMessageParserSpy "
+	// + "and id: someParsedIdFromMessageParserSpy");
+	// Exception firstErrorException = loggerFactory
+	// .getErrorLogErrorUsingClassNameAndNo(testedClassname, 0);
+	// assertEquals(firstErrorException.getMessage(), "Error from CoraClientSpy on create");
+	// assertEquals(loggerFactory.getNoOfInfoLogMessagesUsingClassname(testedClassname), 0);
+	// }
 
 	@Test
 	public void testLogFatalWhenTopicGetsClosed() throws Exception {

@@ -131,12 +131,12 @@ public class FedoraMessageParser implements MessageParser {
 	}
 
 	@Override
-	public boolean shouldWorkOrderBeCreatedForMessage() {
+	public boolean synchronizationRequiered() {
 		return synchronizationRequired;
 	}
 
 	@Override
-	public String getModificationType() {
+	public String getAction() {
 		return modificationType;
 	}
 
