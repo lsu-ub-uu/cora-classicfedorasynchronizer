@@ -16,7 +16,6 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package se.uu.ub.cora.classicfedorasynchronizer.internal;
 
 import static org.testng.Assert.assertEquals;
@@ -30,60 +29,36 @@ import se.uu.ub.cora.logger.LoggerProvider;
 
 public class CoraIndexerTest {
 
-	// private CoraIndexerServlet loginServlet;
 	private CoraClientFactorySpy clientFactory;
-	// private HttpServletRequestSpy request;
 	private LoggerFactorySpy loggerFactorySpy = new LoggerFactorySpy();
 
-	// private HttpServletResponseSpy response;
 	private String testedClassName = "CoraIndexerImp";
 	private CoraIndexerImp coraIndexer;
 	private String userId = "somePredefinedUserId";
 	private String apptoken = "someKnownApptoken";
 
-	// private Map<String, String> initInfo = new HashMap<>();
-	//
 	@BeforeMethod
 	public void setup() {
 		loggerFactorySpy.resetLogs(testedClassName);
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 
-		// setUpInitInfo();
 		clientFactory = new CoraClientFactorySpy();
 		coraIndexer = new CoraIndexerImp(clientFactory, userId, apptoken);
 
 	}
-	//
-	// private void setUpInitInfo() {
-	// initInfo.put("userId", "somePredefinedUserId");
-	// initInfo.put("appToken", "someKnownApptoken");
-	// SynchronizerInstanceProvider.setInitInfo(initInfo);
-	// }
-	//
-	// private void setUpRequestAndResponse() {
-	// request = new HttpServletRequestSpy();
-	// request.parametersToReturn.put("recordType", "someRecordType");
-	// request.parametersToReturn.put("recordId", "someRecordId");
-	// request.parametersToReturn.put("workOrderType", "index");
-	// response = new HttpServletResponseSpy();
-	// }
 
 	@Test
 	public void testInit() {
+		assertSame(coraIndexer.getCoraClientFactory(), clientFactory);
+	}
+
+	@Test
+	public void testCoraClient() {
+		coraIndexer.handleWorkorderType("index", "someRecordType", "someRecordId");
 		assertSame(coraIndexer.getCoraClient(), clientFactory.factoredCoraClient);
 		assertEquals(clientFactory.userId, userId);
 		assertEquals(clientFactory.appToken, apptoken);
 	}
-	//
-	// @Test
-	// public void testCoraClient(){
-	//
-	// loginServlet.doGet(request, response);
-	// CoraClientSpy coraClient = clientFactory.returnedClient;
-	// assertEquals(coraClient.recordTypes.get(0), request.parametersToReturn.get("recordType"));
-	// assertEquals(coraClient.recordIds.get(0), request.parametersToReturn.get("recordId"));
-	//
-	// }
 
 	@Test
 	public void testIndexData() {
@@ -97,17 +72,16 @@ public class CoraIndexerTest {
 
 	}
 
-	//
-	// @Test
-	// public void testLogging() throws ServletException, IOException {
-	// loginServlet.doGet(request, response);
-	//
-	// assertEquals(loggerFactorySpy.getInfoLogMessageUsingClassNameAndNo(testedClassName, 0),
-	// "Indexing record. RecordType: someRecordType and recordId: someRecordId");
-	// assertEquals(loggerFactorySpy.getInfoLogMessageUsingClassNameAndNo(testedClassName, 1),
-	// "Indexing finished. RecordType: someRecordType and recordId: someRecordId");
-	// }
-	//
+	@Test
+	public void testLogging() {
+		coraIndexer.handleWorkorderType("index", "someRecordType", "someRecordId");
+
+		assertEquals(loggerFactorySpy.getInfoLogMessageUsingClassNameAndNo(testedClassName, 0),
+				"Indexing record. RecordType: someRecordType and recordId: someRecordId.");
+		assertEquals(loggerFactorySpy.getInfoLogMessageUsingClassNameAndNo(testedClassName, 1),
+				"Indexing finished. RecordType: someRecordType and recordId: someRecordId.");
+	}
+
 	@Test
 	public void testIndexWithNoIndexlink() {
 		clientFactory.throwErrorOnIndex = true;
@@ -117,13 +91,11 @@ public class CoraIndexerTest {
 
 		assertEquals(response, 401);
 
-		// assertEquals(loggerFactorySpy.getErrorLogMessageUsingClassNameAndNo(testedClassName, 0),
-		// "CoraClient error when indexing record. RecordType: someRecordType and recordId:
-		// someRecordId. Some error from spy");
-
+		assertEquals(loggerFactorySpy.getErrorLogMessageUsingClassNameAndNo(testedClassName, 0),
+				"CoraClient error when indexing record. "
+						+ "RecordType: someRecordType and recordId: someRecordId. Some error from spy");
 	}
 
-	//
 	@Test
 	public void testIndexWhenOtherErrorIsThrown() {
 		clientFactory.throwErrorOnIndex = true;
@@ -134,14 +106,13 @@ public class CoraIndexerTest {
 
 		assertEquals(response, 400);
 
-		// assertEquals(loggerFactorySpy.getErrorLogMessageUsingClassNameAndNo(testedClassName, 0),
-		// "Error when indexing record. RecordType: someRecordType and recordId: someRecordId. Some
-		// runtime error from spy");
+		assertEquals(loggerFactorySpy.getErrorLogMessageUsingClassNameAndNo(testedClassName, 0),
+				"Error when indexing record. "
+						+ "RecordType: someRecordType and recordId: someRecordId. Some runtime error from spy");
 	}
 
 	@Test
 	public void testRemoveFromIndex() {
-
 		int response = coraIndexer.handleWorkorderType("removeFromIndex", "someRecordType",
 				"someRecordId");
 
@@ -153,17 +124,16 @@ public class CoraIndexerTest {
 		assertEquals(response, 200);
 	}
 
-	// @Test
-	// public void testLoggingWhenRemovingIndex() throws ServletException, IOException {
-	// request.parametersToReturn.put("workOrderType", "removeFromIndex");
-	// loginServlet.doGet(request, response);
-	//
-	// assertEquals(loggerFactorySpy.getInfoLogMessageUsingClassNameAndNo(testedClassName, 0),
-	// "Removing from index. RecordType: someRecordType and recordId: someRecordId");
-	// assertEquals(loggerFactorySpy.getInfoLogMessageUsingClassNameAndNo(testedClassName, 1),
-	// "Finished removing. RecordType: someRecordType and recordId: someRecordId");
-	// }
-	//
+	@Test
+	public void testLoggingWhenRemovingIndex() {
+		coraIndexer.handleWorkorderType("removeFromIndex", "someRecordType", "someRecordId");
+
+		assertEquals(loggerFactorySpy.getInfoLogMessageUsingClassNameAndNo(testedClassName, 0),
+				"Removing from index. RecordType: someRecordType and recordId: someRecordId.");
+		assertEquals(loggerFactorySpy.getInfoLogMessageUsingClassNameAndNo(testedClassName, 1),
+				"Finished removing. RecordType: someRecordType and recordId: someRecordId.");
+	}
+
 	@Test
 	public void testRemoveFromIndexWhenErrorIsThrown() {
 		clientFactory.throwErrorOnIndex = true;
@@ -173,13 +143,11 @@ public class CoraIndexerTest {
 		int response = coraIndexer.handleWorkorderType("removeFromIndex", "someRecordType",
 				"someRecordId");
 
-		// loginServlet.doGet(request, response);
 		assertEquals(response, 400);
 
-		// assertEquals(loggerFactorySpy.getErrorLogMessageUsingClassNameAndNo(testedClassName, 0),
-		// "Error when removing from index. RecordType: someRecordType and recordId: someRecordId.
-		// Some
-		// runtime error from spy");
+		assertEquals(loggerFactorySpy.getErrorLogMessageUsingClassNameAndNo(testedClassName, 0),
+				"Error when removing from index. "
+						+ "RecordType: someRecordType and recordId: someRecordId. Some runtime error from spy");
 	}
 
 }

@@ -21,18 +21,29 @@ package se.uu.ub.cora.classicfedorasynchronizer.internal;
 import java.util.List;
 
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizer;
+import se.uu.ub.cora.classicfedorasynchronizer.CoraIndexer;
 import se.uu.ub.cora.classicfedorasynchronizer.FedoraConverterFactory;
 import se.uu.ub.cora.classicfedorasynchronizer.FedoraToCoraConverter;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.httphandler.HttpHandler;
 import se.uu.ub.cora.httphandler.HttpHandlerFactory;
+import se.uu.ub.cora.logger.Logger;
+import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
-//TODO: better name for class
-public class ClassicCoraSynchronizerImp implements ClassicCoraSynchronizer {
+/**
+ * ClassicCoraPersonSynchronizer implements {@link ClassicCoraSynchronizer} and handles
+ * synchronization of Person between classic system and Cora system.
+ * 
+ * ClassicCoraPersonSynchronizer is NOT threadsafe
+ */
+public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
+	private static Logger logger = LoggerProvider
+			.getLoggerForClass(ClassicCoraPersonSynchronizer.class);
 
+	private static final String INDEX = "index";
 	private static final String PERSON_DOMAIN_PART = "personDomainPart";
 	private static final int NOT_FOUND = 404;
 	private HttpHandlerFactory httpHandlerFactory;
@@ -44,14 +55,16 @@ public class ClassicCoraSynchronizerImp implements ClassicCoraSynchronizer {
 	private String dataDivider;
 	private HttpHandler httpHandler;
 	private DataGroup personDataGroup;
+	private CoraIndexer coraIndexer;
 
-	public ClassicCoraSynchronizerImp(RecordStorage recordStorage,
+	public ClassicCoraPersonSynchronizer(RecordStorage recordStorage,
 			HttpHandlerFactory httpHandlerFactory, FedoraConverterFactory fedoraConverterFactory,
-			String baseURL) {
+			CoraIndexer coraIndexer, String baseURL) {
 		this.recordStorage = recordStorage;
 		this.httpHandlerFactory = httpHandlerFactory;
 		this.fedoraConverterFactory = fedoraConverterFactory;
 		this.baseURL = baseURL;
+		this.coraIndexer = coraIndexer;
 	}
 
 	public HttpHandlerFactory getHttpHandlerFactory() {
@@ -102,11 +115,16 @@ public class ClassicCoraSynchronizerImp implements ClassicCoraSynchronizer {
 	}
 
 	private void handleCreate(String responseText, List<DataGroup> domainParts) {
-		createForMainDataGroup(personDataGroup);
+		createAndIndexPerson();
 		for (DataGroup domainPartLink : domainParts) {
 			DataGroup personDomainPart = convertDomainPart(responseText);
-			createDomainPart(domainPartLink, personDomainPart);
+			createAndIndexDomainPart(domainPartLink, personDomainPart);
 		}
+	}
+
+	private void createAndIndexPerson() {
+		createForMainDataGroup(personDataGroup);
+		coraIndexer.handleWorkorderType(INDEX, recordType, recordId);
 	}
 
 	private void createForMainDataGroup(DataGroup dataGroup) {
@@ -114,10 +132,11 @@ public class ClassicCoraSynchronizerImp implements ClassicCoraSynchronizer {
 				createLinkList(), dataDivider);
 	}
 
-	private void createDomainPart(DataGroup domainPartLink, DataGroup personDomainPart) {
+	private void createAndIndexDomainPart(DataGroup domainPartLink, DataGroup personDomainPart) {
 		String linkedRecordId = domainPartLink.getFirstAtomicValueWithNameInData("linkedRecordId");
 		recordStorage.create(PERSON_DOMAIN_PART, linkedRecordId, personDomainPart,
 				createCollectedTerms(), createLinkList(), dataDivider);
+		coraIndexer.handleWorkorderType(INDEX, PERSON_DOMAIN_PART, linkedRecordId);
 	}
 
 	private DataGroup convertDomainPart(String responseText) {
@@ -135,10 +154,15 @@ public class ClassicCoraSynchronizerImp implements ClassicCoraSynchronizer {
 	}
 
 	private void handleUpdate(String responseText, List<DataGroup> domainParts) {
-		updateForMainDataGroup(personDataGroup);
+		updateAndIndexPerson();
 		for (DataGroup domainPartLink : domainParts) {
-			updateDomainPart(responseText, domainPartLink);
+			updateAndIndexDomainPart(responseText, domainPartLink);
 		}
+	}
+
+	private void updateAndIndexPerson() {
+		updateForMainDataGroup(personDataGroup);
+		coraIndexer.handleWorkorderType(INDEX, recordType, recordId);
 	}
 
 	private void updateForMainDataGroup(DataGroup dataGroup) {
@@ -146,10 +170,11 @@ public class ClassicCoraSynchronizerImp implements ClassicCoraSynchronizer {
 				createLinkList(), dataDivider);
 	}
 
-	private void updateDomainPart(String responseText, DataGroup domainPartLink) {
+	private void updateAndIndexDomainPart(String responseText, DataGroup domainPartLink) {
 		DataGroup personDomainPart = convertDomainPart(responseText);
 		String linkedRecordId = domainPartLink.getFirstAtomicValueWithNameInData("linkedRecordId");
 		recordStorage.update(PERSON_DOMAIN_PART, linkedRecordId, personDomainPart,
 				createCollectedTerms(), createLinkList(), dataDivider);
+		coraIndexer.handleWorkorderType(INDEX, PERSON_DOMAIN_PART, linkedRecordId);
 	}
 }

@@ -28,31 +28,41 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.classicfedorasynchronizer.log.LoggerFactorySpy;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
+import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 
-public class ClassicAndCoraSynchronizerTest {
+public class ClassicCoraPersonSynchronizerTest {
+
+	private LoggerFactorySpy loggerFactorySpy = new LoggerFactorySpy();
 
 	private HttpHandlerFactorySpy httpHandlerFactory;
-	private ClassicCoraSynchronizerImp synchronizer;
+	private ClassicCoraPersonSynchronizer synchronizer;
 	private String baseURL;
 	private FedoraConverterFactorySpy fedoraConverterFactory;
 	private RecordStorageSpy dbStorage;
 	private String dataDivider = "diva";
 	private DataGroupFactorySpy dataGroupFactory;
 	private List<DataGroupSpy> dataGroupsReturnedFromConverter;
+	private CoraIndexerSpy coraIndexer;
+	private String testedClassName = "ClassicCoraPersonSynchronizer";
 
 	@BeforeMethod
 	public void setUp() {
+		loggerFactorySpy.resetLogs(testedClassName);
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+
 		baseURL = "someBaseUrl";
 		httpHandlerFactory = new HttpHandlerFactorySpy();
 		fedoraConverterFactory = new FedoraConverterFactorySpy();
 		dbStorage = new RecordStorageSpy();
 		dataGroupFactory = new DataGroupFactorySpy();
 		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
-		synchronizer = new ClassicCoraSynchronizerImp(dbStorage, httpHandlerFactory,
-				fedoraConverterFactory, baseURL);
+		coraIndexer = new CoraIndexerSpy();
+		synchronizer = new ClassicCoraPersonSynchronizer(dbStorage, httpHandlerFactory,
+				fedoraConverterFactory, coraIndexer, baseURL);
 
 	}
 
@@ -127,6 +137,35 @@ public class ClassicAndCoraSynchronizerTest {
 		assertCorrectCommonResultHandledCorrectly(factoredHttpHandler, factoredFedoraConverter, 2);
 		assertEquals(dbStorage.methodName, "update");
 	}
+
+	@Test
+	public void testSynchronizeIndexCalledCorrectlyForUpdate() {
+		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
+
+		assertEquals(coraIndexer.recordTypes.size(), 1);
+		assertCorrectIndexCallForPerson();
+	}
+
+	private void assertCorrectIndexCallForPerson() {
+		assertEquals(coraIndexer.workOrderTypes.get(0), "index");
+		assertEquals(coraIndexer.recordTypes.get(0), "person");
+		assertEquals(coraIndexer.recordIds.get(0), "someRecordId");
+	}
+
+	@Test
+	public void testSynchronizeIndexCalledCorrectlyForCreate() {
+		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
+
+		assertEquals(coraIndexer.recordTypes.size(), 1);
+		assertCorrectIndexCallForPerson();
+	}
+
+	// @Test
+	// public void testErrorWhenIndexing() {
+	// coraIndexer.typesToThrowErrorFor.add("person");
+	// synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
+	//
+	// }
 
 	/************************* with domainParts *******************************/
 	@Test
@@ -251,6 +290,38 @@ public class ClassicAndCoraSynchronizerTest {
 		assertCorrectCommonResultHandledCorrectly(factoredHttpHandler, factoredFedoraConverter, 8);
 		assertEquals(dbStorage.methodName, "create");
 
+	}
+
+	@Test
+	public void testSynchronizeIndexCalledCorrectlyWhenDomainPartsForUpdate() {
+		setUpPersonWithDomainParts();
+		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
+
+		assertCorrectIndexCallForPerson();
+		assertEquals(coraIndexer.recordTypes.size(), 4);
+		assertCorrectIndexedDomainParts();
+	}
+
+	private void assertCorrectIndexedDomainParts() {
+		assertCorrectIndexedDomainPartUsingIndex(1);
+		assertCorrectIndexedDomainPartUsingIndex(2);
+		assertCorrectIndexedDomainPartUsingIndex(3);
+	}
+
+	private void assertCorrectIndexedDomainPartUsingIndex(int index) {
+		assertEquals(coraIndexer.workOrderTypes.get(index), "index");
+		assertEquals(coraIndexer.recordTypes.get(index), "personDomainPart");
+		assertEquals(coraIndexer.recordIds.get(index), dbStorage.recordIds.get(index));
+	}
+
+	@Test
+	public void testSynchronizeIndexCalledCorrectlyWhenDomainPartsForCreate() {
+		setUpPersonWithDomainParts();
+		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
+
+		assertCorrectIndexCallForPerson();
+		assertEquals(coraIndexer.recordTypes.size(), 4);
+		assertCorrectIndexedDomainParts();
 	}
 
 }
