@@ -30,15 +30,15 @@ import se.uu.ub.cora.classicfedorasynchronizer.FedoraToCoraConverter;
 import se.uu.ub.cora.classicfedorasynchronizer.NotImplementedException;
 import se.uu.ub.cora.classicfedorasynchronizer.TransformationFactorySpy;
 
-public class FedoraConverterFactoryTest {
-	private FedoraConverterFactoryImp fedoraToCoraConverterFactoryImp;
+public class DivaFedoraConverterFactoryTest {
+	private DivaFedoraConverterFactoryImp fedoraToCoraConverterFactoryImp;
 	private String fedoraURL = "someFedoraUrl";
 	private TransformationFactorySpy transformationFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		transformationFactory = new TransformationFactorySpy();
-		fedoraToCoraConverterFactoryImp = FedoraConverterFactoryImp
+		fedoraToCoraConverterFactoryImp = DivaFedoraConverterFactoryImp
 				.usingFedoraURLAndTransformerFactory(fedoraURL, transformationFactory);
 	}
 
