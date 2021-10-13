@@ -36,11 +36,11 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.logger.LoggerProvider;
 
-public class DivaMessageParserTest {
+public class FedoraMessageParserTest {
 	private Map<String, String> headers;
 	private String message;
 	private LoggerFactorySpy loggerFactory;
-	private String testedClassname = "DivaMessageParser";
+	private String testedClassname = "FedoraMessageParser";
 	private MessageParser messageParser;
 	private final static String TEST_RESOURCES_FILE_PATH = "./src/test/resources/";
 	private final static String JMS_MESSAGE_WHICH_DOES_TRIGGER_INDEXING = "JmsMessageWhichDoesTriggerIndexing.xml";
@@ -57,7 +57,7 @@ public class DivaMessageParserTest {
 
 		tryToReadExampleMessageFromDivaClassic();
 
-		messageParser = new DivaMessageParser();
+		messageParser = new FedoraMessageParser();
 	}
 
 	private void tryToReadExampleMessageFromDivaClassic() {
@@ -72,7 +72,7 @@ public class DivaMessageParserTest {
 
 	@Test
 	public void testInit() throws Exception {
-		messageParser = new DivaMessageParser();
+		messageParser = new FedoraMessageParser();
 	}
 
 	@Test
@@ -160,7 +160,7 @@ public class DivaMessageParserTest {
 	}
 
 	@Test
-	public void testMessageParserLogsWhenNoPidWorkOrderShouldNotBeCreated() throws Exception {
+	public void testMessageParserLogsWhenNoPidsynchronizationRequired() throws Exception {
 		headers.remove("pid");
 
 		assertEquals(loggerFactory.getNoOfErrorLogMessagesUsingClassName(testedClassname), 0);

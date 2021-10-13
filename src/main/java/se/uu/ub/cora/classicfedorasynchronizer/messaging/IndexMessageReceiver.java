@@ -87,7 +87,7 @@ public class IndexMessageReceiver implements MessageReceiver {
 		logger.logFatalUsingMessage("Topic closed!");
 	}
 
-	public MessageParserFactory getMessageParserFactory() {
+	public MessageParserFactory onlyForTestGetMessageParserFactory() {
 		// needed for test
 		return messageParserFactory;
 	}

@@ -24,12 +24,12 @@ import java.util.Map;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 
-public class DivaMessageParser implements MessageParser {
+public class FedoraMessageParser implements MessageParser {
 	private static final String TEXT_TO_IDENTIFY_MESSAGES_FOR_DELETE = ""
 			+ "<category term=\"D\" scheme=\"fedora-types:state\" label=\"xsd:string\"></category>";
-	private Logger logger = LoggerProvider.getLoggerForClass(DivaMessageParser.class);
+	private Logger logger = LoggerProvider.getLoggerForClass(FedoraMessageParser.class);
 	private String parsedRecordId;
-	private boolean workOrderShouldBeCreated = false;
+	private boolean synchronizationRequired = false;
 	private String parsedType;
 	private String modificationType;
 
@@ -44,7 +44,7 @@ public class DivaMessageParser implements MessageParser {
 
 	private void tryToParseMessage(Map<String, String> headers, String message) {
 		throwErrorIfNoPid(headers);
-		workOrderShouldBeCreated = workOrderShouldBeCreatedForMessage(headers, message);
+		synchronizationRequired = workOrderShouldBeCreatedForMessage(headers, message);
 		possibleSetValues(headers, message);
 	}
 
@@ -92,7 +92,7 @@ public class DivaMessageParser implements MessageParser {
 	}
 
 	private void possibleSetValues(Map<String, String> headers, String message) {
-		if (workOrderShouldBeCreated) {
+		if (synchronizationRequired) {
 			parsedRecordId = headers.get("pid");
 			parsedType = "person";
 			setModificationTypeFromMessageAndHeaders(message, headers);
@@ -132,7 +132,7 @@ public class DivaMessageParser implements MessageParser {
 
 	@Override
 	public boolean shouldWorkOrderBeCreatedForMessage() {
-		return workOrderShouldBeCreated;
+		return synchronizationRequired;
 	}
 
 	@Override

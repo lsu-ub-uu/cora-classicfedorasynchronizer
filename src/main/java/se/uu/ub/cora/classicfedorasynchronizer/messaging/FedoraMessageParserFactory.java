@@ -18,28 +18,11 @@
  */
 package se.uu.ub.cora.classicfedorasynchronizer.messaging;
 
-import static org.testng.Assert.assertTrue;
+public class FedoraMessageParserFactory implements MessageParserFactory {
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
-import se.uu.ub.cora.logger.LoggerProvider;
-
-public class DivaMessageParserFactoryTest {
-
-	private LoggerFactorySpy loggerFactory;
-
-	@BeforeMethod
-	public void setUp() {
-		loggerFactory = new LoggerFactorySpy();
-		LoggerProvider.setLoggerFactory(loggerFactory);
-	}
-
-	@Test
-	public void testFactor() {
-		MessageParserFactory factory = new DivaMessageParserFactory();
-		MessageParser messageParser = factory.factor();
-		assertTrue(messageParser instanceof DivaMessageParser);
+	@Override
+	public MessageParser factor() {
+		return new FedoraMessageParser();
 	}
 
 }
