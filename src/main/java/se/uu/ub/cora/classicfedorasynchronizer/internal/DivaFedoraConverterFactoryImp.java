@@ -29,17 +29,14 @@ public class DivaFedoraConverterFactoryImp implements FedoraConverterFactory {
 
 	private static final String PERSON_XSLT_PATH = "person/coraPerson.xsl";
 	private static final String PERSON_DOMAIN_PART_XSLT_PATH = "person/coraPersonDomainPart.xsl";
-	private String fedoraURL;
 	private CoraTransformationFactory coraTransformationFactory;
 
-	public static DivaFedoraConverterFactoryImp usingFedoraURLAndTransformerFactory(String fedoraURL,
+	public static DivaFedoraConverterFactoryImp usingFedoraURLAndTransformerFactory(
 			CoraTransformationFactory transformationFactory) {
-		return new DivaFedoraConverterFactoryImp(fedoraURL, transformationFactory);
+		return new DivaFedoraConverterFactoryImp(transformationFactory);
 	}
 
-	private DivaFedoraConverterFactoryImp(String fedoraURL,
-			CoraTransformationFactory coraTransformationFactory) {
-		this.fedoraURL = fedoraURL;
+	private DivaFedoraConverterFactoryImp(CoraTransformationFactory coraTransformationFactory) {
 		this.coraTransformationFactory = coraTransformationFactory;
 	}
 

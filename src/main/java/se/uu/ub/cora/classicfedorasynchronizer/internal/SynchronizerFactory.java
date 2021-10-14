@@ -20,6 +20,11 @@ package se.uu.ub.cora.classicfedorasynchronizer.internal;
 
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizer;
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactory;
+import se.uu.ub.cora.classicfedorasynchronizer.FedoraConverterFactory;
+import se.uu.ub.cora.httphandler.HttpHandlerFactory;
+import se.uu.ub.cora.httphandler.HttpHandlerFactoryImp;
+import se.uu.ub.cora.storage.RecordStorage;
+import se.uu.ub.cora.xmlutils.transformer.CoraTransformationFactory;
 
 public class SynchronizerFactory implements ClassicCoraSynchronizerFactory {
 	// TODO: dbStorage --- initinfo??
@@ -39,11 +44,63 @@ public class SynchronizerFactory implements ClassicCoraSynchronizerFactory {
 	// CoraIndexerFactory indexerFactory =
 	// CoraIndexerFactoryImp.usingApptokenVerifierUrlAndBaseUrl(apptokenVerifierURL, baseURL);
 	// coraIndexer = indexerFactory.factor(userId, apptoken)
+
+	private RecordStorage recordStorage;
+	private HttpHandlerFactory httpHandlerFactory = new HttpHandlerFactoryImp();
+	private FedoraConverterFactory fedoraConverterFactory;
+	private String baseURL;
+
+	// public SynchronizerFactory() {
+	// this.recordStorage = recordStorage;
+	// this.httpHandler = httpHandler;
+	// }
+
+	public SynchronizerFactory(String baseUrl, RecordStorage recordStorage,
+			FedoraConverterFactory fedoraConverterFactory) {
+		this.baseURL = baseUrl;
+		this.recordStorage = recordStorage;
+
+		CoraTransformationFactory coraTransformationFactory = null;
+
+		this.fedoraConverterFactory = DivaFedoraConverterFactoryImp
+				.usingFedoraURLAndTransformerFactory(coraTransformationFactory);
+	}
+
 	@Override
 	public ClassicCoraSynchronizer factor() {
-		// new ClassicCoraPersonSynchronizer(dbStorage, httpHandlerFactory,
-		// fedoraConverterFactory, coraIndexer, baseUrl);
-		return null;
+
+		return new ClassicCoraPersonSynchronizer(null, httpHandlerFactory, fedoraConverterFactory,
+				null, null);
 	}
+
+	public void sethttpHandlerFactory(HttpHandlerFactory httpHandlerFactory) {
+		this.httpHandlerFactory = httpHandlerFactory;
+	}
+
+	// private static CoraClientFactory createCoraClientFactoryFromProperties(Properties properties)
+	// {
+	// String baseUrl = extractPropertyThrowErrorIfNotFound(properties, "baseUrl");
+	// String appTokenVerifierUrl = extractPropertyThrowErrorIfNotFound(properties,
+	// "appTokenVerifierUrl");
+	// String logM2 = "Sending indexOrders to: {0} using appToken from: {1}";
+	// String formattedLogMessage2 = MessageFormat.format(logM2, baseUrl, appTokenVerifierUrl);
+	// logger.logInfoUsingMessage(formattedLogMessage2);
+	// return CoraClientFactoryImp.usingAppTokenVerifierUrlAndBaseUrl(appTokenVerifierUrl,
+	// baseUrl);
+	// }
+	//
+	// private static String extractPropertyThrowErrorIfNotFound(Properties properties,
+	// String propertyName) {
+	// throwErrorIfPropertyNameIsMissing(properties, propertyName);
+	// return properties.getProperty(propertyName);
+	// }
+	//
+	// private static void throwErrorIfPropertyNameIsMissing(Properties properties,
+	// String propertyName) {
+	// if (!properties.containsKey(propertyName)) {
+	// throw new RuntimeException(
+	// "Property with name " + propertyName + " not found in properties");
+	// }
+	// }
 
 }

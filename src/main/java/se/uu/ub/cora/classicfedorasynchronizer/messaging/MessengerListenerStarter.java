@@ -68,7 +68,8 @@ public class MessengerListenerStarter {
 
 	private static MessageReceiver createMessageReceiver() {
 		MessageParserFactory messageParserFactory = new FedoraMessageParserFactory();
-		ClassicCoraSynchronizerFactory synchronizerFactory = new SynchronizerFactory();
+		ClassicCoraSynchronizerFactory synchronizerFactory = new SynchronizerFactory(null, null,
+				null);
 		return new FedoraMessageReceiver(messageParserFactory, synchronizerFactory);
 	}
 

@@ -32,14 +32,13 @@ import se.uu.ub.cora.classicfedorasynchronizer.TransformationFactorySpy;
 
 public class DivaFedoraConverterFactoryTest {
 	private DivaFedoraConverterFactoryImp fedoraToCoraConverterFactoryImp;
-	private String fedoraURL = "someFedoraUrl";
 	private TransformationFactorySpy transformationFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		transformationFactory = new TransformationFactorySpy();
 		fedoraToCoraConverterFactoryImp = DivaFedoraConverterFactoryImp
-				.usingFedoraURLAndTransformerFactory(fedoraURL, transformationFactory);
+				.usingFedoraURLAndTransformerFactory(transformationFactory);
 	}
 
 	@Test

@@ -21,6 +21,7 @@ package se.uu.ub.cora.classicfedorasynchronizer.internal;
 import se.uu.ub.cora.httphandler.HttpHandler;
 import se.uu.ub.cora.httphandler.HttpHandlerFactory;
 import se.uu.ub.cora.httphandler.HttpMultiPartUploader;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class HttpHandlerFactorySpy implements HttpHandlerFactory {
 
@@ -28,11 +29,17 @@ public class HttpHandlerFactorySpy implements HttpHandlerFactory {
 	public String url;
 	public int responseCode = 200;
 
+	MethodCallRecorder MCR = new MethodCallRecorder();
+
 	@Override
 	public HttpHandler factor(String url) {
+		MCR.addCall("url", url);
+
 		factoredHttpHandlerSpy = new HttpHandlerSpy();
 		factoredHttpHandlerSpy.responseCode = responseCode;
 		this.url = url;
+
+		MCR.addReturned(factoredHttpHandlerSpy);
 		return factoredHttpHandlerSpy;
 	}
 

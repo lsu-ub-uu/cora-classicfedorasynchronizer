@@ -196,4 +196,16 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		indexDomainPart(linkedRecordId);
 	}
 
+	public RecordStorage onlyForTestGetRecordStorage() {
+		return recordStorage;
+	}
+
+	public FedoraConverterFactory onlyForTestGetFedoraConverterFactory() {
+		return fedoraConverterFactory;
+	}
+
+	public HttpHandlerFactory onlyForTestGetHttpHandlerFactory() {
+		return httpHandlerFactory;
+	}
+
 }

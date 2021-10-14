@@ -50,7 +50,7 @@ public class ClassicCoraPersonSynchronizerTest {
 	private String testedClassName = "ClassicCoraPersonSynchronizer";
 
 	@BeforeMethod
-	public void setUp() {
+	public void beforeMethod() {
 		loggerFactorySpy.resetLogs(testedClassName);
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 
