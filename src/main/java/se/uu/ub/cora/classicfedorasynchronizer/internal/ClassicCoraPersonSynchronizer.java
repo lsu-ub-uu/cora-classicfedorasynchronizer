@@ -79,26 +79,25 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		this.recordId = recordId;
 		this.action = action;
 		this.dataDivider = dataDivider;
-		createHttpHandlerForRead(recordId);
-		throwErrorIfRecordNotFound(recordType, recordId, httpHandler);
-		readRecordAndSynchronize(action);
+		createHttpHandlerForRead();
+		throwErrorIfRecordNotFound();
+		readRecordAndSynchronize();
 	}
 
-	private void createHttpHandlerForRead(String recordId) {
+	private void createHttpHandlerForRead() {
 		httpHandler = httpHandlerFactory
 				.factor(baseURL + "objects/" + recordId + "/datastreams/METADATA/content");
 		httpHandler.setRequestMethod("GET");
 	}
 
-	private void throwErrorIfRecordNotFound(String recordType, String recordId,
-			HttpHandler httpHandler) {
+	private void throwErrorIfRecordNotFound() {
 		if (httpHandler.getResponseCode() == NOT_FOUND) {
 			throw new RecordNotFoundException("Record not found for recordType: " + recordType
 					+ " and recordId: " + recordId);
 		}
 	}
 
-	private void readRecordAndSynchronize(String action) {
+	private void readRecordAndSynchronize() {
 		String responseText = httpHandler.getResponseText();
 		personDataGroup = convertPersonToDataGroup(responseText);
 		List<DataGroup> domainParts = personDataGroup
