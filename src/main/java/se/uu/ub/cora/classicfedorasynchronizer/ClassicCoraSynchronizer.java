@@ -19,8 +19,16 @@
  */
 package se.uu.ub.cora.classicfedorasynchronizer;
 
+/**
+ * ClassicCorsSynschronizer is intended to be used for synchronization of data stored in two
+ * different systems.
+ */
 public interface ClassicCoraSynchronizer {
 
+	/**
+	 * Handles synchronization of a record between two systems
+	 * 
+	 */
 	void synchronize(String recordType, String recordId, String action, String dataDivider);
 
 }

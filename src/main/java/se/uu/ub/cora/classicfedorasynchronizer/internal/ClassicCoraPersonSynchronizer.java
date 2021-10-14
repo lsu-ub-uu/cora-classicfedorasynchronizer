@@ -58,14 +58,15 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	private CoraIndexer coraIndexer;
 	private String action;
 
+	// .usingXXXXX blir väldigt långt...
 	public ClassicCoraPersonSynchronizer(RecordStorage recordStorage,
 			HttpHandlerFactory httpHandlerFactory, FedoraConverterFactory fedoraConverterFactory,
 			CoraIndexer coraIndexer, String baseURL) {
 		this.recordStorage = recordStorage;
 		this.httpHandlerFactory = httpHandlerFactory;
 		this.fedoraConverterFactory = fedoraConverterFactory;
-		this.baseURL = baseURL;
 		this.coraIndexer = coraIndexer;
+		this.baseURL = baseURL;
 	}
 
 	public HttpHandlerFactory getHttpHandlerFactory() {
