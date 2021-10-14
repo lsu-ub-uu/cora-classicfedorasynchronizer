@@ -104,6 +104,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		List<DataGroup> domainParts = personDataGroup
 				.getAllGroupsWithNameInData(PERSON_DOMAIN_PART);
 
+		// TODO: Vi behöver hantera delete också
 		if ("create".equals(action)) {
 			handleCreate(responseText, domainParts);
 		} else {
