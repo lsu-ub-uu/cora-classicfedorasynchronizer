@@ -30,7 +30,8 @@
 		<json.version>3.0-SNAPSHOT</json.version>
 		<coradata.version>5.1.0</coradata.version>
 		<xmlutils.version>1.1.0</xmlutils.version>
-		<storage.version>4.3-SNAPSHOT</storage.version>
+		<storage.version>5.0-SNAPSHOT</storage.version>
+		<sqlstorage.version>1.0-SNAPSHOT</sqlstorage.version>
 		<xmlconverter.version>1.6.0</xmlconverter.version>
 		<converter.version>1.5.0</converter.version>
 		<messaging.version>2.4.0</messaging.version>
@@ -94,6 +95,11 @@
 			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>storage</artifactId>
 			<version>${storage.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>sqlstorage</artifactId>
+			<version>${sqlstorage.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>se.uu.ub.cora</groupId>

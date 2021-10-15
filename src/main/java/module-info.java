@@ -6,4 +6,6 @@ module se.uu.ub.cora.classicfedorasynchronizer {
 	requires se.uu.ub.cora.converter;
 	requires se.uu.ub.cora.messaging;
 	requires se.uu.ub.cora.javaclient;
+	requires se.uu.ub.cora.sqlstorage;
+	requires se.uu.ub.cora.sqldatabase;
 }

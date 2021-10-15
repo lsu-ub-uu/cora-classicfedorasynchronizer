@@ -246,4 +246,12 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		return httpHandlerFactory;
 	}
 
+	public String onlyForTestGetBaseUrl() {
+		return baseURL;
+	}
+
+	public CoraIndexer onlyForTestGetCoraIndexer() {
+		return coraIndexer;
+	}
+
 }

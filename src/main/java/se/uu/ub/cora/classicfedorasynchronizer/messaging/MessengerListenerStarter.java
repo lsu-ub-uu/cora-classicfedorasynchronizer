@@ -20,6 +20,7 @@ package se.uu.ub.cora.classicfedorasynchronizer.messaging;
 
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.Collections;
 import java.util.Properties;
 
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactory;
@@ -68,8 +69,9 @@ public class MessengerListenerStarter {
 
 	private static MessageReceiver createMessageReceiver() {
 		MessageParserFactory messageParserFactory = new FedoraMessageParserFactory();
-		ClassicCoraSynchronizerFactory synchronizerFactory = new SynchronizerFactory(null, null,
-				null);
+		// TODO: fix...
+		ClassicCoraSynchronizerFactory synchronizerFactory = new SynchronizerFactory(
+				Collections.emptyMap());
 		return new FedoraMessageReceiver(messageParserFactory, synchronizerFactory);
 	}
 
