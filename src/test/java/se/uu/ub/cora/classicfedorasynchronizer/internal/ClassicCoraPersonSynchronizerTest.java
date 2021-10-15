@@ -50,7 +50,7 @@ public class ClassicCoraPersonSynchronizerTest {
 	private String testedClassName = "ClassicCoraPersonSynchronizer";
 
 	@BeforeMethod
-	public void beforeMethod() {
+	public void setUp() {
 		loggerFactorySpy.resetLogs(testedClassName);
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 
@@ -110,8 +110,8 @@ public class ClassicCoraPersonSynchronizerTest {
 		assertEquals(factoredFedoraConverter.xml, factoredHttpHandler.responseText);
 
 		assertSame(factoredFedoraConverter.convertedGroup, dbStorage.handledDataGroups.get(0));
-		assertEquals(dbStorage.recordTypes.get(0), "person");
-		assertEquals(dbStorage.recordIds.get(0), "someRecordId");
+		assertEquals(dbStorage.alteredRecordTypes.get(0), "person");
+		assertEquals(dbStorage.alteredRecordIds.get(0), "someRecordId");
 		assertEquals(dbStorage.dataDividers.get(0), "diva");
 
 		assertCorrectlyFactoredAndUsedDataGroups(numberOfFactoredDataGroups);
@@ -181,6 +181,47 @@ public class ClassicCoraPersonSynchronizerTest {
 				"Error when indexing record from synchronizer, create person.");
 	}
 
+	@Test
+	public void testSychronizeRecordReadFromDataBaseForDelete() {
+		synchronizer.synchronize("person", "someRecordId", "delete", dataDivider);
+
+		assertEquals(dbStorage.readRecordTypes.get(0), "person");
+		assertEquals(dbStorage.readRecordIds.get(0), "someRecordId");
+
+		// TODO: kolla att vi kollar om dataGroup innehåller domainParts
+	}
+
+	@Test
+	public void testSynchronizeRecordResultHandledCorrectlyForDelete() {
+		synchronizer.synchronize("person", "someRecordId", "delete", dataDivider);
+
+		assertEquals(fedoraConverterFactory.factoredFedoraConverters.size(), 0);
+
+		assertEquals(dbStorage.alteredRecordTypes.get(0), "person");
+		assertEquals(dbStorage.alteredRecordIds.get(0), "someRecordId");
+		assertEquals(dbStorage.methodName, "delete");
+	}
+
+	@Test
+	public void testSynchronizeIndexCalledCorrectlyForDelete() {
+		synchronizer.synchronize("person", "someRecordId", "delete", dataDivider);
+
+		assertEquals(coraIndexer.recordTypes.size(), 1);
+		assertEquals(coraIndexer.workOrderTypes.get(0), "removeFromIndex");
+		assertEquals(coraIndexer.recordTypes.get(0), "person");
+		assertEquals(coraIndexer.recordIds.get(0), "someRecordId");
+		assertEquals(loggerFactorySpy.getNoOfErrorLogMessagesUsingClassName(testedClassName), 0);
+	}
+
+	@Test
+	public void testErrorWhenIndexingForDelete() {
+		coraIndexer.typesToThrowErrorFor.add("person");
+		synchronizer.synchronize("person", "someRecordId", "delete", dataDivider);
+
+		assertEquals(loggerFactorySpy.getErrorLogMessageUsingClassNameAndNo(testedClassName, 0),
+				"Error when indexing record from synchronizer, delete person.");
+	}
+
 	/************************* with domainParts *******************************/
 	@Test
 	public void testFactoredFedoraToCoraConverterWhenDomainPartsForUpdate() {
@@ -243,21 +284,24 @@ public class ClassicCoraPersonSynchronizerTest {
 	}
 
 	private void assertCorrectDomainPartDataSentToStorage() {
-		assertEquals(dbStorage.recordTypes.get(0), "person");
-		assertEquals(dbStorage.recordIds.get(0), "someRecordId");
+		assertEquals(dbStorage.alteredRecordTypes.get(0), "person");
+		assertEquals(dbStorage.alteredRecordIds.get(0), "someRecordId");
 		assertEquals(dbStorage.dataDividers.get(0), dataDivider);
 
-		assertEquals(dbStorage.recordTypes.get(1), "personDomainPart");
+		assertEquals(dbStorage.alteredRecordTypes.get(1), "personDomainPart");
 		assertEquals(dbStorage.dataDividers.get(1), dataDivider);
-		assertEquals(dbStorage.recordTypes.get(2), "personDomainPart");
+		assertEquals(dbStorage.alteredRecordTypes.get(2), "personDomainPart");
 		assertEquals(dbStorage.dataDividers.get(2), dataDivider);
-		assertEquals(dbStorage.recordTypes.get(3), "personDomainPart");
+		assertEquals(dbStorage.alteredRecordTypes.get(3), "personDomainPart");
 		assertEquals(dbStorage.dataDividers.get(3), dataDivider);
 
 		List<DataGroup> domainParts = dataGroupsReturnedFromConverter.get(0).groupChildrenToReturn;
-		assertEquals(dbStorage.recordIds.get(1), ((DataGroupSpy) domainParts.get(0)).recordId);
-		assertEquals(dbStorage.recordIds.get(2), ((DataGroupSpy) domainParts.get(1)).recordId);
-		assertEquals(dbStorage.recordIds.get(3), ((DataGroupSpy) domainParts.get(2)).recordId);
+		assertEquals(dbStorage.alteredRecordIds.get(1),
+				((DataGroupSpy) domainParts.get(0)).recordId);
+		assertEquals(dbStorage.alteredRecordIds.get(2),
+				((DataGroupSpy) domainParts.get(1)).recordId);
+		assertEquals(dbStorage.alteredRecordIds.get(3),
+				((DataGroupSpy) domainParts.get(2)).recordId);
 	}
 
 	@Test
@@ -265,6 +309,28 @@ public class ClassicCoraPersonSynchronizerTest {
 		setUpPersonWithDomainParts();
 		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
 		assertCorrectDomainPartDataSentToStorage();
+	}
+
+	@Test
+	public void testDbCallsWhenDomainPartsForDelete() {
+		setUpPersonInDbWithDomainParts();
+		synchronizer.synchronize("person", "someRecordId", "delete", dataDivider);
+
+		assertEquals(dbStorage.alteredRecordTypes.get(0), "personDomainPart");
+		assertEquals(dbStorage.alteredRecordIds.get(0), "authority-person:0:test");
+		assertEquals(dbStorage.alteredRecordTypes.get(1), "personDomainPart");
+		assertEquals(dbStorage.alteredRecordIds.get(1), "authority-person:1:test");
+		assertEquals(dbStorage.alteredRecordTypes.get(2), "personDomainPart");
+		assertEquals(dbStorage.alteredRecordIds.get(2), "authority-person:2:test");
+
+		assertEquals(dbStorage.alteredRecordTypes.get(3), "person");
+		assertEquals(dbStorage.alteredRecordIds.get(3), "someRecordId");
+	}
+
+	private void setUpPersonInDbWithDomainParts() {
+		DataGroupSpy personToReturnFromDb = new DataGroupSpy("person");
+		personToReturnFromDb.numberOfDomainParts = 3;
+		dbStorage.readDataGroup = personToReturnFromDb;
 	}
 
 	@Test
@@ -317,15 +383,15 @@ public class ClassicCoraPersonSynchronizerTest {
 	}
 
 	private void assertCorrectIndexedDomainParts() {
-		assertCorrectIndexedDomainPartUsingIndex(1);
-		assertCorrectIndexedDomainPartUsingIndex(2);
-		assertCorrectIndexedDomainPartUsingIndex(3);
+		assertCorrectIndexedDomainPartUsingIndex(1, "index");
+		assertCorrectIndexedDomainPartUsingIndex(2, "index");
+		assertCorrectIndexedDomainPartUsingIndex(3, "index");
 	}
 
-	private void assertCorrectIndexedDomainPartUsingIndex(int index) {
-		assertEquals(coraIndexer.workOrderTypes.get(index), "index");
+	private void assertCorrectIndexedDomainPartUsingIndex(int index, String workOrderType) {
+		assertEquals(coraIndexer.workOrderTypes.get(index), workOrderType);
 		assertEquals(coraIndexer.recordTypes.get(index), "personDomainPart");
-		assertEquals(coraIndexer.recordIds.get(index), dbStorage.recordIds.get(index));
+		assertEquals(coraIndexer.recordIds.get(index), dbStorage.alteredRecordIds.get(index));
 	}
 
 	@Test
@@ -356,6 +422,31 @@ public class ClassicCoraPersonSynchronizerTest {
 
 		assertEquals(loggerFactorySpy.getErrorLogMessageUsingClassNameAndNo(testedClassName, 0),
 				"Error when indexing record from synchronizer, create personDomainPart.");
+	}
+
+	@Test
+	public void testSynchronizeIndexCalledCorrectlyWhenDomainPartsForDelete() {
+		setUpPersonInDbWithDomainParts();
+		synchronizer.synchronize("person", "someRecordId", "delete", dataDivider);
+
+		assertEquals(coraIndexer.workOrderTypes.get(3), "removeFromIndex");
+		assertEquals(coraIndexer.recordTypes.get(3), "person");
+		assertEquals(coraIndexer.recordIds.get(3), "someRecordId");
+		assertEquals(coraIndexer.recordTypes.size(), 4);
+
+		assertCorrectIndexedDomainPartUsingIndex(0, "removeFromIndex");
+		assertCorrectIndexedDomainPartUsingIndex(1, "removeFromIndex");
+		assertCorrectIndexedDomainPartUsingIndex(2, "removeFromIndex");
+	}
+
+	@Test
+	public void testErrorWhenIndexingDomainPartForDelete() {
+		setUpPersonInDbWithDomainParts();
+		coraIndexer.typesToThrowErrorFor.add("personDomainPart");
+		synchronizer.synchronize("person", "someRecordId", "delete", dataDivider);
+
+		assertEquals(loggerFactorySpy.getErrorLogMessageUsingClassNameAndNo(testedClassName, 0),
+				"Error when indexing record from synchronizer, delete personDomainPart.");
 	}
 
 }

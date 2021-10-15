@@ -40,10 +40,12 @@ import se.uu.ub.cora.storage.RecordStorage;
  * ClassicCoraPersonSynchronizer is NOT threadsafe
  */
 public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
+
 	private static Logger logger = LoggerProvider
 			.getLoggerForClass(ClassicCoraPersonSynchronizer.class);
 
 	private static final String INDEX = "index";
+	private static final String REMOVE_FROM_INDEX = "removeFromIndex";
 	private static final String PERSON_DOMAIN_PART = "personDomainPart";
 	private static final int NOT_FOUND = 404;
 	private HttpHandlerFactory httpHandlerFactory;
@@ -58,7 +60,6 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	private CoraIndexer coraIndexer;
 	private String action;
 
-	// .usingXXXXX blir väldigt långt...
 	public ClassicCoraPersonSynchronizer(RecordStorage recordStorage,
 			HttpHandlerFactory httpHandlerFactory, FedoraConverterFactory fedoraConverterFactory,
 			CoraIndexer coraIndexer, String baseURL) {
@@ -79,9 +80,60 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		this.recordId = recordId;
 		this.action = action;
 		this.dataDivider = dataDivider;
-		createHttpHandlerForRead();
-		throwErrorIfRecordNotFound();
-		readRecordAndSynchronize();
+		synchronizeDependingOnAction();
+	}
+
+	private void synchronizeDependingOnAction() {
+		if ("delete".equals(action)) {
+			handleDelete();
+		} else {
+			createHttpHandlerForRead();
+			throwErrorIfRecordNotFound();
+			readRecordAndSynchronize();
+		}
+	}
+
+	private void handleDelete() {
+		DataGroup readDataGroup = recordStorage.read(recordType, recordId);
+		possiblyRemoveDomainParts(readDataGroup);
+		removeMainRecord();
+	}
+
+	private void possiblyRemoveDomainParts(DataGroup readDataGroup) {
+		List<DataGroup> personDomainParts = readDataGroup
+				.getAllGroupsWithNameInData(PERSON_DOMAIN_PART);
+		for (DataGroup personDomainPart : personDomainParts) {
+			removeDomainPart(personDomainPart);
+		}
+	}
+
+	private void removeDomainPart(DataGroup personDomainPart) {
+		String linkedRecordId = extractRecordId(personDomainPart);
+		recordStorage.deleteByTypeAndId(PERSON_DOMAIN_PART, linkedRecordId);
+		indexDomainPart(linkedRecordId, REMOVE_FROM_INDEX);
+	}
+
+	private String extractRecordId(DataGroup personDomainPart) {
+		return personDomainPart.getFirstAtomicValueWithNameInData("linkedRecordId");
+	}
+
+	private void indexDomainPart(String linkedRecordId, String workOrderType) {
+		int responseCode = coraIndexer.handleWorkorderType(workOrderType, PERSON_DOMAIN_PART,
+				linkedRecordId);
+		logErrorIfResponseNotOk(responseCode, PERSON_DOMAIN_PART);
+	}
+
+	private void logErrorIfResponseNotOk(int responseCode, String type) {
+		if (responseCode != 200) {
+			logger.logErrorUsingMessage(
+					"Error when indexing record from synchronizer, " + action + " " + type + ".");
+		}
+	}
+
+	private void removeMainRecord() {
+		recordStorage.deleteByTypeAndId(recordType, recordId);
+		int responseCode = coraIndexer.handleWorkorderType(REMOVE_FROM_INDEX, recordType, recordId);
+		logErrorIfResponseNotOk(responseCode, recordType);
 	}
 
 	private void createHttpHandlerForRead() {
@@ -103,7 +155,6 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		List<DataGroup> domainParts = personDataGroup
 				.getAllGroupsWithNameInData(PERSON_DOMAIN_PART);
 
-		// TODO: Vi behöver hantera delete också
 		if ("create".equals(action)) {
 			handleCreate(responseText, domainParts);
 		} else {
@@ -137,16 +188,10 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	private void createAndIndexDomainPart(DataGroup domainPartLink, DataGroup personDomainPart) {
-		String linkedRecordId = domainPartLink.getFirstAtomicValueWithNameInData("linkedRecordId");
+		String linkedRecordId = extractRecordId(domainPartLink);
 		recordStorage.create(PERSON_DOMAIN_PART, linkedRecordId, personDomainPart,
 				createCollectedTerms(), createLinkList(), dataDivider);
-		indexDomainPart(linkedRecordId);
-	}
-
-	private void indexDomainPart(String linkedRecordId) {
-		int responseCode = coraIndexer.handleWorkorderType(INDEX, PERSON_DOMAIN_PART,
-				linkedRecordId);
-		logErrorIfResponseNotOk(responseCode, PERSON_DOMAIN_PART);
+		indexDomainPart(linkedRecordId, INDEX);
 	}
 
 	private DataGroup convertDomainPart(String responseText) {
@@ -176,13 +221,6 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		logErrorIfResponseNotOk(responseCode, recordType);
 	}
 
-	private void logErrorIfResponseNotOk(int responseCode, String type) {
-		if (responseCode != 200) {
-			logger.logErrorUsingMessage(
-					"Error when indexing record from synchronizer, " + action + " " + type + ".");
-		}
-	}
-
 	private void updateForMainDataGroup(DataGroup dataGroup) {
 		recordStorage.update(recordType, recordId, dataGroup, createCollectedTerms(),
 				createLinkList(), dataDivider);
@@ -190,10 +228,10 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 
 	private void updateAndIndexDomainPart(String responseText, DataGroup domainPartLink) {
 		DataGroup personDomainPart = convertDomainPart(responseText);
-		String linkedRecordId = domainPartLink.getFirstAtomicValueWithNameInData("linkedRecordId");
+		String linkedRecordId = extractRecordId(domainPartLink);
 		recordStorage.update(PERSON_DOMAIN_PART, linkedRecordId, personDomainPart,
 				createCollectedTerms(), createLinkList(), dataDivider);
-		indexDomainPart(linkedRecordId);
+		indexDomainPart(linkedRecordId, INDEX);
 	}
 
 	public RecordStorage onlyForTestGetRecordStorage() {

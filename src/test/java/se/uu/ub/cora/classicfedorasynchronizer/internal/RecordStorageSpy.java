@@ -28,39 +28,32 @@ import se.uu.ub.cora.storage.StorageReadResult;
 
 public class RecordStorageSpy implements RecordStorage {
 
-	public List<String> recordTypes = new ArrayList<>();
-	public List<String> recordIds = new ArrayList<>();
-	// public List<DataGroupDomainSpy> returnedDataGroups = new ArrayList<>();
-	// public Map<String, DataGroupDomainSpy> returnOnRead = new HashMap<>();
-	// public List<String> createRecordTypes = new ArrayList<>();
-	// public List<String> createRecordIds = new ArrayList<>();
+	public List<String> alteredRecordTypes = new ArrayList<>();
+	public List<String> readRecordTypes = new ArrayList<>();
+	public List<String> alteredRecordIds = new ArrayList<>();
+	public List<String> readRecordIds = new ArrayList<>();
 	public List<DataGroup> handledDataGroups = new ArrayList<>();
-	// public List<DataGroup> updateDataGroups = new ArrayList<>();
 	public String methodName = "";
 	public List<String> dataDividers = new ArrayList<>();
 	public List<DataGroup> collectedDataDataGroups = new ArrayList<>();
 	public List<DataGroup> linkListDataGroups = new ArrayList<>();
+	public DataGroupSpy readDataGroup;
 
 	@Override
 	public DataGroup read(String type, String id) {
-		recordTypes.add(type);
-		recordIds.add(id);
-		// if (returnOnRead.containsKey(type + "_" + id)) {
-		// DataGroupDomainSpy presetReturnValue = returnOnRead.get(type + "_" + id);
-		// returnedDataGroups.add(presetReturnValue);
-		// return presetReturnValue;
-		// }
-		// DataGroupDomainSpy dataGroupToReturn = new DataGroupDomainSpy(type + "_" + id);
-		// returnedDataGroups.add(dataGroupToReturn);
-		// return dataGroupToReturn;
-		return null;
+		readRecordTypes.add(type);
+		readRecordIds.add(id);
+		if (readDataGroup == null) {
+			readDataGroup = new DataGroupSpy("someNameInData");
+		}
+		return readDataGroup;
 	}
 
 	@Override
 	public void create(String type, String id, DataGroup record, DataGroup collectedTerms,
 			DataGroup linkList, String dataDivider) {
-		recordTypes.add(type);
-		recordIds.add(id);
+		alteredRecordTypes.add(type);
+		alteredRecordIds.add(id);
 		handledDataGroups.add(record);
 		collectedDataDataGroups.add(collectedTerms);
 		linkListDataGroups.add(linkList);
@@ -70,8 +63,9 @@ public class RecordStorageSpy implements RecordStorage {
 
 	@Override
 	public void deleteByTypeAndId(String type, String id) {
-		// TODO Auto-generated method stub
-
+		alteredRecordTypes.add(type);
+		alteredRecordIds.add(id);
+		methodName = "delete";
 	}
 
 	@Override
@@ -83,8 +77,8 @@ public class RecordStorageSpy implements RecordStorage {
 	@Override
 	public void update(String type, String id, DataGroup record, DataGroup collectedTerms,
 			DataGroup linkList, String dataDivider) {
-		recordTypes.add(type);
-		recordIds.add(id);
+		alteredRecordTypes.add(type);
+		alteredRecordIds.add(id);
 		handledDataGroups.add(record);
 		collectedDataDataGroups.add(collectedTerms);
 		linkListDataGroups.add(linkList);
