@@ -41,7 +41,7 @@ public interface MessageParser {
 	 * 
 	 * @return A boolean
 	 */
-	boolean synchronizationRequiered();
+	boolean synchronizationRequired();
 
 	/**
 	 * getRecordType reads the recordType from the JMS message

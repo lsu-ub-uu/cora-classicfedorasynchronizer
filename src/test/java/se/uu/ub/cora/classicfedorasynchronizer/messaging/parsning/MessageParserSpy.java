@@ -65,7 +65,7 @@ public class MessageParserSpy implements MessageParser {
 	}
 
 	@Override
-	public boolean synchronizationRequiered() {
+	public boolean synchronizationRequired() {
 		MCR.addCall();
 
 		MCR.addReturned(synchronizationRequired);

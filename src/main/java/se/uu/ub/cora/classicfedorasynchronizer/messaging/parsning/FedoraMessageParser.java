@@ -132,7 +132,7 @@ public class FedoraMessageParser implements MessageParser {
 	}
 
 	@Override
-	public boolean synchronizationRequiered() {
+	public boolean synchronizationRequired() {
 		return synchronizationRequired;
 	}
 

@@ -47,7 +47,7 @@ public class FedoraMessageReceiver implements MessageReceiver {
 		ClassicCoraSynchronizer synchronizer = classicCoraSynchronizerFactory.factor();
 
 		messageParser.parseHeadersAndMessage(headers, message);
-		if (messageParser.synchronizationRequiered()) {
+		if (messageParser.synchronizationRequired()) {
 			String recordType = messageParser.getRecordType();
 			String recordId = messageParser.getRecordId();
 			String action = messageParser.getAction();

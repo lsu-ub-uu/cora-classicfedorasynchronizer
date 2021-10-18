@@ -83,7 +83,7 @@ public class FedoraMessageParserTest {
 		headers.remove("methodName");
 
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertFalse(messageParser.synchronizationRequiered());
+		assertFalse(messageParser.synchronizationRequired());
 	}
 
 	@Test
@@ -91,7 +91,7 @@ public class FedoraMessageParserTest {
 		headers.put("methodName", "NOTmodifyDatastreamByReference");
 
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertFalse(messageParser.synchronizationRequiered());
+		assertFalse(messageParser.synchronizationRequired());
 	}
 
 	@Test
@@ -100,7 +100,7 @@ public class FedoraMessageParserTest {
 		headers.put("methodName", "modifyDatastreamByReference");
 
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertTrue(messageParser.synchronizationRequiered());
+		assertTrue(messageParser.synchronizationRequired());
 	}
 
 	@Test
@@ -111,7 +111,7 @@ public class FedoraMessageParserTest {
 		headers.put("methodName", "modifyObject");
 
 		messageParser.parseHeadersAndMessage(headers, messageWhenDelete);
-		assertTrue(messageParser.synchronizationRequiered());
+		assertTrue(messageParser.synchronizationRequired());
 	}
 
 	@Test
@@ -120,7 +120,7 @@ public class FedoraMessageParserTest {
 		headers.put("methodName", "modifyObject");
 
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertFalse(messageParser.synchronizationRequiered());
+		assertFalse(messageParser.synchronizationRequired());
 	}
 
 	@Test
@@ -128,14 +128,14 @@ public class FedoraMessageParserTest {
 		headers.put("methodName", "purgeObject");
 
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertTrue(messageParser.synchronizationRequiered());
+		assertTrue(messageParser.synchronizationRequired());
 	}
 
 	@Test
 	public void testMethodNameAddDatastreamWorkOrderShouldBeCreated() throws Exception {
 		headers.put("methodName", "addDatastream");
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertTrue(messageParser.synchronizationRequiered());
+		assertTrue(messageParser.synchronizationRequired());
 	}
 
 	@Test
@@ -143,7 +143,7 @@ public class FedoraMessageParserTest {
 		headers.put("pid", "diva2:45677");
 
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertFalse(messageParser.synchronizationRequiered());
+		assertFalse(messageParser.synchronizationRequired());
 	}
 
 	@Test
@@ -151,7 +151,7 @@ public class FedoraMessageParserTest {
 		headers.replace("pid", null);
 
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertFalse(messageParser.synchronizationRequiered());
+		assertFalse(messageParser.synchronizationRequired());
 	}
 
 	@Test
@@ -159,7 +159,7 @@ public class FedoraMessageParserTest {
 		headers.remove("pid");
 
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertFalse(messageParser.synchronizationRequiered());
+		assertFalse(messageParser.synchronizationRequired());
 	}
 
 	@Test
@@ -189,14 +189,14 @@ public class FedoraMessageParserTest {
 	public void testMessageParserReturnsCorrectId() throws Exception {
 		messageParser.parseHeadersAndMessage(headers, message);
 		assertEquals(messageParser.getRecordId(), headers.get("pid"));
-		assertTrue(messageParser.synchronizationRequiered());
+		assertTrue(messageParser.synchronizationRequired());
 	}
 
 	@Test
 	public void testMessageParserReturnsCorrectType() throws Exception {
 		messageParser.parseHeadersAndMessage(headers, message);
 		assertEquals(messageParser.getRecordType(), "person");
-		assertTrue(messageParser.synchronizationRequiered());
+		assertTrue(messageParser.synchronizationRequired());
 	}
 
 	@Test
@@ -219,7 +219,7 @@ public class FedoraMessageParserTest {
 		headers.put("methodName", "modifyObject");
 		messageParser.parseHeadersAndMessage(headers, messageWhenDelete);
 
-		assertTrue(messageParser.synchronizationRequiered());
+		assertTrue(messageParser.synchronizationRequired());
 		assertEquals(messageParser.getAction(), "delete");
 	}
 
@@ -228,7 +228,7 @@ public class FedoraMessageParserTest {
 		headers.put("methodName", "purgeObject");
 		messageParser.parseHeadersAndMessage(headers, message);
 
-		assertTrue(messageParser.synchronizationRequiered());
+		assertTrue(messageParser.synchronizationRequired());
 		assertEquals(messageParser.getAction(), "delete");
 	}
 
