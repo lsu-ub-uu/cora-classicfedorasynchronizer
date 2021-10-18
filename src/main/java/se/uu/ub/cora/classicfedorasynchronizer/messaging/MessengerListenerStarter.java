@@ -80,21 +80,18 @@ public class MessengerListenerStarter {
 	}
 
 	private static void addToInitInfoFromProperties() {
-		initInfo.put("databaseUrl",
-				extractPropertyThrowErrorIfNotFound(properties, "database.url"));
-		initInfo.put("databaseUser",
-				extractPropertyThrowErrorIfNotFound(properties, "database.user"));
-		initInfo.put("databasePassword",
-				extractPropertyThrowErrorIfNotFound(properties, "database.password"));
-		initInfo.put("fedoraBaseUrl",
-				extractPropertyThrowErrorIfNotFound(properties, "fedora.baseUrl"));
-		initInfo.put("coraApptokenVerifierURL",
-				extractPropertyThrowErrorIfNotFound(properties, "cora.apptokenVerifierUrl"));
-		initInfo.put("coraBaseUrl",
-				extractPropertyThrowErrorIfNotFound(properties, "cora.baseUrl"));
-		initInfo.put("coraUserId", extractPropertyThrowErrorIfNotFound(properties, "cora.userId"));
-		initInfo.put("coraApptoken",
-				extractPropertyThrowErrorIfNotFound(properties, "cora.apptoken"));
+		addPropertyToInitInfo("databaseUrl", "database.url");
+		addPropertyToInitInfo("databaseUser", "database.user");
+		addPropertyToInitInfo("databasePassword", "database.password");
+		addPropertyToInitInfo("fedoraBaseUrl", "fedora.baseUrl");
+		addPropertyToInitInfo("coraApptokenVerifierURL", "cora.apptokenVerifierUrl");
+		addPropertyToInitInfo("coraBaseUrl", "cora.baseUrl");
+		addPropertyToInitInfo("coraUserId", "cora.userId");
+		addPropertyToInitInfo("coraApptoken", "cora.apptoken");
+	}
+
+	private static void addPropertyToInitInfo(String key, String propertyName) {
+		initInfo.put(key, extractPropertyThrowErrorIfNotFound(properties, propertyName));
 	}
 
 	private static void logStartListeningMessages(JmsMessageRoutingInfo routingInfo) {

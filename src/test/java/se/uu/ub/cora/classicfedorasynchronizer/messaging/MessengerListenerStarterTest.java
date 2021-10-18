@@ -101,60 +101,19 @@ public class MessengerListenerStarterTest {
 
 	}
 
-	// @Test
-	// public void testMainMethodWithPropertiesFileNameShouldUseDefaultFilename() {
-	// String defaultFile[] = new String[] {};
-	//
-	// MessengerListenerStarter.main(defaultFile);
-	//
-	// assertCorrectMessageRoutingInfo("");
-	//
-	// SynchronizerFactory synchronizerFactory = (SynchronizerFactory) messageReceiver
-	// .onlyForTestGetClassicCoraSynchronizerFactory();
-	// Map<String, String> initInfo = synchronizerFactory.onlyForTestGetInitInfo();
-	// assertCorrectInitInfo("", initInfo);
-	// }
-
-	// @Test
-	// public void testMainMethodMessagingRoutingInfoSetUpCorrectlyFromFile()
-	// throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
-	// InvocationTargetException, InstantiationException {
-	//
-	// String otherFile[] = new String[] { "divaIndexerSentIn.properties" };
-	// MessengerListenerStarter.main(otherFile);
-	//
-	// assertCorrectMessageRoutingInfo("fileSentIn-");
-	//
-	// }
-
-	private void assertCorrectMessageRoutingInfo(String prefix) {
-
-		JmsMessageRoutingInfo messagingRoutingInfo = (JmsMessageRoutingInfo) messagingFactorySpy.messagingRoutingInfo;
-
-		assertNotNull(messagingRoutingInfo);
-		assertEquals(messagingRoutingInfo.hostname, prefix + "dev-diva-drafts");
-		assertEquals(messagingRoutingInfo.port, prefix + "61617");
-		assertEquals(messagingRoutingInfo.routingKey, prefix + "fedora.apim.*");
-		assertEquals(messagingRoutingInfo.username, prefix + "admin");
-		assertEquals(messagingRoutingInfo.password, prefix + "admin");
-	}
-
 	@Test
-	public void testMainMethodMessageParserFactorySetUpCorrectly() throws Exception {
-		MessengerListenerStarter.main(args);
+	public void testMainMethodWithPropertiesFileNameShouldUseDefaultFilename() throws Exception {
+		String emtyArgsUseDefaultFileName[] = new String[] {};
+		MessengerListenerStarter.main(emtyArgsUseDefaultFileName);
 		MessageListenerSpy messageListener = messagingFactorySpy.messageListenerSpy;
 		FedoraMessageReceiver messageReceiver = (FedoraMessageReceiver) messageListener.messageReceiver;
-		assertTrue(messageReceiver
-				.onlyForTestGetMessageParserFactory() instanceof FedoraMessageParserFactory);
-	}
 
-	@Test
-	public void testMainMethodSynchronizerFactorySetUpCorrectly() throws Exception {
-		MessengerListenerStarter.main(args);
-		MessageListenerSpy messageListener = messagingFactorySpy.messageListenerSpy;
-		FedoraMessageReceiver messageReceiver = (FedoraMessageReceiver) messageListener.messageReceiver;
-		assertTrue(messageReceiver
-				.onlyForTestGetClassicCoraSynchronizerFactory() instanceof ClassicCoraSynchronizerFactory);
+		SynchronizerFactory synchronizerFactory = (SynchronizerFactory) messageReceiver
+				.onlyForTestGetClassicCoraSynchronizerFactory();
+
+		Map<String, String> initInfo = synchronizerFactory.onlyForTestGetInitInfo();
+		assertCorrectInitInfo("", initInfo);
+		assertCorrectMessageRoutingInfo("");
 	}
 
 	@Test
@@ -173,6 +132,18 @@ public class MessengerListenerStarterTest {
 		assertCorrectMessageRoutingInfo("fileSentIn-");
 	}
 
+	private void assertCorrectMessageRoutingInfo(String prefix) {
+
+		JmsMessageRoutingInfo messagingRoutingInfo = (JmsMessageRoutingInfo) messagingFactorySpy.messagingRoutingInfo;
+
+		assertNotNull(messagingRoutingInfo);
+		assertEquals(messagingRoutingInfo.hostname, prefix + "dev-diva-drafts");
+		assertEquals(messagingRoutingInfo.port, prefix + "61617");
+		assertEquals(messagingRoutingInfo.routingKey, prefix + "fedora.apim.*");
+		assertEquals(messagingRoutingInfo.username, prefix + "admin");
+		assertEquals(messagingRoutingInfo.password, prefix + "admin");
+	}
+
 	private void assertCorrectInitInfo(String prefix, Map<String, String> initInfo) {
 		assertEquals(initInfo.get("databaseUrl"), prefix + "someDatabaseUrl");
 		assertEquals(initInfo.get("databaseUser"), prefix + "dbUserName");
@@ -185,18 +156,21 @@ public class MessengerListenerStarterTest {
 	}
 
 	@Test
-	public void testMainMethodWithPropertiesFileNameShouldUseDefaultFilename() throws Exception {
-		String emtyArgsUseDefaultFileName[] = new String[] {};
-		MessengerListenerStarter.main(emtyArgsUseDefaultFileName);
+	public void testMainMethodMessageParserFactorySetUpCorrectly() throws Exception {
+		MessengerListenerStarter.main(args);
 		MessageListenerSpy messageListener = messagingFactorySpy.messageListenerSpy;
 		FedoraMessageReceiver messageReceiver = (FedoraMessageReceiver) messageListener.messageReceiver;
+		assertTrue(messageReceiver
+				.onlyForTestGetMessageParserFactory() instanceof FedoraMessageParserFactory);
+	}
 
-		SynchronizerFactory synchronizerFactory = (SynchronizerFactory) messageReceiver
-				.onlyForTestGetClassicCoraSynchronizerFactory();
-
-		Map<String, String> initInfo = synchronizerFactory.onlyForTestGetInitInfo();
-		assertCorrectInitInfo("", initInfo);
-		assertCorrectMessageRoutingInfo("");
+	@Test
+	public void testMainMethodSynchronizerFactorySetUpCorrectly() throws Exception {
+		MessengerListenerStarter.main(args);
+		MessageListenerSpy messageListener = messagingFactorySpy.messageListenerSpy;
+		FedoraMessageReceiver messageReceiver = (FedoraMessageReceiver) messageListener.messageReceiver;
+		assertTrue(messageReceiver
+				.onlyForTestGetClassicCoraSynchronizerFactory() instanceof ClassicCoraSynchronizerFactory);
 	}
 
 	@Test
