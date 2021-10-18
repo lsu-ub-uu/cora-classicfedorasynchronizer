@@ -20,9 +20,6 @@ package se.uu.ub.cora.classicfedorasynchronizer;
 
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.classicfedorasynchronizer.ParseException;
-import se.uu.ub.cora.classicfedorasynchronizer.XMLXPathParser;
-
 public class XMLXPathParserTest {
 
 	@Test(expectedExceptions = ParseException.class, expectedExceptionsMessageRegExp = ""

@@ -24,10 +24,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.classicfedorasynchronizer.messaging.LoggerFactorySpy;
-import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.FedoraMessageParser;
-import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.FedoraMessageParserFactory;
-import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.MessageParser;
-import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.MessageParserFactory;
 import se.uu.ub.cora.logger.LoggerProvider;
 
 public class FedoraMessageParserFactoryTest {
