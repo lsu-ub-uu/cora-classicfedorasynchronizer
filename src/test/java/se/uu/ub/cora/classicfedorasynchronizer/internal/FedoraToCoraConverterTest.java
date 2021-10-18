@@ -32,18 +32,18 @@ import se.uu.ub.cora.classicfedorasynchronizer.XsltTransformationSpy;
 import se.uu.ub.cora.classicfedorasynchronizer.log.LoggerFactorySpy;
 import se.uu.ub.cora.converter.ConverterProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.logger.LoggerFactory;
 import se.uu.ub.cora.logger.LoggerProvider;
 
 public class FedoraToCoraConverterTest {
 
+	private LoggerFactorySpy loggerFactory = new LoggerFactorySpy();
 	private ConverterFactorySpy converterFactory;
 	private XsltTransformationSpy transformation;
 	private FedoraToCoraConverter converter;
 
 	@BeforeMethod
 	public void setUp() {
-		LoggerFactory loggerFactory = new LoggerFactorySpy();
+		loggerFactory.resetLogs("FedoraToCoraConverterImp");
 		LoggerProvider.setLoggerFactory(loggerFactory);
 		converterFactory = new ConverterFactorySpy();
 		ConverterProvider.setConverterFactory("xml", converterFactory);

@@ -22,16 +22,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-class MessengerListnerPropertiesLoader {
-	private static final int NUMBER_OF_ARGUMENTS = 5;
+class MessengerListenerPropertiesLoader {
+	private static final int NUMBER_OF_ARGUMENTS = 13;
 	private String[] args;
 
-	private MessengerListnerPropertiesLoader(String[] args) {
+	private MessengerListenerPropertiesLoader(String[] args) {
 		this.args = args;
 	}
 
 	public static Properties loadProperties(String[] args) throws IOException {
-		MessengerListnerPropertiesLoader loader = new MessengerListnerPropertiesLoader(args);
+		MessengerListenerPropertiesLoader loader = new MessengerListenerPropertiesLoader(args);
 		return loader.load();
 	}
 
@@ -64,7 +64,7 @@ class MessengerListnerPropertiesLoader {
 		if (args.length > 0) {
 			return args[0];
 		}
-		return "fedoraJms.properties";
+		return "synchronizer.properties";
 	}
 
 	private boolean propertiesProvidedAsArguments() {
@@ -78,12 +78,21 @@ class MessengerListnerPropertiesLoader {
 		properties.put("messaging.routingKey", args[2]);
 		properties.put("messaging.username", args[3]);
 		properties.put("messaging.password", args[4]);
+
+		properties.put("database.url", args[5]);
+		properties.put("database.user", args[6]);
+		properties.put("database.password", args[7]);
+		properties.put("fedora.baseUrl", args[8]);
+		properties.put("cora.apptokenVerifierUrl", args[9]);
+		properties.put("cora.baseUrl", args[10]);
+		properties.put("cora.userId", args[11]);
+		properties.put("cora.apptoken", args[12]);
+
 		return properties;
 	}
 
 	private Properties loadProperitesFromFile(InputStream input) throws IOException {
 		Properties properties = new Properties();
-
 		properties.load(input);
 		return properties;
 	}

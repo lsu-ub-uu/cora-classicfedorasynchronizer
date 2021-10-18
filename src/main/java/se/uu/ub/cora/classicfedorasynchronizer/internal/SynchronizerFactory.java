@@ -105,4 +105,8 @@ public class SynchronizerFactory implements ClassicCoraSynchronizerFactory {
 		factorCoraIndexer();
 	}
 
+	public Map<String, String> onlyForTestGetInitInfo() {
+		return initInfo;
+	}
+
 }

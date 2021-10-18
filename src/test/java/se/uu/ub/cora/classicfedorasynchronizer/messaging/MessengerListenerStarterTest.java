@@ -25,11 +25,13 @@ import static org.testng.Assert.assertTrue;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactory;
+import se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory;
 import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.FedoraMessageParserFactory;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.messaging.JmsMessageRoutingInfo;
@@ -51,7 +53,9 @@ public class MessengerListenerStarterTest {
 		MessagingProvider.setMessagingFactory(messagingFactorySpy);
 
 		args = new String[] { "args-dev-diva-drafts", "args-61617", "args-fedora.apim.*",
-				"args-admin", "args-admin" };
+				"args-admin", "args-admin", "args-someDatabaseUrl", "args-dbUserName",
+				"args-dbUserPassword", "args-someFedoraBaseUrl", "args-someApptokenVerifierUrl",
+				"args-someCoraBaseUrl", "args-someCoraUserId", "args-someCoraApptoken" };
 	}
 
 	@Test
@@ -71,6 +75,7 @@ public class MessengerListenerStarterTest {
 	}
 
 	private void assertInfoMessagesForStartup() {
+		assertEquals(loggerFactorySpy.getNoOfFatalLogMessagesUsingClassName(testedClassName), 0);
 		assertEquals(loggerFactorySpy.getInfoLogMessageUsingClassNameAndNo(testedClassName, 0),
 				"MessengerListenerStarter starting...");
 		assertEquals(loggerFactorySpy.getInfoLogMessageUsingClassNameAndNo(testedClassName, 1),
@@ -96,26 +101,31 @@ public class MessengerListenerStarterTest {
 
 	}
 
-	@Test
-	public void testMainMethodWithPropertiesFileNameShouldUseDefaultFilename() {
-		String defaultFile[] = new String[] {};
+	// @Test
+	// public void testMainMethodWithPropertiesFileNameShouldUseDefaultFilename() {
+	// String defaultFile[] = new String[] {};
+	//
+	// MessengerListenerStarter.main(defaultFile);
+	//
+	// assertCorrectMessageRoutingInfo("");
+	//
+	// SynchronizerFactory synchronizerFactory = (SynchronizerFactory) messageReceiver
+	// .onlyForTestGetClassicCoraSynchronizerFactory();
+	// Map<String, String> initInfo = synchronizerFactory.onlyForTestGetInitInfo();
+	// assertCorrectInitInfo("", initInfo);
+	// }
 
-		MessengerListenerStarter.main(defaultFile);
-
-		assertCorrectMessageRoutingInfo("");
-	}
-
-	@Test
-	public void testMainMethodMessagingRoutingInfoSetUpCorrectlyFromFile()
-			throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
-			InvocationTargetException, InstantiationException {
-
-		String otherFile[] = new String[] { "divaIndexerSentIn.properties" };
-		MessengerListenerStarter.main(otherFile);
-
-		assertCorrectMessageRoutingInfo("fileSentIn-");
-
-	}
+	// @Test
+	// public void testMainMethodMessagingRoutingInfoSetUpCorrectlyFromFile()
+	// throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
+	// InvocationTargetException, InstantiationException {
+	//
+	// String otherFile[] = new String[] { "divaIndexerSentIn.properties" };
+	// MessengerListenerStarter.main(otherFile);
+	//
+	// assertCorrectMessageRoutingInfo("fileSentIn-");
+	//
+	// }
 
 	private void assertCorrectMessageRoutingInfo(String prefix) {
 
@@ -148,6 +158,48 @@ public class MessengerListenerStarterTest {
 	}
 
 	@Test
+	public void testMainMethodMessagingRoutingInfoSetUpCorrectlyFromFile() throws Exception {
+		String argsWithFileName[] = new String[] { "divaIndexerSentIn.properties" };
+		MessengerListenerStarter.main(argsWithFileName);
+		MessageListenerSpy messageListener = messagingFactorySpy.messageListenerSpy;
+		FedoraMessageReceiver messageReceiver = (FedoraMessageReceiver) messageListener.messageReceiver;
+
+		SynchronizerFactory synchronizerFactory = (SynchronizerFactory) messageReceiver
+				.onlyForTestGetClassicCoraSynchronizerFactory();
+
+		Map<String, String> initInfo = synchronizerFactory.onlyForTestGetInitInfo();
+		assertCorrectInitInfo("fileSentIn-", initInfo);
+
+		assertCorrectMessageRoutingInfo("fileSentIn-");
+	}
+
+	private void assertCorrectInitInfo(String prefix, Map<String, String> initInfo) {
+		assertEquals(initInfo.get("databaseUrl"), prefix + "someDatabaseUrl");
+		assertEquals(initInfo.get("databaseUser"), prefix + "dbUserName");
+		assertEquals(initInfo.get("databasePassword"), prefix + "dbUserPassword");
+		assertEquals(initInfo.get("fedoraBaseUrl"), prefix + "someFedoraBaseUrl");
+		assertEquals(initInfo.get("coraApptokenVerifierURL"), prefix + "someApptokenVerifierUrl");
+		assertEquals(initInfo.get("coraBaseUrl"), prefix + "someCoraBaseUrl");
+		assertEquals(initInfo.get("coraUserId"), prefix + "someCoraUserId");
+		assertEquals(initInfo.get("coraApptoken"), prefix + "someCoraApptoken");
+	}
+
+	@Test
+	public void testMainMethodWithPropertiesFileNameShouldUseDefaultFilename() throws Exception {
+		String emtyArgsUseDefaultFileName[] = new String[] {};
+		MessengerListenerStarter.main(emtyArgsUseDefaultFileName);
+		MessageListenerSpy messageListener = messagingFactorySpy.messageListenerSpy;
+		FedoraMessageReceiver messageReceiver = (FedoraMessageReceiver) messageListener.messageReceiver;
+
+		SynchronizerFactory synchronizerFactory = (SynchronizerFactory) messageReceiver
+				.onlyForTestGetClassicCoraSynchronizerFactory();
+
+		Map<String, String> initInfo = synchronizerFactory.onlyForTestGetInitInfo();
+		assertCorrectInitInfo("", initInfo);
+		assertCorrectMessageRoutingInfo("");
+	}
+
+	@Test
 	public void testErrorHandlingNotEnoughParameters() throws Exception {
 		args = new String[] { "args-dev-diva-drafts", "args-61617" };
 
@@ -156,7 +208,7 @@ public class MessengerListenerStarterTest {
 		Exception exception = loggerFactorySpy.getFatalLogErrorUsingClassNameAndNo(testedClassName,
 				0);
 		assertTrue(exception instanceof RuntimeException);
-		assertEquals(exception.getMessage(), "Number of arguments should be 5.");
+		assertEquals(exception.getMessage(), "Number of arguments should be 13.");
 
 		assertEquals(loggerFactorySpy.getNoOfFatalLogMessagesUsingClassName(testedClassName), 1);
 		assertEquals(loggerFactorySpy.getFatalLogMessageUsingClassNameAndNo(testedClassName, 0),

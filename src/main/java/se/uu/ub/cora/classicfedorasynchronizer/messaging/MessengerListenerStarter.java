@@ -20,7 +20,8 @@ package se.uu.ub.cora.classicfedorasynchronizer.messaging;
 
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactory;
@@ -36,6 +37,8 @@ import se.uu.ub.cora.messaging.MessagingProvider;
 
 public class MessengerListenerStarter {
 	private static Logger logger = LoggerProvider.getLoggerForClass(MessengerListenerStarter.class);
+	private static Map<String, String> initInfo = new HashMap<>();
+	private static Properties properties;
 
 	private MessengerListenerStarter() {
 	}
@@ -56,7 +59,8 @@ public class MessengerListenerStarter {
 	}
 
 	private static void startMessengerListener(String[] args) throws IOException {
-		JmsMessageRoutingInfo routingInfo = constructRoutingInfoFromArguments(args);
+		properties = MessengerListenerPropertiesLoader.loadProperties(args);
+		JmsMessageRoutingInfo routingInfo = createMessageRoutingInfoFromProperties(properties);
 
 		MessageListener topicMessageListener = MessagingProvider
 				.getTopicMessageListener(routingInfo);
@@ -69,16 +73,28 @@ public class MessengerListenerStarter {
 
 	private static MessageReceiver createMessageReceiver() {
 		MessageParserFactory messageParserFactory = new FedoraMessageParserFactory();
-		// TODO: fix...
-		ClassicCoraSynchronizerFactory synchronizerFactory = new SynchronizerFactory(
-				Collections.emptyMap());
+
+		addToInitInfoFromProperties();
+		ClassicCoraSynchronizerFactory synchronizerFactory = new SynchronizerFactory(initInfo);
 		return new FedoraMessageReceiver(messageParserFactory, synchronizerFactory);
 	}
 
-	private static JmsMessageRoutingInfo constructRoutingInfoFromArguments(String[] args)
-			throws IOException {
-		Properties properties = MessengerListnerPropertiesLoader.loadProperties(args);
-		return createMessageRoutingInfoFromProperties(properties);
+	private static void addToInitInfoFromProperties() {
+		initInfo.put("databaseUrl",
+				extractPropertyThrowErrorIfNotFound(properties, "database.url"));
+		initInfo.put("databaseUser",
+				extractPropertyThrowErrorIfNotFound(properties, "database.user"));
+		initInfo.put("databasePassword",
+				extractPropertyThrowErrorIfNotFound(properties, "database.password"));
+		initInfo.put("fedoraBaseUrl",
+				extractPropertyThrowErrorIfNotFound(properties, "fedora.baseUrl"));
+		initInfo.put("coraApptokenVerifierURL",
+				extractPropertyThrowErrorIfNotFound(properties, "cora.apptokenVerifierUrl"));
+		initInfo.put("coraBaseUrl",
+				extractPropertyThrowErrorIfNotFound(properties, "cora.baseUrl"));
+		initInfo.put("coraUserId", extractPropertyThrowErrorIfNotFound(properties, "cora.userId"));
+		initInfo.put("coraApptoken",
+				extractPropertyThrowErrorIfNotFound(properties, "cora.apptoken"));
 	}
 
 	private static void logStartListeningMessages(JmsMessageRoutingInfo routingInfo) {
@@ -86,6 +102,16 @@ public class MessengerListenerStarter {
 		String formattedLogMessage = MessageFormat.format(message, routingInfo.hostname,
 				routingInfo.port);
 		logger.logInfoUsingMessage(formattedLogMessage);
+	}
+
+	private static JmsMessageRoutingInfo createMessageRoutingInfoFromProperties(
+			Properties properties) {
+		String hostname = extractPropertyThrowErrorIfNotFound(properties, "messaging.hostname");
+		String port = extractPropertyThrowErrorIfNotFound(properties, "messaging.port");
+		String routingKey = extractPropertyThrowErrorIfNotFound(properties, "messaging.routingKey");
+		String username = extractPropertyThrowErrorIfNotFound(properties, "messaging.username");
+		String password = extractPropertyThrowErrorIfNotFound(properties, "messaging.password");
+		return new JmsMessageRoutingInfo(hostname, port, routingKey, username, password);
 	}
 
 	private static String extractPropertyThrowErrorIfNotFound(Properties properties,
@@ -101,15 +127,4 @@ public class MessengerListenerStarter {
 					"Property with name " + propertyName + " not found in properties");
 		}
 	}
-
-	private static JmsMessageRoutingInfo createMessageRoutingInfoFromProperties(
-			Properties properties) {
-		String hostname = extractPropertyThrowErrorIfNotFound(properties, "messaging.hostname");
-		String port = extractPropertyThrowErrorIfNotFound(properties, "messaging.port");
-		String routingKey = extractPropertyThrowErrorIfNotFound(properties, "messaging.routingKey");
-		String username = extractPropertyThrowErrorIfNotFound(properties, "messaging.username");
-		String password = extractPropertyThrowErrorIfNotFound(properties, "messaging.password");
-		return new JmsMessageRoutingInfo(hostname, port, routingKey, username, password);
-	}
-
 }
