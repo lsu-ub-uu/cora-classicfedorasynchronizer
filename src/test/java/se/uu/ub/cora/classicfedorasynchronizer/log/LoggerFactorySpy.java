@@ -27,7 +27,7 @@ import se.uu.ub.cora.logger.LoggerFactory;
 
 public class LoggerFactorySpy implements LoggerFactory {
 
-	public Map<String, LoggerSpy> createdLoggers = new HashMap<>();
+	public static Map<String, LoggerSpy> createdLoggers = new HashMap<>();
 
 	@Override
 	public Logger factorForClass(Class<? extends Object> javaClass) {
