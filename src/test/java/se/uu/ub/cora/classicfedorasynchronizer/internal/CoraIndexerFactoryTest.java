@@ -19,6 +19,7 @@
 package se.uu.ub.cora.classicfedorasynchronizer.internal;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
 
 import org.testng.annotations.Test;
 
@@ -27,25 +28,33 @@ import se.uu.ub.cora.javaclient.cora.CoraClientFactoryImp;
 public class CoraIndexerFactoryTest {
 
 	private String apptokenVerifierUrl = "someApptokenUrl";
-	private String baseVerifierUrl = "someBaseUrl";
+	private String baseUrl = "someBaseUrl";
 	private String userId = "someUserId";
 	private String apptoken = "someApptoken";
 
 	@Test
-	public void testFactor() {
-		CoraIndexerFactory indexerFactory = CoraIndexerFactoryImp.usingApptokenVerifierUrlAndBaseUrl(apptokenVerifierUrl, baseVerifierUrl);
-		CoraIndexerImp coraIndexer = (CoraIndexerImp) indexerFactory.factor(userId, apptoken);
-		assertEquals(coraIndexer.getUserId(), userId);
-		assertEquals(coraIndexer.getApptoken(), apptoken);
+	public void testInit() {
+		CoraIndexerFactoryImp indexerFactory = CoraIndexerFactoryImp
+				.usingApptokenVerifierUrlAndBaseUrl(apptokenVerifierUrl, baseUrl);
+		CoraClientFactoryImp coraClientFactory = (CoraClientFactoryImp) indexerFactory
+				.getCoraClientFactory();
+		assertEquals(coraClientFactory.getAppTokenVerifierUrl(), apptokenVerifierUrl);
+		assertEquals(coraClientFactory.getBaseUrl(), baseUrl);
 	}
 
 	@Test
-	public void testCoraClientFactory() {
-		CoraIndexerFactory indexerFactory = CoraIndexerFactoryImp.usingApptokenVerifierUrlAndBaseUrl(apptokenVerifierUrl, baseVerifierUrl);
+	public void testFactor() {
+		CoraIndexerFactoryImp indexerFactory = CoraIndexerFactoryImp
+				.usingApptokenVerifierUrlAndBaseUrl(apptokenVerifierUrl, baseUrl);
+
+		CoraClientFactorySpy clientFactory = new CoraClientFactorySpy();
+		indexerFactory.setCoraClientFactory(clientFactory);
+
 		CoraIndexerImp coraIndexer = (CoraIndexerImp) indexerFactory.factor(userId, apptoken);
-		CoraClientFactoryImp clientFactory = (CoraClientFactoryImp) coraIndexer
-				.getCoraClientFactory();
-		assertEquals(clientFactory.getAppTokenVerifierUrl(), apptokenVerifierUrl);
-		assertEquals(clientFactory.getBaseUrl(), baseVerifierUrl);
+
+		assertSame(coraIndexer.getCoraClient(), clientFactory.factoredCoraClient);
+
+		assertEquals(clientFactory.userId, userId);
+		assertEquals(clientFactory.appToken, apptoken);
 	}
 }

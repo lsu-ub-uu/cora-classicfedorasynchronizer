@@ -19,12 +19,13 @@
 package se.uu.ub.cora.classicfedorasynchronizer.internal;
 
 import se.uu.ub.cora.classicfedorasynchronizer.CoraIndexer;
+import se.uu.ub.cora.javaclient.cora.CoraClient;
+import se.uu.ub.cora.javaclient.cora.CoraClientFactory;
 import se.uu.ub.cora.javaclient.cora.CoraClientFactoryImp;
 
 public class CoraIndexerFactoryImp implements CoraIndexerFactory {
 
-	private String apptokenVerifierUrl;
-	private String baseUrl;
+	private CoraClientFactory coraClientFactory;
 
 	public static CoraIndexerFactoryImp usingApptokenVerifierUrlAndBaseUrl(
 			String apptokenVerifierUrl, String baseUrl) {
@@ -32,15 +33,23 @@ public class CoraIndexerFactoryImp implements CoraIndexerFactory {
 	}
 
 	private CoraIndexerFactoryImp(String apptokenVerifierUrl, String baseUrl) {
-		this.apptokenVerifierUrl = apptokenVerifierUrl;
-		this.baseUrl = baseUrl;
+		coraClientFactory = CoraClientFactoryImp
+				.usingAppTokenVerifierUrlAndBaseUrl(apptokenVerifierUrl, baseUrl);
 	}
 
 	@Override
 	public CoraIndexer factor(String userId, String apptoken) {
-		CoraClientFactoryImp coraClientFactory = CoraClientFactoryImp
-				.usingAppTokenVerifierUrlAndBaseUrl(apptokenVerifierUrl, baseUrl);
-		return new CoraIndexerImp(coraClientFactory, userId, apptoken);
+		CoraClient coraClient = coraClientFactory.factor(userId, apptoken);
+		return new CoraIndexerImp(coraClient);
+	}
+
+	public CoraClientFactory getCoraClientFactory() {
+		return coraClientFactory;
+	}
+
+	void setCoraClientFactory(CoraClientFactory coraClientFactory) {
+		this.coraClientFactory = coraClientFactory;
+
 	}
 
 }

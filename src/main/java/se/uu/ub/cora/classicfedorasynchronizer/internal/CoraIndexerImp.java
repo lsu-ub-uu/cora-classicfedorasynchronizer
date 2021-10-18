@@ -21,7 +21,6 @@ package se.uu.ub.cora.classicfedorasynchronizer.internal;
 import se.uu.ub.cora.classicfedorasynchronizer.CoraIndexer;
 import se.uu.ub.cora.javaclient.cora.CoraClient;
 import se.uu.ub.cora.javaclient.cora.CoraClientException;
-import se.uu.ub.cora.javaclient.cora.CoraClientFactory;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 
@@ -33,27 +32,17 @@ public class CoraIndexerImp implements CoraIndexer {
 	private static final int HTTP_STATUS_UNAUTHORIZED = 401;
 
 	private CoraClient coraClient;
-	private CoraClientFactory clientFactory;
-	private String userId;
-	private String apptoken;
 
-	public CoraIndexerImp(CoraClientFactory clientFactory, String userId, String apptoken) {
-		this.clientFactory = clientFactory;
-		this.userId = userId;
-		this.apptoken = apptoken;
+	public CoraIndexerImp(CoraClient coraClient) {
+		this.coraClient = coraClient;
 	}
 
 	@Override
 	public int handleWorkorderType(String workOrderType, String recordType, String recordId) {
-		coraClient = factorCoraClient(getUserId(), getApptoken());
 		if (isRemove(workOrderType)) {
 			return tryToRemoveFromIndex(recordType, recordId);
 		}
 		return tryToAddToIndex(recordType, recordId);
-	}
-
-	private CoraClient factorCoraClient(String userId, String apptoken) {
-		return clientFactory.factor(userId, apptoken);
 	}
 
 	private boolean isRemove(String workOrderType) {
@@ -152,17 +141,5 @@ public class CoraIndexerImp implements CoraIndexer {
 
 	CoraClient getCoraClient() {
 		return coraClient;
-	}
-
-	CoraClientFactory getCoraClientFactory() {
-		return clientFactory;
-	}
-
-	String getUserId() {
-		return userId;
-	}
-
-	String getApptoken() {
-		return apptoken;
 	}
 }

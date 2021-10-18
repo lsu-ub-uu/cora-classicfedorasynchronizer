@@ -29,41 +29,29 @@ import se.uu.ub.cora.logger.LoggerProvider;
 
 public class CoraIndexerTest {
 
-	private CoraClientFactorySpy clientFactory;
 	private LoggerFactorySpy loggerFactorySpy = new LoggerFactorySpy();
 
 	private String testedClassName = "CoraIndexerImp";
 	private CoraIndexerImp coraIndexer;
-	private String userId = "somePredefinedUserId";
-	private String apptoken = "someKnownApptoken";
+	private CoraClientSpy coraClient;
 
 	@BeforeMethod
 	public void setup() {
 		loggerFactorySpy.resetLogs(testedClassName);
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
-
-		clientFactory = new CoraClientFactorySpy();
-		coraIndexer = new CoraIndexerImp(clientFactory, userId, apptoken);
+		coraClient = new CoraClientSpy();
+		coraIndexer = new CoraIndexerImp(coraClient);
 
 	}
 
 	@Test
 	public void testInit() {
-		assertSame(coraIndexer.getCoraClientFactory(), clientFactory);
-	}
-
-	@Test
-	public void testCoraClient() {
-		coraIndexer.handleWorkorderType("index", "someRecordType", "someRecordId");
-		assertSame(coraIndexer.getCoraClient(), clientFactory.factoredCoraClient);
-		assertEquals(clientFactory.userId, userId);
-		assertEquals(clientFactory.appToken, apptoken);
+		assertSame(coraIndexer.getCoraClient(), coraClient);
 	}
 
 	@Test
 	public void testIndexData() {
 		int response = coraIndexer.handleWorkorderType("index", "someRecordType", "someRecordId");
-		CoraClientSpy coraClient = clientFactory.factoredCoraClient;
 		assertEquals(coraClient.recordTypes.get(0), "someRecordType");
 		assertEquals(coraClient.recordIds.get(0), "someRecordId");
 		assertEquals(coraClient.methodCalled, "index");
@@ -84,8 +72,8 @@ public class CoraIndexerTest {
 
 	@Test
 	public void testIndexWithNoIndexlink() {
-		clientFactory.throwErrorOnIndex = true;
-		coraIndexer = new CoraIndexerImp(clientFactory, userId, apptoken);
+		coraClient.throwErrorOnIndex = true;
+		coraIndexer = new CoraIndexerImp(coraClient);
 
 		int response = coraIndexer.handleWorkorderType("index", "someRecordType", "someRecordId");
 
@@ -98,9 +86,9 @@ public class CoraIndexerTest {
 
 	@Test
 	public void testIndexWhenOtherErrorIsThrown() {
-		clientFactory.throwErrorOnIndex = true;
-		clientFactory.errorToThrow = "RuntimeException";
-		coraIndexer = new CoraIndexerImp(clientFactory, userId, apptoken);
+		coraClient.throwErrorOnIndex = true;
+		coraClient.errorToThrow = "RuntimeException";
+		coraIndexer = new CoraIndexerImp(coraClient);
 
 		int response = coraIndexer.handleWorkorderType("index", "someRecordType", "someRecordId");
 
@@ -116,7 +104,6 @@ public class CoraIndexerTest {
 		int response = coraIndexer.handleWorkorderType("removeFromIndex", "someRecordType",
 				"someRecordId");
 
-		CoraClientSpy coraClient = clientFactory.factoredCoraClient;
 		assertEquals(coraClient.recordTypes.get(0), "someRecordType");
 		assertEquals(coraClient.recordIds.get(0), "someRecordId");
 		assertEquals(coraClient.methodCalled, "removeFromIndex");
@@ -136,9 +123,9 @@ public class CoraIndexerTest {
 
 	@Test
 	public void testRemoveFromIndexWhenErrorIsThrown() {
-		clientFactory.throwErrorOnIndex = true;
-		clientFactory.errorToThrow = "RuntimeException";
-		coraIndexer = new CoraIndexerImp(clientFactory, userId, apptoken);
+		coraClient.throwErrorOnIndex = true;
+		coraClient.errorToThrow = "RuntimeException";
+		coraIndexer = new CoraIndexerImp(coraClient);
 
 		int response = coraIndexer.handleWorkorderType("removeFromIndex", "someRecordType",
 				"someRecordId");
