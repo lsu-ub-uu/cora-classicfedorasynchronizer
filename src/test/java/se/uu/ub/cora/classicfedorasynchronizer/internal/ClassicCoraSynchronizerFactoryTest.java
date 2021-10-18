@@ -1,3 +1,21 @@
+/*
+ * Copyright 2021 Uppsala University Library
+ *
+ * This file is part of Cora.
+ *
+ *     Cora is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     Cora is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package se.uu.ub.cora.classicfedorasynchronizer.internal;
 
 import static org.testng.Assert.assertEquals;
@@ -10,6 +28,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactory;
+import se.uu.ub.cora.classicfedorasynchronizer.CoraIndexer;
 import se.uu.ub.cora.httphandler.HttpHandlerFactoryImp;
 import se.uu.ub.cora.json.parser.org.OrgJsonParser;
 import se.uu.ub.cora.sqldatabase.SqlDatabaseFactoryImp;
@@ -20,8 +39,6 @@ public class ClassicCoraSynchronizerFactoryTest {
 
 	SynchronizerFactory synchronizerFactory;
 	DatabaseStorageProviderSpy databaseStorageProvider;
-	// HttpHandlerFactorySpy httpHandlerFactorySpy;
-	// FedoraConverterFactorySpy fedoraConverterFactorySpy;
 
 	private Map<String, String> initInfo;
 
@@ -34,7 +51,7 @@ public class ClassicCoraSynchronizerFactoryTest {
 		initInfo.put("databasePassword", "somePassword");
 		initInfo.put("fedoraBaseUrl", "someFedoraUrl");
 
-		initInfo.put("apptokenVerifierURL", "someApptokenVerifierURL");
+		initInfo.put("coraApptokenVerifierURL", "someApptokenVerifierURL");
 		initInfo.put("coraBaseUrl", "someCoraBaseUrl");
 		initInfo.put("coraUserId", "someCoraUserId");
 		initInfo.put("coraApptoken", "someCoraApptoken");
@@ -94,13 +111,28 @@ public class ClassicCoraSynchronizerFactoryTest {
 	}
 
 	@Test
-	public void testCoraIndexerSent() throws Exception {
+	public void testDefaultCoraIndexerFactory() throws Exception {
+		CoraIndexerFactoryImp indexerFactory = (CoraIndexerFactoryImp) synchronizerFactory
+				.onlyForTestGetIndexerFactory();
 		ClassicCoraPersonSynchronizer synchronizer = (ClassicCoraPersonSynchronizer) synchronizerFactory
 				.factor();
 		CoraIndexerImp coraIndexer = (CoraIndexerImp) synchronizer.onlyForTestGetCoraIndexer();
-		// coraIndexer.
-		// TODO: check cora indexer
-		// assertFedoraConverterFactory(synchronizer);
+		assertTrue(coraIndexer instanceof CoraIndexerImp);
+		assertEquals(indexerFactory.onlyForTestGetApptokenVerifierUrl(),
+				initInfo.get("coraApptokenVerifierURL"));
+		assertEquals(indexerFactory.onlyForTestGetBaseUrl(), initInfo.get("coraBaseURL"));
+	}
+
+	@Test
+	public void testCoraIndexerFactoredFromFactory() throws Exception {
+		CoraIndexerFactorySpy coraIndexerFactorySpy = new CoraIndexerFactorySpy();
+		synchronizerFactory.onlyForTestSetIndexFactory(coraIndexerFactorySpy);
+		ClassicCoraPersonSynchronizer synchronizer = (ClassicCoraPersonSynchronizer) synchronizerFactory
+				.factor();
+		CoraIndexer coraIndexerFromSynchronizer = synchronizer.onlyForTestGetCoraIndexer();
+		coraIndexerFactorySpy.MCR.assertReturn("factor", 0, coraIndexerFromSynchronizer);
+		coraIndexerFactorySpy.MCR.assertParameters("factor", 0, initInfo.get("coraUserId"),
+				initInfo.get("coraApptoken"));
 	}
 
 	@Test

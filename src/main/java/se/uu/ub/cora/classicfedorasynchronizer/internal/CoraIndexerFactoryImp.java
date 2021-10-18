@@ -52,4 +52,12 @@ public class CoraIndexerFactoryImp implements CoraIndexerFactory {
 
 	}
 
+	public String onlyForTestGetApptokenVerifierUrl() {
+		return apptokenVerifierUrl;
+	}
+
+	public String onlyForTestGetBaseUrl() {
+		return baseUrl;
+	}
+
 }

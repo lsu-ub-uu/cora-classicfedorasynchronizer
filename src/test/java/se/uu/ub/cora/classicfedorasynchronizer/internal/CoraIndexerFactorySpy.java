@@ -18,32 +18,18 @@
  */
 package se.uu.ub.cora.classicfedorasynchronizer.internal;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import se.uu.ub.cora.classicfedorasynchronizer.CoraIndexer;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
-public class CoraIndexerSpy implements CoraIndexer {
-
-	public List<String> workOrderTypes = new ArrayList<>();
-	public List<String> recordTypes = new ArrayList<>();
-	public List<String> recordIds = new ArrayList<>();
-	public List<String> typesToThrowErrorFor = new ArrayList<>();
+public class CoraIndexerFactorySpy implements CoraIndexerFactory {
 	MethodCallRecorder MCR = new MethodCallRecorder();
 
 	@Override
-	public int handleWorkorderType(String workOrderType, String recordType, String recordId) {
-		MCR.addCall("workOrderType", workOrderType, "recordType", recordType, "recordId", recordId);
-		this.workOrderTypes.add(workOrderType);
-		this.recordTypes.add(recordType);
-		this.recordIds.add(recordId);
-		int code = 200;
-		if (typesToThrowErrorFor.contains(recordType)) {
-			code = 401;
-		}
-		MCR.addReturned(code);
-		return code;
+	public CoraIndexer factor(String userId, String apptoken) {
+		MCR.addCall("userId", userId, "apptoken", apptoken);
+		CoraIndexer factored = new CoraIndexerSpy();
+		MCR.addReturned(factored);
+		return factored;
 	}
 
 }

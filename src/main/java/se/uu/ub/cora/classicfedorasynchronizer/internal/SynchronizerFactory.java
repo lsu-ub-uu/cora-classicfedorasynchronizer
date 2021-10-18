@@ -41,17 +41,18 @@ public class SynchronizerFactory implements ClassicCoraSynchronizerFactory {
 	private FedoraConverterFactory fedoraConverterFactory;
 	private Map<String, String> initInfo;
 	private RecordStorage recordStorage;
-	// private CoraIndexer coraIndexer;
+	private CoraIndexer coraIndexer;
+	private CoraIndexerFactory indexerFactory;
 
 	public SynchronizerFactory(Map<String, String> initInfo) {
 		this.initInfo = initInfo;
 		initializeDatabaseRecordStorage();
-		httpHandlerFactory = new HttpHandlerFactoryImp();
-		initializaFedoraConverterFactory();
+		initializeHttpHandlerFactory();
+		initializeFedoraConverterFactory();
+		initializeCoraIndexer();
 	}
 
 	private void initializeDatabaseRecordStorage() {
-
 		String databaseUrl = initInfo.get("databaseUrl");
 		String databaseUser = initInfo.get("databaseUser");
 		String databasePassword = initInfo.get("databasePassword");
@@ -63,25 +64,45 @@ public class SynchronizerFactory implements ClassicCoraSynchronizerFactory {
 		recordStorage = new DatabaseRecordStorage(sqlDatabaseFactory, jsonParser);
 	}
 
-	private void initializaFedoraConverterFactory() {
+	private void initializeHttpHandlerFactory() {
+		httpHandlerFactory = new HttpHandlerFactoryImp();
+	}
+
+	private void initializeFedoraConverterFactory() {
 		CoraTransformationFactory coraTransformationFactory = new XsltTransformationFactory();
 		this.fedoraConverterFactory = DivaFedoraConverterFactoryImp
 				.usingFedoraURLAndTransformerFactory(coraTransformationFactory);
 	}
 
+	private void initializeCoraIndexer() {
+		String apptokenVerifierURL = initInfo.get("coraApptokenVerifierURL");
+		String baseURL = initInfo.get("coraBaseURL");
+		indexerFactory = CoraIndexerFactoryImp
+				.usingApptokenVerifierUrlAndBaseUrl(apptokenVerifierURL, baseURL);
+
+		factorCoraIndexer();
+	}
+
+	private void factorCoraIndexer() {
+		String userId = initInfo.get("coraUserId");
+		String apptoken = initInfo.get("coraApptoken");
+		coraIndexer = indexerFactory.factor(userId, apptoken);
+	}
+
 	@Override
 	public ClassicCoraSynchronizer factor() {
 
-		// TODO: coraIndexer --- apptokenVerifierUrl, baseURL (samma som baseURL i new
-		// ClassicCoraPersonSynchronizer) userId, apptoken ??
-		// CoraIndexerFactory indexerFactory =
-		// CoraIndexerFactoryImp indexerFactory =
-		// CoraIndexerFactoryImp.usingApptokenVerifierUrlAndBaseUrl(apptokenVerifierURL, baseURL);
-		// coraIndexer = indexerFactory.factor(userId, apptoken);
-
-		CoraIndexer coraIndexer = null;
 		return new ClassicCoraPersonSynchronizer(recordStorage, httpHandlerFactory,
 				fedoraConverterFactory, coraIndexer, initInfo.get("fedoraBaseUrl"));
+	}
+
+	public CoraIndexerFactory onlyForTestGetIndexerFactory() {
+		return indexerFactory;
+	}
+
+	public void onlyForTestSetIndexFactory(CoraIndexerFactory coraIndexerFactorySpy) {
+		indexerFactory = coraIndexerFactorySpy;
+		factorCoraIndexer();
 	}
 
 }
