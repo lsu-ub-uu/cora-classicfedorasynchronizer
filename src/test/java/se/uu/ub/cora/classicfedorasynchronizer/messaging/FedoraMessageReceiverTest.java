@@ -101,7 +101,7 @@ public class FedoraMessageReceiverTest {
 		MessageParserSpy messageParserSpy = messageParserFactorySpy.messageParserSpy;
 
 		messageParserSpy.MCR.assertParameters("parseHeadersAndMessage", 0, headers, message);
-		messageParserSpy.MCR.assertReturn("synchronizationRequiered", 0, true);
+		messageParserSpy.MCR.assertReturn("synchronizationRequired", 0, true);
 
 		messageParserSpy.MCR.assertReturn("getRecordType", 0, "someParsedTypeFromMessageParserSpy");
 		messageParserSpy.MCR.assertReturn("getRecordId", 0, "someParsedIdFromMessageParserSpy");

@@ -26,9 +26,13 @@ import se.uu.ub.cora.javaclient.cora.CoraClientFactoryImp;
 public class CoraIndexerFactoryImp implements CoraIndexerFactory {
 
 	private CoraClientFactory coraClientFactory;
+	private static String apptokenVerifierUrl;
+	private static String baseUrl;
 
 	public static CoraIndexerFactoryImp usingApptokenVerifierUrlAndBaseUrl(
 			String apptokenVerifierUrl, String baseUrl) {
+		CoraIndexerFactoryImp.apptokenVerifierUrl = apptokenVerifierUrl;
+		CoraIndexerFactoryImp.baseUrl = baseUrl;
 		return new CoraIndexerFactoryImp(apptokenVerifierUrl, baseUrl);
 	}
 
