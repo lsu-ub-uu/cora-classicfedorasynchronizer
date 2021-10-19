@@ -148,53 +148,6 @@ public class FedoraMessageReceiverTest {
 		assertEquals(noOfErrorLogMessagesUsingClassName, 0);
 	}
 
-	// @Test
-	// public void testNOWorkOrderCreatedWhenParserReturnsFalse() throws Exception {
-	//
-	// receiver.receiveMessage(headers, message);
-	//
-	// // assertFalse(coraClientSpy.createWasCalled);
-	// }
-
-	// @Test
-	// public void testLogInfoWhenWorkOrderCreated() throws Exception {
-	// assertEquals(loggerFactory.getNoOfInfoLogMessagesUsingClassname(testedClassname), 0);
-	//
-	// receiver.receiveMessage(headers, message);
-	//
-	// assertEquals(loggerFactory.getNoOfInfoLogMessagesUsingClassname(testedClassname), 1);
-	// }
-	//
-	// @Test
-	// public void testLogInfoWhenWorkOrderCreatedCorrectMessage() throws Exception {
-	// receiver.receiveMessage(headers, message);
-	//
-	// String firstInfoLogMessage = loggerFactory
-	// .getInfoLogMessageUsingClassNameAndNo(testedClassname, 0);
-	// assertEquals(firstInfoLogMessage,
-	// "Index workOrder created for type: someParsedTypeFromMessageParserSpy "
-	// + "and id: someParsedIdFromMessageParserSpy");
-	// }
-	//
-	// @Test
-	// public void testLogErrorWhenWorkOrderFailedToBeCreated() throws Exception {
-	// // coraClientSpy.throwErrorOnCreate = true;
-	// assertEquals(loggerFactory.getNoOfErrorLogMessagesUsingClassName(testedClassname), 0);
-	//
-	// receiver.receiveMessage(headers, message);
-	//
-	// assertEquals(loggerFactory.getNoOfErrorLogMessagesUsingClassName(testedClassname), 1);
-	// String firstErrorLogMessage = loggerFactory
-	// .getErrorLogMessageUsingClassNameAndNo(testedClassname, 0);
-	// assertEquals(firstErrorLogMessage,
-	// "Index workOrder NOT created for type: someParsedTypeFromMessageParserSpy "
-	// + "and id: someParsedIdFromMessageParserSpy");
-	// Exception firstErrorException = loggerFactory
-	// .getErrorLogErrorUsingClassNameAndNo(testedClassname, 0);
-	// assertEquals(firstErrorException.getMessage(), "Error from CoraClientSpy on create");
-	// assertEquals(loggerFactory.getNoOfInfoLogMessagesUsingClassname(testedClassname), 0);
-	// }
-
 	@Test
 	public void testLogFatalWhenTopicGetsClosed() throws Exception {
 		assertEquals(loggerFactory.getNoOfFatalLogMessagesUsingClassName(testedClassname), 0);
@@ -212,5 +165,7 @@ public class FedoraMessageReceiverTest {
 				.getFatalLogMessageUsingClassNameAndNo(testedClassname, 0);
 		assertEquals(firstFatalLogMessage, "Topic closed!");
 	}
+
+	// TODO: Add test to test Exception on synchronizer. The error must handles on receiveMessage
 
 }
