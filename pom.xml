@@ -29,6 +29,7 @@
 		<httphandler.version>2.3.0</httphandler.version>
 		<json.version>3.0-SNAPSHOT</json.version>
 		<coradata.version>5.1.0</coradata.version>
+		<basicdata.version>3.2.0</basicdata.version>
 		<xmlutils.version>1.1.0</xmlutils.version>
 		<storage.version>5.0-SNAPSHOT</storage.version>
 		<sqlstorage.version>1.0-SNAPSHOT</sqlstorage.version>
@@ -81,6 +82,11 @@
 			<artifactId>coradata</artifactId>
 			<version>${coradata.version}</version>
 			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>basicdata</artifactId>
+			<version>${basicdata.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>se.uu.ub.cora</groupId>
