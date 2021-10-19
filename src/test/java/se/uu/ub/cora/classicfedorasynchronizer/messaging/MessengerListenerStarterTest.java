@@ -88,7 +88,7 @@ public class MessengerListenerStarterTest {
 	}
 
 	private void assertNoFatalErrorMessages() {
-		LoggerSpy loggerSpy = loggerFactorySpy.createdLoggers.get(testedClassName);
+		LoggerSpy loggerSpy = LoggerFactorySpy.createdLoggers.get(testedClassName);
 		assertNotNull(loggerSpy);
 	}
 
