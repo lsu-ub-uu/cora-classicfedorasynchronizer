@@ -32,6 +32,8 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactory;
 import se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory;
+import se.uu.ub.cora.classicfedorasynchronizer.log.LoggerFactorySpy;
+import se.uu.ub.cora.classicfedorasynchronizer.log.LoggerSpy;
 import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.FedoraMessageParserFactory;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.messaging.JmsMessageRoutingInfo;
@@ -40,8 +42,8 @@ import se.uu.ub.cora.messaging.MessagingProvider;
 public class MessengerListenerStarterTest {
 
 	private LoggerFactorySpy loggerFactorySpy = new LoggerFactorySpy();
-	private MessagingFactorySpy messagingFactorySpy;
 	private String testedClassName = "MessengerListenerStarter";
+	private MessagingFactorySpy messagingFactorySpy;
 	private String args[];
 
 	@BeforeMethod

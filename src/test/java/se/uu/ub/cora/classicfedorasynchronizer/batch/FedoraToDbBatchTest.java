@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Uppsala University Library
+ * Copyright 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,31 +16,13 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning;
+package se.uu.ub.cora.classicfedorasynchronizer.batch;
 
-import static org.testng.Assert.assertTrue;
-
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.classicfedorasynchronizer.log.LoggerFactorySpy;
-import se.uu.ub.cora.logger.LoggerProvider;
-
-public class FedoraMessageParserFactoryTest {
-
-	private LoggerFactorySpy loggerFactory;
-
-	@BeforeMethod
-	public void setUp() {
-		loggerFactory = new LoggerFactorySpy();
-		LoggerProvider.setLoggerFactory(loggerFactory);
-	}
-
+public class FedoraToDbBatchTest {
 	@Test
-	public void testFactor() {
-		MessageParserFactory factory = new FedoraMessageParserFactory();
-		MessageParser messageParser = factory.factor();
-		assertTrue(messageParser instanceof FedoraMessageParser);
+	public void testInit() throws Exception {
+		FedoraToDbBatch fedoraToDb = new FedoraToDbBatch();
 	}
-
 }

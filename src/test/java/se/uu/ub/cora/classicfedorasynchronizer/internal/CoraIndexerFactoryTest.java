@@ -21,16 +21,25 @@ package se.uu.ub.cora.classicfedorasynchronizer.internal;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.classicfedorasynchronizer.log.LoggerFactorySpy;
 import se.uu.ub.cora.javaclient.cora.CoraClientFactoryImp;
+import se.uu.ub.cora.logger.LoggerProvider;
 
 public class CoraIndexerFactoryTest {
+	private LoggerFactorySpy loggerFactorySpy = new LoggerFactorySpy();
 
 	private String apptokenVerifierUrl = "someApptokenUrl";
 	private String baseUrl = "someBaseUrl";
 	private String userId = "someUserId";
 	private String apptoken = "someApptoken";
+
+	@BeforeMethod
+	public void setUp() {
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+	}
 
 	@Test
 	public void testInit() {

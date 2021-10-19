@@ -1,0 +1,56 @@
+2021-10-19 07:11:36,281 INFO s.u.u.c.c.i.CoraIndexerImp Indexing record. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:11:36,284 INFO s.u.u.c.c.i.CoraIndexerImp Indexing finished. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:11:36,286 INFO s.u.u.c.c.i.CoraIndexerImp Indexing record. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:11:36,286 ERROR s.u.u.c.c.i.CoraIndexerImp Error when indexing record. RecordType: someRecordType and recordId: someRecordId. Some runtime error from spy
+2021-10-19 07:11:36,289 INFO s.u.u.c.c.i.CoraIndexerImp Indexing record. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:11:36,290 ERROR s.u.u.c.c.i.CoraIndexerImp CoraClient error when indexing record. RecordType: someRecordType and recordId: someRecordId. Some error from spy
+2021-10-19 07:11:36,292 INFO s.u.u.c.c.i.CoraIndexerImp Indexing record. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:11:36,292 INFO s.u.u.c.c.i.CoraIndexerImp Indexing finished. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:11:36,293 INFO s.u.u.c.c.i.CoraIndexerImp Removing from index. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:11:36,293 INFO s.u.u.c.c.i.CoraIndexerImp Finished removing. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:11:36,295 INFO s.u.u.c.c.i.CoraIndexerImp Removing from index. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:11:36,295 INFO s.u.u.c.c.i.CoraIndexerImp Finished removing. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:11:36,296 INFO s.u.u.c.c.i.CoraIndexerImp Removing from index. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:11:36,296 ERROR s.u.u.c.c.i.CoraIndexerImp Error when removing from index. RecordType: someRecordType and recordId: someRecordId. Some runtime error from spy
+2021-10-19 07:12:32,009 INFO s.u.u.c.c.i.CoraIndexerImp Indexing record. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:12:32,011 INFO s.u.u.c.c.i.CoraIndexerImp Indexing finished. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:12:32,012 INFO s.u.u.c.c.i.CoraIndexerImp Indexing record. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:12:32,012 ERROR s.u.u.c.c.i.CoraIndexerImp Error when indexing record. RecordType: someRecordType and recordId: someRecordId. Some runtime error from spy
+2021-10-19 07:12:32,014 INFO s.u.u.c.c.i.CoraIndexerImp Indexing record. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:12:32,015 ERROR s.u.u.c.c.i.CoraIndexerImp CoraClient error when indexing record. RecordType: someRecordType and recordId: someRecordId. Some error from spy
+2021-10-19 07:12:32,016 INFO s.u.u.c.c.i.CoraIndexerImp Indexing record. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:12:32,016 INFO s.u.u.c.c.i.CoraIndexerImp Indexing finished. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:12:32,017 INFO s.u.u.c.c.i.CoraIndexerImp Removing from index. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:12:32,017 INFO s.u.u.c.c.i.CoraIndexerImp Finished removing. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:12:32,019 INFO s.u.u.c.c.i.CoraIndexerImp Removing from index. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:12:32,019 INFO s.u.u.c.c.i.CoraIndexerImp Finished removing. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:12:32,020 INFO s.u.u.c.c.i.CoraIndexerImp Removing from index. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 07:12:32,020 ERROR s.u.u.c.c.i.CoraIndexerImp Error when removing from index. RecordType: someRecordType and recordId: someRecordId. Some runtime error from spy
+2021-10-19 08:00:14,088 INFO s.u.u.c.c.i.CoraIndexerImp Indexing record. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:00:14,089 INFO s.u.u.c.c.i.CoraIndexerImp Indexing finished. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:00:14,090 INFO s.u.u.c.c.i.CoraIndexerImp Indexing record. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:00:14,091 ERROR s.u.u.c.c.i.CoraIndexerImp Error when indexing record. RecordType: someRecordType and recordId: someRecordId. Some runtime error from spy
+2021-10-19 08:00:14,092 INFO s.u.u.c.c.i.CoraIndexerImp Indexing record. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:00:14,093 ERROR s.u.u.c.c.i.CoraIndexerImp CoraClient error when indexing record. RecordType: someRecordType and recordId: someRecordId. Some error from spy
+2021-10-19 08:00:14,094 INFO s.u.u.c.c.i.CoraIndexerImp Indexing record. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:00:14,094 INFO s.u.u.c.c.i.CoraIndexerImp Indexing finished. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:00:14,095 INFO s.u.u.c.c.i.CoraIndexerImp Removing from index. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:00:14,095 INFO s.u.u.c.c.i.CoraIndexerImp Finished removing. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:00:14,096 INFO s.u.u.c.c.i.CoraIndexerImp Removing from index. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:00:14,096 INFO s.u.u.c.c.i.CoraIndexerImp Finished removing. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:00:14,097 INFO s.u.u.c.c.i.CoraIndexerImp Removing from index. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:00:14,097 ERROR s.u.u.c.c.i.CoraIndexerImp Error when removing from index. RecordType: someRecordType and recordId: someRecordId. Some runtime error from spy
+2021-10-19 08:07:30,418 INFO s.u.u.c.c.i.CoraIndexerImp Indexing record. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:07:30,419 INFO s.u.u.c.c.i.CoraIndexerImp Indexing finished. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:07:30,420 INFO s.u.u.c.c.i.CoraIndexerImp Indexing record. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:07:30,420 ERROR s.u.u.c.c.i.CoraIndexerImp Error when indexing record. RecordType: someRecordType and recordId: someRecordId. Some runtime error from spy
+2021-10-19 08:07:30,422 INFO s.u.u.c.c.i.CoraIndexerImp Indexing record. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:07:30,423 ERROR s.u.u.c.c.i.CoraIndexerImp CoraClient error when indexing record. RecordType: someRecordType and recordId: someRecordId. Some error from spy
+2021-10-19 08:07:30,424 INFO s.u.u.c.c.i.CoraIndexerImp Indexing record. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:07:30,424 INFO s.u.u.c.c.i.CoraIndexerImp Indexing finished. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:07:30,425 INFO s.u.u.c.c.i.CoraIndexerImp Removing from index. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:07:30,425 INFO s.u.u.c.c.i.CoraIndexerImp Finished removing. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:07:30,426 INFO s.u.u.c.c.i.CoraIndexerImp Removing from index. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:07:30,426 INFO s.u.u.c.c.i.CoraIndexerImp Finished removing. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:07:30,427 INFO s.u.u.c.c.i.CoraIndexerImp Removing from index. RecordType: someRecordType and recordId: someRecordId.
+2021-10-19 08:07:30,427 ERROR s.u.u.c.c.i.CoraIndexerImp Error when removing from index. RecordType: someRecordType and recordId: someRecordId. Some runtime error from spy

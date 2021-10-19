@@ -31,6 +31,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy;
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerSpy;
+import se.uu.ub.cora.classicfedorasynchronizer.log.LoggerFactorySpy;
 import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.MessageParserFactorySpy;
 import se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning.MessageParserSpy;
 import se.uu.ub.cora.logger.LoggerProvider;
