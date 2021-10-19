@@ -29,7 +29,6 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy;
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerSpy;
-import se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory;
 import se.uu.ub.cora.classicfedorasynchronizer.log.LoggerFactorySpy;
 import se.uu.ub.cora.logger.LoggerProvider;
 
@@ -42,7 +41,7 @@ public class FedoraToDbBatchTest {
 
 	@BeforeMethod
 	public void setUp() {
-		FedoraToDbBatch.setSynchronizerFactory(null);
+		// FedoraToDbBatch.setSynchronizerFactory(null);
 		args = new String[] { "args-someDatabaseUrl", "args-dbUserName", "args-dbUserPassword",
 				"args-someFedoraBaseUrl", "args-someApptokenVerifierUrl", "args-someCoraBaseUrl",
 				"args-someCoraUserId", "args-someCoraApptoken" };
@@ -67,7 +66,6 @@ public class FedoraToDbBatchTest {
 	@Test
 	public void testMainMethod() throws Exception {
 		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
-		// args = new String[] {};
 		FedoraToDbBatch.main(args);
 
 		assertTrue(
@@ -102,32 +100,31 @@ public class FedoraToDbBatchTest {
 
 	@Test
 	public void testMainMethodUsingArgs() throws Exception {
+		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
+
 		FedoraToDbBatch.main(args);
 
-		SynchronizerFactory synchronizerFactory = (SynchronizerFactory) FedoraToDbBatch.synchronizerFactory;
-		assertEquals(synchronizerFactory.onlyForTestGetInitInfo().get("databaseUrl"),
-				"args-someDatabaseUrl");
-		assertEquals(synchronizerFactory.onlyForTestGetInitInfo().get("databaseUser"),
-				"args-dbUserName");
-		assertEquals(synchronizerFactory.onlyForTestGetInitInfo().get("databasePassword"),
-				"args-dbUserPassword");
-		assertEquals(synchronizerFactory.onlyForTestGetInitInfo().get("fedoraBaseUrl"),
-				"args-someFedoraBaseUrl");
-		assertEquals(synchronizerFactory.onlyForTestGetInitInfo().get("coraApptokenVerifierURL"),
+		ClassicCoraSynchronizerFactorySpy synchronizerFactory = (ClassicCoraSynchronizerFactorySpy) FedoraToDbBatch.synchronizerFactory;
+		assertEquals(synchronizerFactory.initInfo.get("databaseUrl"), "args-someDatabaseUrl");
+		assertEquals(synchronizerFactory.initInfo.get("databaseUser"), "args-dbUserName");
+		assertEquals(synchronizerFactory.initInfo.get("databasePassword"), "args-dbUserPassword");
+		assertEquals(synchronizerFactory.initInfo.get("fedoraBaseUrl"), "args-someFedoraBaseUrl");
+		assertEquals(synchronizerFactory.initInfo.get("coraApptokenVerifierURL"),
 				"args-someApptokenVerifierUrl");
-		assertEquals(synchronizerFactory.onlyForTestGetInitInfo().get("coraBaseUrl"),
-				"args-someCoraBaseUrl");
-		assertEquals(synchronizerFactory.onlyForTestGetInitInfo().get("coraUserId"),
-				"args-someCoraUserId");
-		assertEquals(synchronizerFactory.onlyForTestGetInitInfo().get("coraApptoken"),
-				"args-someCoraApptoken");
+		assertEquals(synchronizerFactory.initInfo.get("coraBaseUrl"), "args-someCoraBaseUrl");
+		assertEquals(synchronizerFactory.initInfo.get("coraUserId"), "args-someCoraUserId");
+		assertEquals(synchronizerFactory.initInfo.get("coraApptoken"), "args-someCoraApptoken");
 	}
 
 	@Test
 	public void testFactorSynchronizerUsingFactorySpy() throws Exception {
-		ClassicCoraSynchronizerFactorySpy synchronizerFactory = new ClassicCoraSynchronizerFactorySpy();
-		FedoraToDbBatch.setSynchronizerFactory(synchronizerFactory);
+		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
+
+		// ClassicCoraSynchronizerFactorySpy synchronizerFactory
+		// =ClassicCoraSynchronizerFactorySpy();
+		// FedoraToDbBatch.setSynchronizerFactory(synchronizerFactory);
 		FedoraToDbBatch.main(args);
+		ClassicCoraSynchronizerFactorySpy synchronizerFactory = (ClassicCoraSynchronizerFactorySpy) FedoraToDbBatch.synchronizerFactory;
 		ClassicCoraSynchronizerSpy synchronizer = (ClassicCoraSynchronizerSpy) synchronizerFactory.MCR
 				.getReturnValue("factor", 0);
 		assertCorrectCallToSynchronizer(synchronizer, 0, "auhority-person:45");

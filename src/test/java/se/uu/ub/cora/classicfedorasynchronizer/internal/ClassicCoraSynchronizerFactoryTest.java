@@ -58,7 +58,7 @@ public class ClassicCoraSynchronizerFactoryTest {
 
 		databaseStorageProvider = new DatabaseStorageProviderSpy();
 
-		synchronizerFactory = new SynchronizerFactory(initInfo);
+		synchronizerFactory = SynchronizerFactory.usingInitInfo(initInfo);
 	}
 
 	@Test

@@ -75,7 +75,7 @@ public class MessengerListenerStarter {
 		MessageParserFactory messageParserFactory = new FedoraMessageParserFactory();
 
 		addToInitInfoFromProperties();
-		ClassicCoraSynchronizerFactory synchronizerFactory = new SynchronizerFactory(initInfo);
+		ClassicCoraSynchronizerFactory synchronizerFactory = SynchronizerFactory.usingInitInfo(initInfo);
 		return new FedoraMessageReceiver(messageParserFactory, synchronizerFactory);
 	}
 

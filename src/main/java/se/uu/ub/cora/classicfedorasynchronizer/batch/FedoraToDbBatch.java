@@ -19,8 +19,8 @@
 package se.uu.ub.cora.classicfedorasynchronizer.batch;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +28,6 @@ import java.util.Properties;
 
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizer;
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactory;
-import se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 
@@ -41,30 +40,35 @@ public class FedoraToDbBatch {
 	private FedoraToDbBatch() {
 	}
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args)
+			throws IOException, NoSuchMethodException, ClassNotFoundException,
+			InstantiationException, IllegalAccessException, InvocationTargetException {
 		logger.logInfoUsingMessage("FedoraToDbBatch starting...");
 		Properties properties = FedoraToDbBatchPropertiesLoader.loadProperties(args);
 
-		// possiblyCreateSynchronizerFactory(properties);
-		//
-		// synchronize();
-		// logger.logInfoUsingMessage("FedoraToDbBatch started");
+		constructSynchronizerFactory(properties);
+		synchronize();
+		logger.logInfoUsingMessage("FedoraToDbBatch started");
 
 	}
 
-	private static void constructSynchronizerFactory(String finderClassName)
+	private static void constructSynchronizerFactory(Properties properties)
 			throws NoSuchMethodException, ClassNotFoundException, InstantiationException,
 			IllegalAccessException, InvocationTargetException {
-		Constructor<?> constructor = Class.forName(finderClassName).getConstructor();
-		synchronizerFactory = (ClassicCoraSynchronizerFactory) constructor.newInstance();
+		Class<?>[] cArg = new Class[1];
+		cArg[0] = Map.class;
+		Map<String, String> initInfo = createInitInfo(properties);
+		Method constructor = Class.forName(synchronizerFactoryClassName).getMethod("usingInitInfo",
+				cArg);
+		synchronizerFactory = (ClassicCoraSynchronizerFactory) constructor.invoke(null, initInfo);
 	}
 
-	private static void possiblyCreateSynchronizerFactory(Properties properties) {
-		Map<String, String> initInfo = createInitInfo(properties);
-		if (synchronizerFactory == null) {
-			synchronizerFactory = new SynchronizerFactory(initInfo);
-		}
-	}
+	// private static void possiblyCreateSynchronizerFactory(Properties properties) {
+	// Map<String, String> initInfo = createInitInfo(properties);
+	// if (synchronizerFactory == null) {
+	// synchronizerFactory = SynchronizerFactory.usingInitInfo(initInfo);
+	// }
+	// }
 
 	private static void synchronize() {
 		ClassicCoraSynchronizer synchronizer = synchronizerFactory.factor();

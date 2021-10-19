@@ -18,10 +18,22 @@
  */
 package se.uu.ub.cora.classicfedorasynchronizer;
 
+import java.util.Map;
+
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class ClassicCoraSynchronizerFactorySpy implements ClassicCoraSynchronizerFactory {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public Map<String, String> initInfo;
+
+	public static ClassicCoraSynchronizerFactorySpy usingInitInfo(Map<String, String> initInfo) {
+		return new ClassicCoraSynchronizerFactorySpy(initInfo);
+	}
+
+	private ClassicCoraSynchronizerFactorySpy(Map<String, String> initInfo) {
+		this.initInfo = initInfo;
+
+	}
 
 	@Override
 	public ClassicCoraSynchronizer factor() {
