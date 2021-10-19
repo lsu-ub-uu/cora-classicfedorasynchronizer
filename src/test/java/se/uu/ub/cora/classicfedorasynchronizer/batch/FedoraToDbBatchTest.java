@@ -24,5 +24,24 @@ public class FedoraToDbBatchTest {
 	@Test
 	public void testInit() throws Exception {
 		FedoraToDbBatch fedoraToDb = new FedoraToDbBatch();
+
+		// we need recordType, recordId, action, dataDivider for synchronizer
+
+		// modification date
+		// creation date
+
+		// DivaFedoraRecordStorage createUrlForPersonList
+		// String query = "state=A pid~authority-person:*";
+		// baseURL + "objects?pid=true&maxResults=100&resultFormat=xml&query=" + urlEncodedQuery;
+
+		// FedoraReaderImp getFedoraUrlForType
+		// return
+		// String.format("%s/objects?pid=true&maxResults=%d&resultFormat=xml&query=pid%%7E%s:*",
+		// baseUrl, maxResults, type);
+
+		// FedoraReaderImp getFedoraCursorUrlForType
+		// return String.format(
+		// "%s/objects?sessionToken=%s&pid=true&maxResults=%d&resultFormat=xml&query=pid%%7E%s:*",
+		// baseUrl, cursor.getToken(), maxResults, type);
 	}
 }
