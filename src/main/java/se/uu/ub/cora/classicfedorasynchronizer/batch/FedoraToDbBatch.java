@@ -40,29 +40,41 @@ import se.uu.ub.cora.logger.LoggerProvider;
 public class FedoraToDbBatch {
 
 	private static Logger logger = LoggerProvider.getLoggerForClass(FedoraToDbBatch.class);
-	protected static ClassicCoraSynchronizerFactory synchronizerFactory;
 	protected static String synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory";
 	protected static String fedoraReaderFactoryClassName = "se.uu.ub.cora.fedora.reader.FedoraReaderFactoryImp";
+	protected static ClassicCoraSynchronizerFactory synchronizerFactory;
 	protected static FedoraReaderFactory fedoraReaderFactory;
 
 	private FedoraToDbBatch() {
 	}
 
-	public static void main(String[] args) throws IOException, NoSuchMethodException,
-			ClassNotFoundException, IllegalAccessException, InvocationTargetException {
+	public static void main(String[] args) {
 		logger.logInfoUsingMessage("FedoraToDbBatch starting...");
-		try {
-			Properties properties = FedoraToDbBatchPropertiesLoader.loadProperties(args);
-			Map<String, String> initInfo = createInitInfo(properties);
+		tryToReadAndSynchronize(args);
 
-			constructSynchronizerFactory(initInfo);
-			constructFedoraReaderFactory();
-			synchronize(initInfo);
+	}
+
+	private static void tryToReadAndSynchronize(String[] args) {
+		try {
+			readAndSynchronize(args);
 			logger.logInfoUsingMessage("FedoraToDbBatch started");
 		} catch (Exception e) {
 			logger.logFatalUsingMessage("Unable to start FedoraToDbBatch: " + e.getMessage());
 		}
+	}
 
+	private static void readAndSynchronize(String[] args) throws IOException, NoSuchMethodException,
+			ClassNotFoundException, IllegalAccessException, InvocationTargetException {
+		Map<String, String> initInfo = createInitInfo(args);
+
+		constructSynchronizerFactory(initInfo);
+		constructFedoraReaderFactory();
+		synchronize(initInfo);
+	}
+
+	private static Map<String, String> createInitInfo(String[] args) throws IOException {
+		Properties properties = FedoraToDbBatchPropertiesLoader.loadProperties(args);
+		return createInitInfoFromProperties(properties);
 	}
 
 	private static void constructSynchronizerFactory(Map<String, String> initInfo)
@@ -101,7 +113,7 @@ public class FedoraToDbBatch {
 		return fedoraReader.readList("", null);
 	}
 
-	private static Map<String, String> createInitInfo(Properties properties) {
+	private static Map<String, String> createInitInfoFromProperties(Properties properties) {
 		Map<String, String> initInfo = new HashMap<>();
 		addPropertyToInitInfo(initInfo, properties, "databaseUrl", "database.url");
 		addPropertyToInitInfo(initInfo, properties, "databaseUser", "database.user");
