@@ -16,32 +16,38 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.classicfedorasynchronizer;
+package se.uu.ub.cora.classicfedorasynchronizer.batch;
 
-import java.util.Map;
+import java.util.List;
 
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.fedora.reader.FedoraReader;
 
-public class ClassicCoraSynchronizerFactorySpy implements ClassicCoraSynchronizerFactory {
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public Map<String, String> initInfo;
+public class FedoraReaderSpy implements FedoraReader {
 
-	public static ClassicCoraSynchronizerFactorySpy usingInitInfo(Map<String, String> initInfo) {
-		return new ClassicCoraSynchronizerFactorySpy(initInfo);
-	}
+	public String type;
+	public DataGroup filter;
+	public List<String> listToReturn = List.of("auhority-person:245", "auhority-person:322",
+			"auhority-person:4029", "auhority-person:127", "auhority-person:1211");
 
-	private ClassicCoraSynchronizerFactorySpy(Map<String, String> initInfo) {
-		this.initInfo = initInfo;
-
+	@Override
+	public String readObject(String objectId) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
-	public ClassicCoraSynchronizer factor() {
-		MCR.addCall();
-		ClassicCoraSynchronizer synchronizer = new ClassicCoraSynchronizerSpy();
+	public List<String> readList(String type, DataGroup filter) {
 
-		MCR.addReturned(synchronizer);
-		return synchronizer;
+		this.type = type;
+		this.filter = filter;
+		return listToReturn;
+	}
+
+	@Override
+	public void setMaxResults(int count) {
+		// TODO Auto-generated method stub
 
 	}
+
 }

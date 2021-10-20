@@ -18,6 +18,120 @@
  */
 package se.uu.ub.cora.classicfedorasynchronizer.batch;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizer;
+import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactory;
+import se.uu.ub.cora.fedora.data.FedoraReaderXmlHelper;
+import se.uu.ub.cora.fedora.data.FedoraReaderXmlHelperImp;
+import se.uu.ub.cora.fedora.reader.FedoraReader;
+import se.uu.ub.cora.fedora.reader.FedoraReaderFactory;
+import se.uu.ub.cora.httphandler.HttpHandlerFactory;
+import se.uu.ub.cora.httphandler.HttpHandlerFactoryImp;
+import se.uu.ub.cora.logger.Logger;
+import se.uu.ub.cora.logger.LoggerProvider;
+
 public class FedoraToDbBatch {
+
+	private static Logger logger = LoggerProvider.getLoggerForClass(FedoraToDbBatch.class);
+	protected static ClassicCoraSynchronizerFactory synchronizerFactory;
+	protected static String synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory";
+	protected static String fedoraReaderFactoryClassName = "se.uu.ub.cora.fedora.reader.FedoraReaderFactoryImp";
+	protected static FedoraReaderFactory fedoraReaderFactory;
+
+	private FedoraToDbBatch() {
+	}
+
+	public static void main(String[] args) throws IOException, NoSuchMethodException,
+			ClassNotFoundException, IllegalAccessException, InvocationTargetException {
+		logger.logInfoUsingMessage("FedoraToDbBatch starting...");
+		try {
+			Properties properties = FedoraToDbBatchPropertiesLoader.loadProperties(args);
+			Map<String, String> initInfo = createInitInfo(properties);
+
+			constructSynchronizerFactory(initInfo);
+			constructFedoraReaderFactory();
+			synchronize(initInfo);
+			logger.logInfoUsingMessage("FedoraToDbBatch started");
+		} catch (Exception e) {
+			logger.logFatalUsingMessage("Unable to start FedoraToDbBatch: " + e.getMessage());
+		}
+
+	}
+
+	private static void constructSynchronizerFactory(Map<String, String> initInfo)
+			throws NoSuchMethodException, ClassNotFoundException, IllegalAccessException,
+			InvocationTargetException {
+		Class<?>[] cArg = new Class[1];
+		cArg[0] = Map.class;
+		Method constructor = Class.forName(synchronizerFactoryClassName).getMethod("usingInitInfo",
+				cArg);
+		synchronizerFactory = (ClassicCoraSynchronizerFactory) constructor.invoke(null, initInfo);
+	}
+
+	private static void constructFedoraReaderFactory() throws NoSuchMethodException,
+			ClassNotFoundException, IllegalAccessException, InvocationTargetException {
+		Class<?>[] cArg = new Class[2];
+		cArg[0] = HttpHandlerFactory.class;
+		cArg[1] = FedoraReaderXmlHelper.class;
+		HttpHandlerFactoryImp httpHandlerFactory = new HttpHandlerFactoryImp();
+		FedoraReaderXmlHelperImp fedoraReaderXmlHelper = new FedoraReaderXmlHelperImp();
+		Method constructor = Class.forName(fedoraReaderFactoryClassName)
+				.getMethod("usingHttpHandlerFactoryAndFedoraReaderXmlHelper", cArg);
+		fedoraReaderFactory = (FedoraReaderFactory) constructor.invoke(null, httpHandlerFactory,
+				fedoraReaderXmlHelper);
+	}
+
+	private static void synchronize(Map<String, String> initInfo) {
+		ClassicCoraSynchronizer synchronizer = synchronizerFactory.factor();
+		List<String> pids = getListOfPidsFromFedora(initInfo);
+		for (String recordId : pids) {
+			synchronizer.synchronize("person", recordId, "create", "diva");
+		}
+	}
+
+	private static List<String> getListOfPidsFromFedora(Map<String, String> initInfo) {
+		FedoraReader fedoraReader = fedoraReaderFactory.factor(initInfo.get("fedoraBaseUrl"));
+		return fedoraReader.readList("", null);
+	}
+
+	private static Map<String, String> createInitInfo(Properties properties) {
+		Map<String, String> initInfo = new HashMap<>();
+		addPropertyToInitInfo(initInfo, properties, "databaseUrl", "database.url");
+		addPropertyToInitInfo(initInfo, properties, "databaseUser", "database.user");
+		addPropertyToInitInfo(initInfo, properties, "databasePassword", "database.password");
+		addPropertyToInitInfo(initInfo, properties, "fedoraBaseUrl", "fedora.baseUrl");
+		addPropertyToInitInfo(initInfo, properties, "coraApptokenVerifierURL",
+				"cora.apptokenVerifierUrl");
+		addPropertyToInitInfo(initInfo, properties, "coraBaseUrl", "cora.baseUrl");
+		addPropertyToInitInfo(initInfo, properties, "coraUserId", "cora.userId");
+		addPropertyToInitInfo(initInfo, properties, "coraApptoken", "cora.apptoken");
+		return initInfo;
+	}
+
+	private static void addPropertyToInitInfo(Map<String, String> initInfo, Properties properties,
+			String key, String propertyName) {
+		initInfo.put(key, extractPropertyThrowErrorIfNotFound(properties, propertyName));
+	}
+
+	private static String extractPropertyThrowErrorIfNotFound(Properties properties,
+			String propertyName) {
+		throwErrorIfPropertyNameIsMissing(properties, propertyName);
+		return properties.getProperty(propertyName);
+	}
+
+	private static void throwErrorIfPropertyNameIsMissing(Properties properties,
+			String propertyName) {
+		if (!properties.containsKey(propertyName)) {
+			throw new RuntimeException(
+					"Property with name " + propertyName + " not found in properties");
+		}
+	}
 
 }

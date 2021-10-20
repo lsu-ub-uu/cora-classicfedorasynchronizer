@@ -44,7 +44,11 @@ public class SynchronizerFactory implements ClassicCoraSynchronizerFactory {
 	private CoraIndexer coraIndexer;
 	private CoraIndexerFactory indexerFactory;
 
-	public SynchronizerFactory(Map<String, String> initInfo) {
+	public static SynchronizerFactory usingInitInfo(Map<String, String> initInfo) {
+		return new SynchronizerFactory(initInfo);
+	}
+
+	private SynchronizerFactory(Map<String, String> initInfo) {
 		this.initInfo = initInfo;
 		initializeDatabaseRecordStorage();
 		initializeHttpHandlerFactory();
