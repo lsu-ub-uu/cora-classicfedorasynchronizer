@@ -22,6 +22,4 @@ public interface FedoraConverterFactory {
 
 	FedoraToCoraConverter factorToCoraConverter(String type);
 
-	// CoraToFedoraConverter factorToFedoraConverter(String type);
-
 }
