@@ -28,6 +28,7 @@ import java.util.Properties;
 
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizer;
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactory;
+import se.uu.ub.cora.fedora.reader.FedoraReaderFactory;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 
@@ -36,25 +37,30 @@ public class FedoraToDbBatch {
 	private static Logger logger = LoggerProvider.getLoggerForClass(FedoraToDbBatch.class);
 	protected static ClassicCoraSynchronizerFactory synchronizerFactory;
 	protected static String synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory";
+	protected static String fedoraReaderFactoryClassName = "se.uu.ub.cora.fedora.reader.FedoraReaderFactoryImp";
+	protected static FedoraReaderFactory fedoraReaderFactory;
 
 	private FedoraToDbBatch() {
 	}
 
-	public static void main(String[] args)
-			throws IOException, NoSuchMethodException, ClassNotFoundException,
-			InstantiationException, IllegalAccessException, InvocationTargetException {
+	public static void main(String[] args) throws IOException, NoSuchMethodException,
+			ClassNotFoundException, IllegalAccessException, InvocationTargetException {
 		logger.logInfoUsingMessage("FedoraToDbBatch starting...");
-		Properties properties = FedoraToDbBatchPropertiesLoader.loadProperties(args);
+		try {
+			Properties properties = FedoraToDbBatchPropertiesLoader.loadProperties(args);
 
-		constructSynchronizerFactory(properties);
-		synchronize();
-		logger.logInfoUsingMessage("FedoraToDbBatch started");
+			constructSynchronizerFactory(properties);
+			synchronize();
+			logger.logInfoUsingMessage("FedoraToDbBatch started");
+		} catch (Exception e) {
+			logger.logFatalUsingMessage("Unable to start FedoraToDbBatch: " + e.getMessage());
+		}
 
 	}
 
 	private static void constructSynchronizerFactory(Properties properties)
-			throws NoSuchMethodException, ClassNotFoundException, InstantiationException,
-			IllegalAccessException, InvocationTargetException {
+			throws NoSuchMethodException, ClassNotFoundException, IllegalAccessException,
+			InvocationTargetException {
 		Class<?>[] cArg = new Class[1];
 		cArg[0] = Map.class;
 		Map<String, String> initInfo = createInitInfo(properties);
@@ -63,12 +69,16 @@ public class FedoraToDbBatch {
 		synchronizerFactory = (ClassicCoraSynchronizerFactory) constructor.invoke(null, initInfo);
 	}
 
-	// private static void possiblyCreateSynchronizerFactory(Properties properties) {
-	// Map<String, String> initInfo = createInitInfo(properties);
-	// if (synchronizerFactory == null) {
-	// synchronizerFactory = SynchronizerFactory.usingInitInfo(initInfo);
-	// }
-	// }
+	private static void constructFedoraReaderFactory(Properties properties)
+			throws NoSuchMethodException, ClassNotFoundException, IllegalAccessException,
+			InvocationTargetException {
+		Class<?>[] cArg = new Class[1];
+		cArg[0] = Map.class;
+		Map<String, String> initInfo = createInitInfo(properties);
+		Method constructor = Class.forName(synchronizerFactoryClassName)
+				.getMethod("usingHttpHandlerFactoryAndFedoraReaderXmlHelper", cArg);
+		fedoraReaderFactory = (FedoraReaderFactory) constructor.invoke(null, initInfo);
+	}
 
 	private static void synchronize() {
 		ClassicCoraSynchronizer synchronizer = synchronizerFactory.factor();

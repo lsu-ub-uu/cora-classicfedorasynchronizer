@@ -23,6 +23,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,7 +52,8 @@ public class FedoraMessageReceiverTest {
 	public void setUp() {
 		loggerFactory = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactory);
-		synchronizerFactory = new ClassicCoraSynchronizerFactorySpy();
+		synchronizerFactory = ClassicCoraSynchronizerFactorySpy
+				.usingInitInfo(Collections.emptyMap());
 
 		headers = new HashMap<>();
 		headers.put("__TypeId__", "epc.messaging.amqp.EPCFedoraMessage");

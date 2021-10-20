@@ -41,7 +41,6 @@ public class FedoraToDbBatchTest {
 
 	@BeforeMethod
 	public void setUp() {
-		// FedoraToDbBatch.setSynchronizerFactory(null);
 		args = new String[] { "args-someDatabaseUrl", "args-dbUserName", "args-dbUserPassword",
 				"args-someFedoraBaseUrl", "args-someApptokenVerifierUrl", "args-someCoraBaseUrl",
 				"args-someCoraUserId", "args-someCoraApptoken" };
@@ -58,19 +57,23 @@ public class FedoraToDbBatchTest {
 	}
 
 	@Test
-	public void testDefaultSynchronizerFactoryClassName() {
+	public void testDefaultFactoryClassNames() {
 		assertEquals(FedoraToDbBatch.synchronizerFactoryClassName,
 				"se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory");
+		assertEquals(FedoraToDbBatch.fedoraReaderFactoryClassName,
+				"se.uu.ub.cora.fedora.reader.FedoraReaderFactoryImp");
 	}
 
 	@Test
 	public void testMainMethod() throws Exception {
 		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
+		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
+		// FedoraReaderFactory readerFactory = FedoraReaderFactorySpy();
 		FedoraToDbBatch.main(args);
 
 		assertTrue(
 				FedoraToDbBatch.synchronizerFactory instanceof ClassicCoraSynchronizerFactorySpy);
-
+		assertTrue(FedoraToDbBatch.fedoraReaderFactory instanceof FedoraReaderFactorySpy);
 		assertEquals(loggerFactorySpy.getNoOfFatalLogMessagesUsingClassName(testedClassName), 0);
 		assertEquals(loggerFactorySpy.getInfoLogMessageUsingClassNameAndNo(testedClassName, 0),
 				"FedoraToDbBatch starting...");
@@ -104,25 +107,28 @@ public class FedoraToDbBatchTest {
 
 		FedoraToDbBatch.main(args);
 
+		assertCorrectInitInfoInSynchronizerUsingPrefix("args-");
+	}
+
+	private void assertCorrectInitInfoInSynchronizerUsingPrefix(String prefix) {
 		ClassicCoraSynchronizerFactorySpy synchronizerFactory = (ClassicCoraSynchronizerFactorySpy) FedoraToDbBatch.synchronizerFactory;
-		assertEquals(synchronizerFactory.initInfo.get("databaseUrl"), "args-someDatabaseUrl");
-		assertEquals(synchronizerFactory.initInfo.get("databaseUser"), "args-dbUserName");
-		assertEquals(synchronizerFactory.initInfo.get("databasePassword"), "args-dbUserPassword");
-		assertEquals(synchronizerFactory.initInfo.get("fedoraBaseUrl"), "args-someFedoraBaseUrl");
+		assertEquals(synchronizerFactory.initInfo.get("databaseUrl"), prefix + "someDatabaseUrl");
+		assertEquals(synchronizerFactory.initInfo.get("databaseUser"), prefix + "dbUserName");
+		assertEquals(synchronizerFactory.initInfo.get("databasePassword"),
+				prefix + "dbUserPassword");
+		assertEquals(synchronizerFactory.initInfo.get("fedoraBaseUrl"),
+				prefix + "someFedoraBaseUrl");
 		assertEquals(synchronizerFactory.initInfo.get("coraApptokenVerifierURL"),
-				"args-someApptokenVerifierUrl");
-		assertEquals(synchronizerFactory.initInfo.get("coraBaseUrl"), "args-someCoraBaseUrl");
-		assertEquals(synchronizerFactory.initInfo.get("coraUserId"), "args-someCoraUserId");
-		assertEquals(synchronizerFactory.initInfo.get("coraApptoken"), "args-someCoraApptoken");
+				prefix + "someApptokenVerifierUrl");
+		assertEquals(synchronizerFactory.initInfo.get("coraBaseUrl"), prefix + "someCoraBaseUrl");
+		assertEquals(synchronizerFactory.initInfo.get("coraUserId"), prefix + "someCoraUserId");
+		assertEquals(synchronizerFactory.initInfo.get("coraApptoken"), prefix + "someCoraApptoken");
 	}
 
 	@Test
 	public void testFactorSynchronizerUsingFactorySpy() throws Exception {
 		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
 
-		// ClassicCoraSynchronizerFactorySpy synchronizerFactory
-		// =ClassicCoraSynchronizerFactorySpy();
-		// FedoraToDbBatch.setSynchronizerFactory(synchronizerFactory);
 		FedoraToDbBatch.main(args);
 		ClassicCoraSynchronizerFactorySpy synchronizerFactory = (ClassicCoraSynchronizerFactorySpy) FedoraToDbBatch.synchronizerFactory;
 		ClassicCoraSynchronizerSpy synchronizer = (ClassicCoraSynchronizerSpy) synchronizerFactory.MCR
@@ -141,5 +147,40 @@ public class FedoraToDbBatchTest {
 		synchronizer.MCR.assertParameter("synchronize", callNumber, "recordId", recordId);
 		synchronizer.MCR.assertParameter("synchronize", callNumber, "action", "create");
 		synchronizer.MCR.assertParameter("synchronize", callNumber, "dataDivider", "diva");
+	}
+
+	@Test
+	public void testMainMethodUsingDefaultFile() throws Exception {
+		args = new String[] {};
+		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
+
+		FedoraToDbBatch.main(args);
+
+		assertCorrectInitInfoInSynchronizerUsingPrefix("");
+	}
+
+	@Test
+	public void testMainMethodUsingFileName() throws Exception {
+		String argsWithFileName[] = new String[] { "divaIndexerSentIn.properties" };
+		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
+
+		FedoraToDbBatch.main(argsWithFileName);
+
+		assertCorrectInitInfoInSynchronizerUsingPrefix("fileSentIn-");
+	}
+
+	@Test
+	public void testMainMethodWrongNumberOfArguments() throws Exception {
+		args = new String[] { "arg1", "arg2" };
+		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
+
+		FedoraToDbBatch.main(args);
+
+		assertEquals(loggerFactorySpy.getInfoLogMessageUsingClassNameAndNo(testedClassName, 0),
+				"FedoraToDbBatch starting...");
+		assertEquals(loggerFactorySpy.getNoOfInfoLogMessagesUsingClassname(testedClassName), 1);
+		assertEquals(loggerFactorySpy.getFatalLogMessageUsingClassNameAndNo(testedClassName, 0),
+				"Unable to start FedoraToDbBatch: Number of arguments should be 8.");
+
 	}
 }
