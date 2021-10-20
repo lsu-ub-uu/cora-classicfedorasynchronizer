@@ -56,21 +56,6 @@ public class DivaFedoraConverterFactoryImp implements FedoraConverterFactory {
 		return new FedoraToCoraConverterImp(coraTransformation);
 	}
 
-	// @Override
-	// public CoraToFedoraConverter factorToFedoraConverter(String type) {
-	// if ("person".equals(type)) {
-	// HttpHandlerFactoryImp httpHandlerFactory = new HttpHandlerFactoryImp();
-	// return CoraToFedoraPersonConverter
-	// .usingHttpHandlerFactoryAndFedoraUrl(httpHandlerFactory, fedoraURL);
-	// }
-	// throw NotImplementedException.withMessage("No converter implemented for: " + type);
-	// }
-	//
-	// public String getFedoraURL() {
-	// // needed for tests
-	// return fedoraURL;
-	// }
-
 	public CoraTransformationFactory getCoraTransformerFactory() {
 		return coraTransformationFactory;
 	}
