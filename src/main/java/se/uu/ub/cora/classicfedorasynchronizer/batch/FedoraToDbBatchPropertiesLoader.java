@@ -19,8 +19,9 @@
 package se.uu.ub.cora.classicfedorasynchronizer.batch;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
+
+import se.uu.ub.cora.classicfedorasynchronizer.internal.PropertiesLoader;
 
 class FedoraToDbBatchPropertiesLoader {
 	private static final int NUMBER_OF_ARGUMENTS = 8;
@@ -36,35 +37,12 @@ class FedoraToDbBatchPropertiesLoader {
 	}
 
 	private Properties load() throws IOException {
-		if (propertiesShouldBeReadFromFile()) {
-			return readPropertiesFromFile();
+		if (PropertiesLoader.propertiesShouldBeReadFromFile(args)) {
+			return PropertiesLoader.readPropertiesFromFile(args);
 		} else if (propertiesProvidedAsArguments()) {
 			return loadProperitesFromArgs();
 		}
 		throw new RuntimeException("Number of arguments should be " + NUMBER_OF_ARGUMENTS + ".");
-	}
-
-	private boolean propertiesShouldBeReadFromFile() {
-		return args.length == 0 || fileNameProvidedAsArgument();
-	}
-
-	private boolean fileNameProvidedAsArgument() {
-		return args.length == 1;
-	}
-
-	private Properties readPropertiesFromFile() throws IOException {
-		String propertiesFileName = getFilenameFromArgsOrDefault();
-		try (InputStream input = FedoraToDbBatchPropertiesLoader.class.getClassLoader()
-				.getResourceAsStream(propertiesFileName)) {
-			return loadProperitesFromFile(input);
-		}
-	}
-
-	private String getFilenameFromArgsOrDefault() {
-		if (args.length > 0) {
-			return args[0];
-		}
-		return "synchronizer.properties";
 	}
 
 	private boolean propertiesProvidedAsArguments() {
@@ -83,12 +61,6 @@ class FedoraToDbBatchPropertiesLoader {
 		properties.put("cora.userId", args[6]);
 		properties.put("cora.apptoken", args[7]);
 
-		return properties;
-	}
-
-	private Properties loadProperitesFromFile(InputStream input) throws IOException {
-		Properties properties = new Properties();
-		properties.load(input);
 		return properties;
 	}
 }
