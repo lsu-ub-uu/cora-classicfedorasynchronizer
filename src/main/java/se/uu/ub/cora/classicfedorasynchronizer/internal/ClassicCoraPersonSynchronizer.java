@@ -197,7 +197,6 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	private DataGroup convertDomainPart(String responseText) {
 		FedoraToCoraConverter domainPartConverter = fedoraConverterFactory
 				.factorToCoraConverter(PERSON_DOMAIN_PART);
-		logger.logWarnUsingMessage(responseText);
 		return domainPartConverter.fromXML(responseText);
 	}
 
