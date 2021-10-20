@@ -24,13 +24,9 @@ import se.uu.ub.cora.classicfedorasynchronizer.FedoraToCoraConverter;
 import se.uu.ub.cora.converter.Converter;
 import se.uu.ub.cora.converter.ConverterProvider;
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.logger.Logger;
-import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.xmlutils.transformer.CoraTransformation;
 
 public class FedoraToCoraConverterImp implements FedoraToCoraConverter {
-
-	private static Logger logger = LoggerProvider.getLoggerForClass(FedoraToCoraConverterImp.class);
 
 	private CoraTransformation transformation;
 
@@ -40,9 +36,7 @@ public class FedoraToCoraConverterImp implements FedoraToCoraConverter {
 
 	@Override
 	public DataGroup fromXML(String xmlToTransform) {
-		logger.logInfoUsingMessage("XmlToTransform: " + xmlToTransform);
 		String coraXml = transformation.transform(xmlToTransform);
-		logger.logInfoUsingMessage("CoraXml: " + coraXml);
 		return convertXml(coraXml);
 	}
 
