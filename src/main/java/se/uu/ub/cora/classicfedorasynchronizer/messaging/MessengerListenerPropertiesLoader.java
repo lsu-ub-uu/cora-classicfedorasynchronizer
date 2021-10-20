@@ -54,7 +54,7 @@ class MessengerListenerPropertiesLoader {
 
 	private Properties readPropertiesFromFile() throws IOException {
 		String propertiesFileName = getFilenameFromArgsOrDefault();
-		try (InputStream input = MessengerListenerStarter.class.getClassLoader()
+		try (InputStream input = MessengerListenerPropertiesLoader.class.getClassLoader()
 				.getResourceAsStream(propertiesFileName)) {
 			return loadProperitesFromFile(input);
 		}
