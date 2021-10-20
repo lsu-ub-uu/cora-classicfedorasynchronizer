@@ -76,7 +76,7 @@ public class SynchronizerFactory implements ClassicCoraSynchronizerFactory {
 
 	private void initializeCoraIndexer() {
 		String apptokenVerifierURL = initInfo.get("coraApptokenVerifierURL");
-		String baseURL = initInfo.get("coraBaseURL");
+		String baseURL = initInfo.get("coraBaseUrl");
 		indexerFactory = CoraIndexerFactoryImp
 				.usingApptokenVerifierUrlAndBaseUrl(apptokenVerifierURL, baseURL);
 

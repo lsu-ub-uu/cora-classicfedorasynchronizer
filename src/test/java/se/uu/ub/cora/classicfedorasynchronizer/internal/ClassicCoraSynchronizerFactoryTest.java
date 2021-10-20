@@ -120,7 +120,7 @@ public class ClassicCoraSynchronizerFactoryTest {
 		assertTrue(coraIndexer instanceof CoraIndexerImp);
 		assertEquals(indexerFactory.onlyForTestGetApptokenVerifierUrl(),
 				initInfo.get("coraApptokenVerifierURL"));
-		assertEquals(indexerFactory.onlyForTestGetBaseUrl(), initInfo.get("coraBaseURL"));
+		assertEquals(indexerFactory.onlyForTestGetBaseUrl(), initInfo.get("coraBaseUrl"));
 	}
 
 	@Test

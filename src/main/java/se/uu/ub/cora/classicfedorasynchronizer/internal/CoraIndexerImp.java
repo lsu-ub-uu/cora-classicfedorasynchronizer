@@ -83,7 +83,7 @@ public class CoraIndexerImp implements CoraIndexer {
 
 	private int handleRemoveError(Exception e, String recordType, String recordId) {
 		String message = composeRemoveErrorMessage(recordType, recordId);
-		logger.logErrorUsingMessage(message + " " + e.getMessage());
+		logger.logErrorUsingMessageAndException(message + " " + e.getMessage(), e);
 		return HTTP_STATUS_BAD_REQUEST;
 	}
 
@@ -120,7 +120,7 @@ public class CoraIndexerImp implements CoraIndexer {
 	private int handleClientErrorDuringIndexing(CoraClientException cce, String recordType,
 			String recordId) {
 		String message = composeCoraClientErrorMessage(recordType, recordId);
-		logger.logErrorUsingMessage(message + " " + cce.getMessage());
+		logger.logErrorUsingMessageAndException(message + " " + cce.getMessage(), cce);
 		return HTTP_STATUS_UNAUTHORIZED;
 	}
 
@@ -131,7 +131,7 @@ public class CoraIndexerImp implements CoraIndexer {
 
 	private int handleIndexError(Exception e, String recordType, String recordId) {
 		String message = composeErrorMessage(recordType, recordId);
-		logger.logErrorUsingMessage(message + " " + e.getMessage());
+		logger.logErrorUsingMessageAndException(message + " " + e.getMessage(), e);
 		return HTTP_STATUS_BAD_REQUEST;
 	}
 
