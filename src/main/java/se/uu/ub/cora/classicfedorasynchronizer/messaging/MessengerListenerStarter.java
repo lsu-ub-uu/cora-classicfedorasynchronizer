@@ -37,7 +37,6 @@ import se.uu.ub.cora.messaging.MessagingProvider;
 
 public class MessengerListenerStarter {
 	private static Logger logger = LoggerProvider.getLoggerForClass(MessengerListenerStarter.class);
-	private static Map<String, String> initInfo = new HashMap<>();
 	private static Properties properties;
 
 	private MessengerListenerStarter() {
@@ -74,23 +73,27 @@ public class MessengerListenerStarter {
 	private static MessageReceiver createMessageReceiver() {
 		MessageParserFactory messageParserFactory = new FedoraMessageParserFactory();
 
-		addToInitInfoFromProperties();
-		ClassicCoraSynchronizerFactory synchronizerFactory = SynchronizerFactory.usingInitInfo(initInfo);
+		Map<String, String> initInfo = createInitInfoFromProperties();
+		ClassicCoraSynchronizerFactory synchronizerFactory = SynchronizerFactory
+				.usingInitInfo(initInfo);
 		return new FedoraMessageReceiver(messageParserFactory, synchronizerFactory);
 	}
 
-	private static void addToInitInfoFromProperties() {
-		addPropertyToInitInfo("databaseUrl", "database.url");
-		addPropertyToInitInfo("databaseUser", "database.user");
-		addPropertyToInitInfo("databasePassword", "database.password");
-		addPropertyToInitInfo("fedoraBaseUrl", "fedora.baseUrl");
-		addPropertyToInitInfo("coraApptokenVerifierURL", "cora.apptokenVerifierUrl");
-		addPropertyToInitInfo("coraBaseUrl", "cora.baseUrl");
-		addPropertyToInitInfo("coraUserId", "cora.userId");
-		addPropertyToInitInfo("coraApptoken", "cora.apptoken");
+	private static Map<String, String> createInitInfoFromProperties() {
+		Map<String, String> initInfo = new HashMap<>();
+		addPropertyToInitInfo(initInfo, "databaseUrl", "database.url");
+		addPropertyToInitInfo(initInfo, "databaseUser", "database.user");
+		addPropertyToInitInfo(initInfo, "databasePassword", "database.password");
+		addPropertyToInitInfo(initInfo, "fedoraBaseUrl", "fedora.baseUrl");
+		addPropertyToInitInfo(initInfo, "coraApptokenVerifierURL", "cora.apptokenVerifierUrl");
+		addPropertyToInitInfo(initInfo, "coraBaseUrl", "cora.baseUrl");
+		addPropertyToInitInfo(initInfo, "coraUserId", "cora.userId");
+		addPropertyToInitInfo(initInfo, "coraApptoken", "cora.apptoken");
+		return initInfo;
 	}
 
-	private static void addPropertyToInitInfo(String key, String propertyName) {
+	private static void addPropertyToInitInfo(Map<String, String> initInfo, String key,
+			String propertyName) {
 		initInfo.put(key, extractPropertyThrowErrorIfNotFound(properties, propertyName));
 	}
 

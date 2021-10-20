@@ -43,6 +43,8 @@ import se.uu.ub.cora.storage.RecordStorage;
  */
 public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 
+	private static final int HTTP_STATUS_OK = 200;
+
 	private static Logger logger = LoggerProvider
 			.getLoggerForClass(ClassicCoraPersonSynchronizer.class);
 
@@ -126,7 +128,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	private void logErrorIfResponseNotOk(int responseCode, String type) {
-		if (responseCode != 200) {
+		if (responseCode != HTTP_STATUS_OK) {
 			logger.logErrorUsingMessage(
 					"Error when indexing record from synchronizer, " + action + " " + type + ".");
 		}
