@@ -188,7 +188,6 @@ public class ClassicCoraPersonSynchronizerTest {
 		assertEquals(dbStorage.readRecordTypes.get(0), "person");
 		assertEquals(dbStorage.readRecordIds.get(0), "someRecordId");
 
-		// TODO: kolla att vi kollar om dataGroup innehåller domainParts
 	}
 
 	@Test
@@ -238,9 +237,14 @@ public class ClassicCoraPersonSynchronizerTest {
 
 		String responseText = httpHandlerFactory.factoredHttpHandlerSpy.responseText;
 
-		assertEquals(fedoraConverterFactory.factoredFedoraConverters.get(1).xml, responseText);
-		assertEquals(fedoraConverterFactory.factoredFedoraConverters.get(2).xml, responseText);
-		assertEquals(fedoraConverterFactory.factoredFedoraConverters.get(3).xml, responseText);
+		List<FedoraToCoraConverterSpy> factoredFedoraConverters = fedoraConverterFactory.factoredFedoraConverters;
+		assertEquals(factoredFedoraConverters.get(1).xml, responseText);
+		assertEquals(factoredFedoraConverters.get(1).parameters.get("domainFilter"), "kth0");
+		assertEquals(factoredFedoraConverters.get(2).xml, responseText);
+		assertEquals(factoredFedoraConverters.get(2).parameters.get("domainFilter"), "kth1");
+		assertEquals(factoredFedoraConverters.get(3).xml, responseText);
+		assertEquals(factoredFedoraConverters.get(3).parameters.get("domainFilter"), "kth2");
+
 	}
 
 	@Test
@@ -317,11 +321,11 @@ public class ClassicCoraPersonSynchronizerTest {
 		synchronizer.synchronize("person", "someRecordId", "delete", dataDivider);
 
 		assertEquals(dbStorage.alteredRecordTypes.get(0), "personDomainPart");
-		assertEquals(dbStorage.alteredRecordIds.get(0), "authority-person:0:test");
+		assertEquals(dbStorage.alteredRecordIds.get(0), "authority-person:0:kth0");
 		assertEquals(dbStorage.alteredRecordTypes.get(1), "personDomainPart");
-		assertEquals(dbStorage.alteredRecordIds.get(1), "authority-person:1:test");
+		assertEquals(dbStorage.alteredRecordIds.get(1), "authority-person:1:kth1");
 		assertEquals(dbStorage.alteredRecordTypes.get(2), "personDomainPart");
-		assertEquals(dbStorage.alteredRecordIds.get(2), "authority-person:2:test");
+		assertEquals(dbStorage.alteredRecordIds.get(2), "authority-person:2:kth2");
 
 		assertEquals(dbStorage.alteredRecordTypes.get(3), "person");
 		assertEquals(dbStorage.alteredRecordIds.get(3), "someRecordId");

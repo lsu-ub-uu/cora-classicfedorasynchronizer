@@ -141,7 +141,7 @@ public class DataGroupSpy implements DataGroup {
 		if ("personDomainPart".equals(nameInData)) {
 			for (int i = 0; i < numberOfDomainParts; i++) {
 				DataGroupSpy dataGroupSpy = new DataGroupSpy("personDomainPart", "personDomainPart",
-						"authority-person:" + i + ":test");
+						"authority-person:" + i + ":kth" + i);
 				dataGroupSpy.setRepeatId(String.valueOf(i));
 				groupChildrenToReturn.add(dataGroupSpy);
 			}

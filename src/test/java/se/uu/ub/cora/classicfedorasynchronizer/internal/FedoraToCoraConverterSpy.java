@@ -27,6 +27,7 @@ public class FedoraToCoraConverterSpy implements FedoraToCoraConverter {
 
 	public String xml;
 	public DataGroupSpy convertedGroup;
+	public Map<String, Object> parameters;
 
 	@Override
 	public DataGroup fromXML(String xml) {
@@ -39,6 +40,11 @@ public class FedoraToCoraConverterSpy implements FedoraToCoraConverter {
 
 	@Override
 	public DataGroup fromXMLWithParameters(String xml, Map<String, Object> parameters) {
-		return null;
+		this.xml = xml;
+		this.parameters = parameters;
+		if (convertedGroup == null) {
+			convertedGroup = new DataGroupSpy("someNameInData");
+		}
+		return convertedGroup;
 	}
 }

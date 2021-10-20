@@ -18,7 +18,9 @@
  */
 package se.uu.ub.cora.classicfedorasynchronizer.internal;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizer;
 import se.uu.ub.cora.classicfedorasynchronizer.CoraIndexer;
@@ -171,8 +173,9 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	private void handleCreate(String responseText, List<DataGroup> domainParts) {
 		createAndIndexPerson();
 		for (DataGroup domainPartLink : domainParts) {
-			DataGroup personDomainPart = convertDomainPart(responseText);
-			createAndIndexDomainPart(domainPartLink, personDomainPart);
+			String linkedRecordId = extractRecordId(domainPartLink);
+			DataGroup personDomainPart = convertDomainPart(responseText, linkedRecordId);
+			createAndIndexDomainPart(linkedRecordId, personDomainPart);
 		}
 	}
 
@@ -187,17 +190,28 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 				createLinkList(), dataDivider);
 	}
 
-	private void createAndIndexDomainPart(DataGroup domainPartLink, DataGroup personDomainPart) {
-		String linkedRecordId = extractRecordId(domainPartLink);
+	private void createAndIndexDomainPart(String linkedRecordId, DataGroup personDomainPart) {
 		recordStorage.create(PERSON_DOMAIN_PART, linkedRecordId, personDomainPart,
 				createCollectedTerms(), createLinkList(), dataDivider);
 		indexDomainPart(linkedRecordId, INDEX);
 	}
 
-	private DataGroup convertDomainPart(String responseText) {
+	private DataGroup convertDomainPart(String responseText, String linkedRecordId) {
 		FedoraToCoraConverter domainPartConverter = fedoraConverterFactory
 				.factorToCoraConverter(PERSON_DOMAIN_PART);
-		return domainPartConverter.fromXML(responseText);
+		Map<String, Object> parameters = createParameters(linkedRecordId);
+		return domainPartConverter.fromXMLWithParameters(responseText, parameters);
+	}
+
+	private Map<String, Object> createParameters(String id) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("domainFilter", extractDomainFromId(id));
+		return parameters;
+	}
+
+	private String extractDomainFromId(String id) {
+		int domainStartIndex = id.lastIndexOf(':');
+		return id.substring(domainStartIndex + 1);
 	}
 
 	private DataGroup createLinkList() {
@@ -227,8 +241,8 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	private void updateAndIndexDomainPart(String responseText, DataGroup domainPartLink) {
-		DataGroup personDomainPart = convertDomainPart(responseText);
 		String linkedRecordId = extractRecordId(domainPartLink);
+		DataGroup personDomainPart = convertDomainPart(responseText, linkedRecordId);
 		recordStorage.update(PERSON_DOMAIN_PART, linkedRecordId, personDomainPart,
 				createCollectedTerms(), createLinkList(), dataDivider);
 		indexDomainPart(linkedRecordId, INDEX);
