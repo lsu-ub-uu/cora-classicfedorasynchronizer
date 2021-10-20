@@ -73,11 +73,6 @@ class FedoraToDbBatchPropertiesLoader {
 
 	private Properties loadProperitesFromArgs() {
 		Properties properties = new Properties();
-		// properties.put("messaging.hostname", args[0]);
-		// properties.put("messaging.port", args[1]);
-		// properties.put("messaging.routingKey", args[2]);
-		// properties.put("messaging.username", args[3]);
-		// properties.put("messaging.password", args[4]);
 
 		properties.put("database.url", args[0]);
 		properties.put("database.user", args[1]);
