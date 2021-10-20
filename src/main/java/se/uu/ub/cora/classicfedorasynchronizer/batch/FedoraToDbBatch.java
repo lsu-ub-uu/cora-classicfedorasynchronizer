@@ -40,8 +40,8 @@ import se.uu.ub.cora.logger.LoggerProvider;
 public class FedoraToDbBatch {
 
 	private static Logger logger = LoggerProvider.getLoggerForClass(FedoraToDbBatch.class);
-	protected static String synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory";
-	protected static String fedoraReaderFactoryClassName = "se.uu.ub.cora.fedora.reader.FedoraReaderFactoryImp";
+	static String synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory";
+	static String fedoraReaderFactoryClassName = "se.uu.ub.cora.fedora.reader.FedoraReaderFactoryImp";
 	protected static ClassicCoraSynchronizerFactory synchronizerFactory;
 	protected static FedoraReaderFactory fedoraReaderFactory;
 
