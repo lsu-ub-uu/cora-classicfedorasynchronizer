@@ -28,7 +28,12 @@ import java.util.Properties;
 
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizer;
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactory;
+import se.uu.ub.cora.fedora.data.FedoraReaderXmlHelper;
+import se.uu.ub.cora.fedora.data.FedoraReaderXmlHelperImp;
+import se.uu.ub.cora.fedora.reader.FedoraReader;
 import se.uu.ub.cora.fedora.reader.FedoraReaderFactory;
+import se.uu.ub.cora.httphandler.HttpHandlerFactory;
+import se.uu.ub.cora.httphandler.HttpHandlerFactoryImp;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 
@@ -48,9 +53,11 @@ public class FedoraToDbBatch {
 		logger.logInfoUsingMessage("FedoraToDbBatch starting...");
 		try {
 			Properties properties = FedoraToDbBatchPropertiesLoader.loadProperties(args);
+			Map<String, String> initInfo = createInitInfo(properties);
 
-			constructSynchronizerFactory(properties);
-			synchronize();
+			constructSynchronizerFactory(initInfo);
+			constructFedoraReaderFactory();
+			synchronize(initInfo);
 			logger.logInfoUsingMessage("FedoraToDbBatch started");
 		} catch (Exception e) {
 			logger.logFatalUsingMessage("Unable to start FedoraToDbBatch: " + e.getMessage());
@@ -58,40 +65,40 @@ public class FedoraToDbBatch {
 
 	}
 
-	private static void constructSynchronizerFactory(Properties properties)
+	private static void constructSynchronizerFactory(Map<String, String> initInfo)
 			throws NoSuchMethodException, ClassNotFoundException, IllegalAccessException,
 			InvocationTargetException {
 		Class<?>[] cArg = new Class[1];
 		cArg[0] = Map.class;
-		Map<String, String> initInfo = createInitInfo(properties);
 		Method constructor = Class.forName(synchronizerFactoryClassName).getMethod("usingInitInfo",
 				cArg);
 		synchronizerFactory = (ClassicCoraSynchronizerFactory) constructor.invoke(null, initInfo);
 	}
 
-	private static void constructFedoraReaderFactory(Properties properties)
-			throws NoSuchMethodException, ClassNotFoundException, IllegalAccessException,
-			InvocationTargetException {
-		Class<?>[] cArg = new Class[1];
-		cArg[0] = Map.class;
-		Map<String, String> initInfo = createInitInfo(properties);
-		Method constructor = Class.forName(synchronizerFactoryClassName)
+	private static void constructFedoraReaderFactory() throws NoSuchMethodException,
+			ClassNotFoundException, IllegalAccessException, InvocationTargetException {
+		Class<?>[] cArg = new Class[2];
+		cArg[0] = HttpHandlerFactory.class;
+		cArg[1] = FedoraReaderXmlHelper.class;
+		HttpHandlerFactoryImp httpHandlerFactory = new HttpHandlerFactoryImp();
+		FedoraReaderXmlHelperImp fedoraReaderXmlHelper = new FedoraReaderXmlHelperImp();
+		Method constructor = Class.forName(fedoraReaderFactoryClassName)
 				.getMethod("usingHttpHandlerFactoryAndFedoraReaderXmlHelper", cArg);
-		fedoraReaderFactory = (FedoraReaderFactory) constructor.invoke(null, initInfo);
+		fedoraReaderFactory = (FedoraReaderFactory) constructor.invoke(null, httpHandlerFactory,
+				fedoraReaderXmlHelper);
 	}
 
-	private static void synchronize() {
+	private static void synchronize(Map<String, String> initInfo) {
 		ClassicCoraSynchronizer synchronizer = synchronizerFactory.factor();
-		List<String> pids = getListOfPidsFromFedora();
+		List<String> pids = getListOfPidsFromFedora(initInfo);
 		for (String recordId : pids) {
 			synchronizer.synchronize("person", recordId, "create", "diva");
 		}
 	}
 
-	// TODO:change this dummy method to real call to some reader
-	private static List<String> getListOfPidsFromFedora() {
-		return List.of("auhority-person:45", "auhority-person:32", "auhority-person:409",
-				"auhority-person:17", "auhority-person:111");
+	private static List<String> getListOfPidsFromFedora(Map<String, String> initInfo) {
+		FedoraReader fedoraReader = fedoraReaderFactory.factor(initInfo.get("fedoraBaseUrl"));
+		return fedoraReader.readList("", null);
 	}
 
 	private static Map<String, String> createInitInfo(Properties properties) {
@@ -115,18 +122,16 @@ public class FedoraToDbBatch {
 
 	private static String extractPropertyThrowErrorIfNotFound(Properties properties,
 			String propertyName) {
-		// throwErrorIfPropertyNameIsMissing(properties, propertyName);
+		throwErrorIfPropertyNameIsMissing(properties, propertyName);
 		return properties.getProperty(propertyName);
 	}
 
-	public static void setSynchronizerFactory(ClassicCoraSynchronizerFactory factory) {
-		FedoraToDbBatch.synchronizerFactory = factory;
-
+	private static void throwErrorIfPropertyNameIsMissing(Properties properties,
+			String propertyName) {
+		if (!properties.containsKey(propertyName)) {
+			throw new RuntimeException(
+					"Property with name " + propertyName + " not found in properties");
+		}
 	}
 
-	// readPidsForType (i FedoraReader eller annat)
-	// loop alla pids
-
-	// readPidsForTypeCreatedAfter
-	// readPidsForTypeUpdatedAfter
 }

@@ -25,25 +25,27 @@ import se.uu.ub.cora.httphandler.HttpHandlerFactory;
 
 public class FedoraReaderFactorySpy implements FedoraReaderFactory {
 
-	public static HttpHandlerFactory httpHandlerFactory;
-	public static FedoraReaderXmlHelper fedoraReaderXmlHelper;
+	public HttpHandlerFactory httpHandlerFactory;
+	public FedoraReaderXmlHelper fedoraReaderXmlHelper;
+	public FedoraReaderSpy factoredFedoraReader;
+	public String baseUrl;
 
 	public FedoraReaderFactorySpy(HttpHandlerFactory httpHandlerFactory,
 			FedoraReaderXmlHelper fedoraReaderXmlHelper) {
-		// TODO Auto-generated constructor stub
+		this.httpHandlerFactory = httpHandlerFactory;
+		this.fedoraReaderXmlHelper = fedoraReaderXmlHelper;
 	}
 
 	public static FedoraReaderFactorySpy usingHttpHandlerFactoryAndFedoraReaderXmlHelper(
 			HttpHandlerFactory httpHandlerFactory, FedoraReaderXmlHelper fedoraReaderXmlHelper) {
-		FedoraReaderFactorySpy.httpHandlerFactory = httpHandlerFactory;
-		FedoraReaderFactorySpy.fedoraReaderXmlHelper = fedoraReaderXmlHelper;
 		return new FedoraReaderFactorySpy(httpHandlerFactory, fedoraReaderXmlHelper);
 	}
 
 	@Override
 	public FedoraReader factor(String baseUrl) {
-		// TODO Auto-generated method stub
-		return null;
+		this.baseUrl = baseUrl;
+		factoredFedoraReader = new FedoraReaderSpy();
+		return factoredFedoraReader;
 	}
 
 }

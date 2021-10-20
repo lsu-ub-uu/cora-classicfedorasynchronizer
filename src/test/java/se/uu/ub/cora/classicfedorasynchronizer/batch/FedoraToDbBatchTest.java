@@ -30,6 +30,8 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy;
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerSpy;
 import se.uu.ub.cora.classicfedorasynchronizer.log.LoggerFactorySpy;
+import se.uu.ub.cora.fedora.data.FedoraReaderXmlHelperImp;
+import se.uu.ub.cora.httphandler.HttpHandlerFactoryImp;
 import se.uu.ub.cora.logger.LoggerProvider;
 
 public class FedoraToDbBatchTest {
@@ -68,7 +70,6 @@ public class FedoraToDbBatchTest {
 	public void testMainMethod() throws Exception {
 		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
 		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
-		// FedoraReaderFactory readerFactory = FedoraReaderFactorySpy();
 		FedoraToDbBatch.main(args);
 
 		assertTrue(
@@ -80,34 +81,20 @@ public class FedoraToDbBatchTest {
 		assertEquals(loggerFactorySpy.getInfoLogMessageUsingClassNameAndNo(testedClassName, 1),
 				"FedoraToDbBatch started");
 		assertEquals(loggerFactorySpy.getNoOfInfoLogMessagesUsingClassname(testedClassName), 2);
-
-		// we need recordType, recordId, action, dataDivider for synchronizer
-
-		// modification date
-		// creation date
-
-		// DivaFedoraRecordStorage createUrlForPersonList
-		// String query = "state=A pid~authority-person:*";
-		// baseURL + "objects?pid=true&maxResults=100&resultFormat=xml&query=" + urlEncodedQuery;
-
-		// FedoraReaderImp getFedoraUrlForType
-		// return
-		// String.format("%s/objects?pid=true&maxResults=%d&resultFormat=xml&query=pid%%7E%s:*",
-		// baseUrl, maxResults, type);
-
-		// FedoraReaderImp getFedoraCursorUrlForType
-		// return String.format(
-		// "%s/objects?sessionToken=%s&pid=true&maxResults=%d&resultFormat=xml&query=pid%%7E%s:*",
-		// baseUrl, cursor.getToken(), maxResults, type);
 	}
 
 	@Test
 	public void testMainMethodUsingArgs() throws Exception {
 		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
+		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
 
 		FedoraToDbBatch.main(args);
 
 		assertCorrectInitInfoInSynchronizerUsingPrefix("args-");
+
+		FedoraReaderFactorySpy readerFactory = (FedoraReaderFactorySpy) FedoraToDbBatch.fedoraReaderFactory;
+		assertTrue(readerFactory.httpHandlerFactory instanceof HttpHandlerFactoryImp);
+		assertTrue(readerFactory.fedoraReaderXmlHelper instanceof FedoraReaderXmlHelperImp);
 	}
 
 	private void assertCorrectInitInfoInSynchronizerUsingPrefix(String prefix) {
@@ -128,16 +115,22 @@ public class FedoraToDbBatchTest {
 	@Test
 	public void testFactorSynchronizerUsingFactorySpy() throws Exception {
 		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
+		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
 
 		FedoraToDbBatch.main(args);
 		ClassicCoraSynchronizerFactorySpy synchronizerFactory = (ClassicCoraSynchronizerFactorySpy) FedoraToDbBatch.synchronizerFactory;
 		ClassicCoraSynchronizerSpy synchronizer = (ClassicCoraSynchronizerSpy) synchronizerFactory.MCR
 				.getReturnValue("factor", 0);
-		assertCorrectCallToSynchronizer(synchronizer, 0, "auhority-person:45");
-		assertCorrectCallToSynchronizer(synchronizer, 1, "auhority-person:32");
-		assertCorrectCallToSynchronizer(synchronizer, 2, "auhority-person:409");
-		assertCorrectCallToSynchronizer(synchronizer, 3, "auhority-person:17");
-		assertCorrectCallToSynchronizer(synchronizer, 4, "auhority-person:111");
+
+		FedoraReaderFactorySpy fedoraReaderFactory = (FedoraReaderFactorySpy) FedoraToDbBatch.fedoraReaderFactory;
+		assertEquals(fedoraReaderFactory.baseUrl, "args-someFedoraBaseUrl");
+		FedoraReaderSpy factoredFedoraReader = fedoraReaderFactory.factoredFedoraReader;
+
+		assertCorrectCallToSynchronizer(synchronizer, 0, factoredFedoraReader.listToReturn.get(0));
+		assertCorrectCallToSynchronizer(synchronizer, 1, factoredFedoraReader.listToReturn.get(1));
+		assertCorrectCallToSynchronizer(synchronizer, 2, factoredFedoraReader.listToReturn.get(2));
+		assertCorrectCallToSynchronizer(synchronizer, 3, factoredFedoraReader.listToReturn.get(3));
+		assertCorrectCallToSynchronizer(synchronizer, 4, factoredFedoraReader.listToReturn.get(4));
 
 	}
 
@@ -153,6 +146,7 @@ public class FedoraToDbBatchTest {
 	public void testMainMethodUsingDefaultFile() throws Exception {
 		args = new String[] {};
 		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
+		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
 
 		FedoraToDbBatch.main(args);
 
@@ -163,6 +157,7 @@ public class FedoraToDbBatchTest {
 	public void testMainMethodUsingFileName() throws Exception {
 		String argsWithFileName[] = new String[] { "divaIndexerSentIn.properties" };
 		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
+		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
 
 		FedoraToDbBatch.main(argsWithFileName);
 
@@ -173,6 +168,7 @@ public class FedoraToDbBatchTest {
 	public void testMainMethodWrongNumberOfArguments() throws Exception {
 		args = new String[] { "arg1", "arg2" };
 		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
+		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
 
 		FedoraToDbBatch.main(args);
 
@@ -181,6 +177,22 @@ public class FedoraToDbBatchTest {
 		assertEquals(loggerFactorySpy.getNoOfInfoLogMessagesUsingClassname(testedClassName), 1);
 		assertEquals(loggerFactorySpy.getFatalLogMessageUsingClassNameAndNo(testedClassName, 0),
 				"Unable to start FedoraToDbBatch: Number of arguments should be 8.");
+
+	}
+
+	@Test
+	public void testMainMethodMissingParameter() throws Exception {
+		args = new String[] { "propertiesForTestingMissingDatabasePassword.properties" };
+		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
+		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
+
+		FedoraToDbBatch.main(args);
+
+		assertEquals(loggerFactorySpy.getInfoLogMessageUsingClassNameAndNo(testedClassName, 0),
+				"FedoraToDbBatch starting...");
+		assertEquals(loggerFactorySpy.getNoOfInfoLogMessagesUsingClassname(testedClassName), 1);
+		assertEquals(loggerFactorySpy.getFatalLogMessageUsingClassNameAndNo(testedClassName, 0),
+				"Unable to start FedoraToDbBatch: Property with name database.url not found in properties");
 
 	}
 }
