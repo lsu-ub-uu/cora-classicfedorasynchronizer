@@ -18,14 +18,19 @@
  */
 package se.uu.ub.cora.classicfedorasynchronizer;
 
+import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class ClassicCoraSynchronizerSpy implements ClassicCoraSynchronizer {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public boolean throwError = false;
 
 	@Override
 	public void synchronize(String recordType, String recordId, String action, String dataDivider) {
+		if (throwError) {
+			throw new RecordNotFoundException("Record not found error from spy");
+		}
 		MCR.addCall("recordType", recordType, "recordId", recordId, "action", action, "dataDivider",
 				dataDivider);
 	}

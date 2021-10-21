@@ -55,8 +55,8 @@ public class FedoraMessageReceiver implements MessageReceiver {
 				synchronizer.synchronize(recordType, recordId, action, "diva");
 				writeLogMessage(recordType, recordId, action);
 			} catch (Exception e) {
-				// TODO: handle exception
-				logger.logErrorUsingMessageAndException("Message could not be synchronized", e);
+				logger.logErrorUsingMessageAndException(
+						"Message could not be synchronized. " + e.getMessage(), e);
 			}
 		}
 	}

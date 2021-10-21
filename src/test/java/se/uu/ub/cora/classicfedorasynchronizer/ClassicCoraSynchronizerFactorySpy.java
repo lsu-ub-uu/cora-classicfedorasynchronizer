@@ -25,6 +25,7 @@ import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 public class ClassicCoraSynchronizerFactorySpy implements ClassicCoraSynchronizerFactory {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public Map<String, String> initInfo;
+	public boolean throwError = false;
 
 	public static ClassicCoraSynchronizerFactorySpy usingInitInfo(Map<String, String> initInfo) {
 		return new ClassicCoraSynchronizerFactorySpy(initInfo);
@@ -38,8 +39,9 @@ public class ClassicCoraSynchronizerFactorySpy implements ClassicCoraSynchronize
 	@Override
 	public ClassicCoraSynchronizer factor() {
 		MCR.addCall();
-		ClassicCoraSynchronizer synchronizer = new ClassicCoraSynchronizerSpy();
 
+		ClassicCoraSynchronizerSpy synchronizer = new ClassicCoraSynchronizerSpy();
+		synchronizer.throwError = throwError;
 		MCR.addReturned(synchronizer);
 		return synchronizer;
 
