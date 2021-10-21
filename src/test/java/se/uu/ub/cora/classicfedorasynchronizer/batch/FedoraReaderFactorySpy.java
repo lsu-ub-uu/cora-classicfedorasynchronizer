@@ -18,7 +18,6 @@
  */
 package se.uu.ub.cora.classicfedorasynchronizer.batch;
 
-import se.uu.ub.cora.fedora.data.FedoraReaderXmlHelper;
 import se.uu.ub.cora.fedora.reader.FedoraReader;
 import se.uu.ub.cora.fedora.reader.FedoraReaderFactory;
 import se.uu.ub.cora.httphandler.HttpHandlerFactory;
@@ -26,20 +25,8 @@ import se.uu.ub.cora.httphandler.HttpHandlerFactory;
 public class FedoraReaderFactorySpy implements FedoraReaderFactory {
 
 	public HttpHandlerFactory httpHandlerFactory;
-	public FedoraReaderXmlHelper fedoraReaderXmlHelper;
 	public FedoraReaderSpy factoredFedoraReader;
 	public String baseUrl;
-
-	public FedoraReaderFactorySpy(HttpHandlerFactory httpHandlerFactory,
-			FedoraReaderXmlHelper fedoraReaderXmlHelper) {
-		this.httpHandlerFactory = httpHandlerFactory;
-		this.fedoraReaderXmlHelper = fedoraReaderXmlHelper;
-	}
-
-	public static FedoraReaderFactorySpy usingHttpHandlerFactoryAndFedoraReaderXmlHelper(
-			HttpHandlerFactory httpHandlerFactory, FedoraReaderXmlHelper fedoraReaderXmlHelper) {
-		return new FedoraReaderFactorySpy(httpHandlerFactory, fedoraReaderXmlHelper);
-	}
 
 	@Override
 	public FedoraReader factor(String baseUrl) {

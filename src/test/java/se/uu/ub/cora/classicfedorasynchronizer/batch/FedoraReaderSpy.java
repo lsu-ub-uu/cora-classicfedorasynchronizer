@@ -38,16 +38,19 @@ public class FedoraReaderSpy implements FedoraReader {
 
 	@Override
 	public List<String> readList(String type, DataGroup filter) {
-
-		this.type = type;
-		this.filter = filter;
-		return listToReturn;
+		return null;
 	}
 
 	@Override
 	public void setMaxResults(int count) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public List<String> readPidsForType(String type) {
+		this.type = type;
+		return listToReturn;
 	}
 
 }

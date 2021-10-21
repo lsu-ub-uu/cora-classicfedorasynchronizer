@@ -19,6 +19,7 @@
 package se.uu.ub.cora.classicfedorasynchronizer.batch;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -28,12 +29,8 @@ import java.util.Properties;
 
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizer;
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactory;
-import se.uu.ub.cora.fedora.data.FedoraReaderXmlHelper;
-import se.uu.ub.cora.fedora.data.FedoraReaderXmlHelperImp;
 import se.uu.ub.cora.fedora.reader.FedoraReader;
 import se.uu.ub.cora.fedora.reader.FedoraReaderFactory;
-import se.uu.ub.cora.httphandler.HttpHandlerFactory;
-import se.uu.ub.cora.httphandler.HttpHandlerFactoryImp;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 
@@ -64,7 +61,8 @@ public class FedoraToDbBatch {
 	}
 
 	private static void readAndSynchronize(String[] args) throws IOException, NoSuchMethodException,
-			ClassNotFoundException, IllegalAccessException, InvocationTargetException {
+			ClassNotFoundException, IllegalAccessException, InvocationTargetException,
+			InstantiationException, IllegalArgumentException {
 		Map<String, String> initInfo = createInitInfo(args);
 
 		constructSynchronizerFactory(initInfo);
@@ -87,17 +85,12 @@ public class FedoraToDbBatch {
 		synchronizerFactory = (ClassicCoraSynchronizerFactory) constructor.invoke(null, initInfo);
 	}
 
-	private static void constructFedoraReaderFactory() throws NoSuchMethodException,
-			ClassNotFoundException, IllegalAccessException, InvocationTargetException {
-		Class<?>[] cArg = new Class[2];
-		cArg[0] = HttpHandlerFactory.class;
-		cArg[1] = FedoraReaderXmlHelper.class;
-		HttpHandlerFactoryImp httpHandlerFactory = new HttpHandlerFactoryImp();
-		FedoraReaderXmlHelperImp fedoraReaderXmlHelper = new FedoraReaderXmlHelperImp();
-		Method constructor = Class.forName(fedoraReaderFactoryClassName)
-				.getMethod("usingHttpHandlerFactoryAndFedoraReaderXmlHelper", cArg);
-		fedoraReaderFactory = (FedoraReaderFactory) constructor.invoke(null, httpHandlerFactory,
-				fedoraReaderXmlHelper);
+	private static void constructFedoraReaderFactory()
+			throws NoSuchMethodException, ClassNotFoundException, IllegalAccessException,
+			InvocationTargetException, InstantiationException, IllegalArgumentException {
+		Constructor<?> constructor = Class.forName(fedoraReaderFactoryClassName).getConstructor();
+
+		fedoraReaderFactory = (FedoraReaderFactory) constructor.newInstance();
 	}
 
 	private static void synchronize(Map<String, String> initInfo) {
@@ -110,7 +103,7 @@ public class FedoraToDbBatch {
 
 	private static List<String> getListOfPidsFromFedora(Map<String, String> initInfo) {
 		FedoraReader fedoraReader = fedoraReaderFactory.factor(initInfo.get("fedoraBaseUrl"));
-		return fedoraReader.readList("", null);
+		return fedoraReader.readPidsForType("");
 	}
 
 	private static Map<String, String> createInitInfoFromProperties(Properties properties) {

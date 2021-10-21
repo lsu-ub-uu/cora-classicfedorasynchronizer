@@ -30,8 +30,6 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy;
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerSpy;
 import se.uu.ub.cora.classicfedorasynchronizer.log.LoggerFactorySpy;
-import se.uu.ub.cora.fedora.data.FedoraReaderXmlHelperImp;
-import se.uu.ub.cora.httphandler.HttpHandlerFactoryImp;
 import se.uu.ub.cora.logger.LoggerProvider;
 
 public class FedoraToDbBatchTest {
@@ -92,9 +90,7 @@ public class FedoraToDbBatchTest {
 
 		assertCorrectInitInfoInSynchronizerUsingPrefix("args-");
 
-		FedoraReaderFactorySpy readerFactory = (FedoraReaderFactorySpy) FedoraToDbBatch.fedoraReaderFactory;
-		assertTrue(readerFactory.httpHandlerFactory instanceof HttpHandlerFactoryImp);
-		assertTrue(readerFactory.fedoraReaderXmlHelper instanceof FedoraReaderXmlHelperImp);
+		assertTrue(FedoraToDbBatch.fedoraReaderFactory instanceof FedoraReaderFactorySpy);
 	}
 
 	private void assertCorrectInitInfoInSynchronizerUsingPrefix(String prefix) {
