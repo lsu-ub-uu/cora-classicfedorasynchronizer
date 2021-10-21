@@ -168,6 +168,15 @@ public class FedoraMessageReceiverTest {
 		assertEquals(firstFatalLogMessage, "Topic closed!");
 	}
 
-	// TODO: Add test to test Exception on synchronizer. The error must handles on receiveMessage
+	@Test
+	public void testErrorWhenReceiveError() {
+		synchronizerFactory.throwError = true;
+		receiver.receiveMessage(headers, message);
+		assertEquals(loggerFactory.getNoOfErrorLogMessagesUsingClassName(testedClassname), 1);
+		String firstInfoLogMessage = loggerFactory
+				.getErrorLogMessageUsingClassNameAndNo(testedClassname, 0);
+		assertEquals(firstInfoLogMessage,
+				"Message could not be synchronized. Record not found error from spy");
 
+	}
 }
