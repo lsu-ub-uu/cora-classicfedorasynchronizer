@@ -207,7 +207,7 @@ public class FedoraMessageParserTest {
 	public void testGetModificationTypeWhenCreate() {
 		headers.put("methodName", "addDatastream");
 		messageParser.parseHeadersAndMessage(headers, message);
-		assertEquals(messageParser.getAction(), "update");
+		assertEquals(messageParser.getAction(), "create");
 	}
 
 	@Test

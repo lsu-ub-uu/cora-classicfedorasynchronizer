@@ -111,6 +111,9 @@ public class FedoraMessageParser implements MessageParser {
 		if (messageIsFromDeleteOrPurge(message, methodName)) {
 			modificationType = "delete";
 		}
+		if ("addDatastream".equals(methodName)) {
+			modificationType = "create";
+		}
 	}
 
 	private boolean messageIsFromDeleteOrPurge(String message, String methodName) {
