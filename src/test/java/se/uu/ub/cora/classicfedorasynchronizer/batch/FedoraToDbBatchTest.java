@@ -191,4 +191,32 @@ public class FedoraToDbBatchTest {
 				"Unable to start FedoraToDbBatch: Property with name database.url not found in properties");
 
 	}
+
+	@Test
+	public void testMainMethodWrongClassNameForSynchronizerFactory() throws Exception {
+		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.NOTClassicCoraSynchronizerFactorySpy";
+		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
+
+		FedoraToDbBatch.main(args);
+		assertEquals(loggerFactorySpy.getInfoLogMessageUsingClassNameAndNo(testedClassName, 0),
+				"FedoraToDbBatch starting...");
+		assertEquals(loggerFactorySpy.getNoOfInfoLogMessagesUsingClassname(testedClassName), 1);
+		assertEquals(loggerFactorySpy.getFatalLogMessageUsingClassNameAndNo(testedClassName, 0),
+				"Unable to start FedoraToDbBatch: se.uu.ub.cora.classicfedorasynchronizer.NOTClassicCoraSynchronizerFactorySpy");
+
+	}
+
+	@Test
+	public void testMainMethodWrongClassNameForFedoraReaderFactory() throws Exception {
+		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
+		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.NOTFedoraReaderFactorySpy";
+
+		FedoraToDbBatch.main(args);
+		assertEquals(loggerFactorySpy.getInfoLogMessageUsingClassNameAndNo(testedClassName, 0),
+				"FedoraToDbBatch starting...");
+		assertEquals(loggerFactorySpy.getNoOfInfoLogMessagesUsingClassname(testedClassName), 1);
+		assertEquals(loggerFactorySpy.getFatalLogMessageUsingClassNameAndNo(testedClassName, 0),
+				"Unable to start FedoraToDbBatch: se.uu.ub.cora.classicfedorasynchronizer.batch.NOTFedoraReaderFactorySpy");
+
+	}
 }
