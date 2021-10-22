@@ -63,9 +63,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	private DataGroup personDataGroup;
 	private CoraIndexer coraIndexer;
 	private String action;
-
 	private String xmlFromFedora;
-
 	private List<DataGroup> domainParts;
 
 	public ClassicCoraPersonSynchronizer(RecordStorage recordStorage,
@@ -88,12 +86,13 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		this.recordId = recordId;
 		this.action = action;
 		this.dataDivider = dataDivider;
+
 		synchronizeDependingOnAction();
 	}
 
 	private void synchronizeDependingOnAction() {
-		possiblySynchronizeDelete();
 		possiblySynchronizeCreateOrUpdate();
+		possiblySynchronizeDelete();
 	}
 
 	private void possiblySynchronizeDelete() {
@@ -132,7 +131,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	private void removeRecordAndLinks(DataGroup readDataGroup) {
-		possiblyRemoveDomainParts(readDataGroup);
+		removeDomainPartsAndIndexes(readDataGroup);
 		recordStorage.deleteByTypeAndId(recordType, recordId);
 	}
 
@@ -152,15 +151,15 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		indexRecord(REMOVE_FROM_INDEX, PERSON_DOMAIN_PART, recordId);
 	}
 
-	private void possiblyRemoveDomainParts(DataGroup readDataGroup) {
+	private void removeDomainPartsAndIndexes(DataGroup readDataGroup) {
 		List<DataGroup> personDomainParts = readDataGroup
 				.getAllGroupsWithNameInData(PERSON_DOMAIN_PART);
 		for (DataGroup personDomainPart : personDomainParts) {
-			removeDomainPart(personDomainPart);
+			removeDomainPartAndIndex(personDomainPart);
 		}
 	}
 
-	private void removeDomainPart(DataGroup personDomainPart) {
+	private void removeDomainPartAndIndex(DataGroup personDomainPart) {
 		String linkedRecordId = extractRecordId(personDomainPart);
 		recordStorage.deleteByTypeAndId(PERSON_DOMAIN_PART, linkedRecordId);
 		removeIndexRecordPersonDomainPart(linkedRecordId);
@@ -178,8 +177,8 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	private void createHttpHandlerToFedora() {
-		httpHandler = httpHandlerFactory
-				.factor(baseURL + "objects/" + recordId + "/datastreams/METADATA/content");
+		String fedoraUrl = baseURL + "objects/" + recordId + "/datastreams/METADATA/content";
+		httpHandler = httpHandlerFactory.factor(fedoraUrl);
 		httpHandler.setRequestMethod("GET");
 	}
 
@@ -227,7 +226,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	private void synchronizeCreate() {
-		createAndIndexPerson(personDataGroup);
+		storeAndIndexPerson();
 		createAndIndexPersonDomainParts();
 	}
 
@@ -238,32 +237,70 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 
 	private void createAndIndexPersonDomainParts() {
 		for (DataGroup domainPartLink : domainParts) {
-			createDataGroupLinkIntoDatabase(domainPartLink);
+			storeDomainPartsAndIndex(domainPartLink);
 		}
 	}
 
-	private void createDataGroupLinkIntoDatabase(DataGroup domainPartLink) {
+	private void storeDomainPartsAndIndex(DataGroup domainPartLink) {
 		String linkedRecordId = extractRecordId(domainPartLink);
 		DataGroup personDomainPart = convertDomainPart(linkedRecordId);
-		recordStorage.create(PERSON_DOMAIN_PART, linkedRecordId, personDomainPart,
-				createCollectedTerms(), createLinkList(), dataDivider);
+		storePersonDomainParts(linkedRecordId, personDomainPart);
 		createIndexRecordPersonDomainPart(linkedRecordId);
 	}
 
-	private void createAndIndexPerson(DataGroup dataGroup) {
-		recordStorage.create(recordType, recordId, dataGroup, createCollectedTerms(),
-				createLinkList(), dataDivider);
+	private void storePersonDomainParts(String linkedRecordId, DataGroup personDomainPart) {
+		possiblyCreatePersonDomainParts(linkedRecordId, personDomainPart);
+		possiblyUpdatePersonDomainParts(linkedRecordId, personDomainPart);
+	}
+
+	private void possiblyUpdatePersonDomainParts(String linkedRecordId,
+			DataGroup personDomainPart) {
+		if (isUpdateAction()) {
+			recordStorage.update(PERSON_DOMAIN_PART, linkedRecordId, personDomainPart,
+					createCollectedTerms(), createLinkList(), dataDivider);
+		}
+	}
+
+	private void possiblyCreatePersonDomainParts(String linkedRecordId,
+			DataGroup personDomainPart) {
+		if (isCreateAction()) {
+			recordStorage.create(PERSON_DOMAIN_PART, linkedRecordId, personDomainPart,
+					createCollectedTerms(), createLinkList(), dataDivider);
+		}
+	}
+
+	private void storeAndIndexPerson() {
+		storePerson();
 		createIndexRecord(recordId);
+	}
+
+	private void storePerson() {
+		possiblyCreatePerson();
+		possiblyUpdatePerson();
+	}
+
+	private void possiblyUpdatePerson() {
+		if (isUpdateAction()) {
+			recordStorage.update(recordType, recordId, personDataGroup, createCollectedTerms(),
+					createLinkList(), dataDivider);
+		}
+	}
+
+	private void possiblyCreatePerson() {
+		if (isCreateAction()) {
+			recordStorage.create(recordType, recordId, personDataGroup, createCollectedTerms(),
+					createLinkList(), dataDivider);
+		}
 	}
 
 	private DataGroup convertDomainPart(String linkedRecordId) {
 		FedoraToCoraConverter domainPartConverter = fedoraConverterFactory
 				.factorToCoraConverter(PERSON_DOMAIN_PART);
-		Map<String, Object> parameters = createParameters(linkedRecordId);
+		Map<String, Object> parameters = createXSLTParameters(linkedRecordId);
 		return domainPartConverter.fromXMLWithParameters(xmlFromFedora, parameters);
 	}
 
-	private Map<String, Object> createParameters(String id) {
+	private Map<String, Object> createXSLTParameters(String id) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("domainFilter", extractDomainFromId(id));
 		return parameters;
@@ -283,28 +320,14 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	private void synchronizeUpdate() {
-		updateAndIndexPerson();
+		storeAndIndexPerson();
 		updateAndIndexPersonDomainParts();
 	}
 
 	private void updateAndIndexPersonDomainParts() {
 		for (DataGroup domainPartLink : domainParts) {
-			updateAndIndexDomainPart(domainPartLink);
+			storeDomainPartsAndIndex(domainPartLink);
 		}
-	}
-
-	private void updateAndIndexPerson() {
-		recordStorage.update(recordType, recordId, personDataGroup, createCollectedTerms(),
-				createLinkList(), dataDivider);
-		createIndexRecord(recordId);
-	}
-
-	private void updateAndIndexDomainPart(DataGroup domainPartLink) {
-		String linkedRecordId = extractRecordId(domainPartLink);
-		DataGroup personDomainPart = convertDomainPart(linkedRecordId);
-		recordStorage.update(PERSON_DOMAIN_PART, linkedRecordId, personDomainPart,
-				createCollectedTerms(), createLinkList(), dataDivider);
-		createIndexRecordPersonDomainPart(linkedRecordId);
 	}
 
 	public RecordStorage onlyForTestGetRecordStorage() {
