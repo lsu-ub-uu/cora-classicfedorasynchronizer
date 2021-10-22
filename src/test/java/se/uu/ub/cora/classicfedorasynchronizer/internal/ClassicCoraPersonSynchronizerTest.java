@@ -154,12 +154,23 @@ public class ClassicCoraPersonSynchronizerTest {
 	}
 
 	@Test
-	public void testSynchronizeIndexCalledCorrectlyForCreate() {
+	public void testSynchronizeIndexCalledCorrectlyForCreateNoPersonDomains() {
 		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
 
-		assertEquals(coraIndexer.recordTypes.size(), 1);
+		coraIndexer.MCR.assertNumberOfCallsToMethod("handleWorkorderType", 1);
 		assertCorrectIndexCallForPerson();
 		assertEquals(loggerFactorySpy.getNoOfErrorLogMessagesUsingClassName(testedClassName), 0);
+	}
+
+	@Test
+	public void testSynchronizeIndexCalledCorrectlyForCreateSeveralPersonDomains() {
+		setUpPersonWithDomainParts();
+		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
+
+		coraIndexer.MCR.assertNumberOfCallsToMethod("handleWorkorderType", 4);
+		assertCorrectIndexCallForPerson();
+		assertEquals(loggerFactorySpy.getNoOfErrorLogMessagesUsingClassName(testedClassName), 0);
+		assertCorrectIndexedDomainParts();
 	}
 
 	@Test

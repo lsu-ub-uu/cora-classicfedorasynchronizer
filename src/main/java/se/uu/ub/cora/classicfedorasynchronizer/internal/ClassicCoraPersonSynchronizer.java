@@ -234,8 +234,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		logErrorIfResponseNotOk(responseCode, recordType);
 	}
 
-	private void createAndIndexPersonDomainParts(String responseText,
-			List<DataGroup> domainParts) {
+	private void createAndIndexPersonDomainParts(String responseText, List<DataGroup> domainParts) {
 		for (DataGroup domainPartLink : domainParts) {
 			createDataGroupLinkIntoDatabase(responseText, domainPartLink);
 		}
@@ -246,7 +245,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		DataGroup personDomainPart = convertDomainPart(responseText, linkedRecordId);
 		recordStorage.create(PERSON_DOMAIN_PART, linkedRecordId, personDomainPart,
 				createCollectedTerms(), createLinkList(), dataDivider);
-		createIndexRecord(linkedRecordId);
+		createIndexRecordPersonDomainPart(linkedRecordId);
 	}
 
 	private void createAndIndexPerson(DataGroup dataGroup) {
