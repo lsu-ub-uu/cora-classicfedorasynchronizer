@@ -64,6 +64,10 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	private CoraIndexer coraIndexer;
 	private String action;
 
+	private String xmlFromFedora;
+
+	private List<DataGroup> domainParts;
+
 	public ClassicCoraPersonSynchronizer(RecordStorage recordStorage,
 			HttpHandlerFactory httpHandlerFactory, FedoraConverterFactory fedoraConverterFactory,
 			CoraIndexer coraIndexer, String baseURL) {
@@ -188,23 +192,23 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 
 	private void synchronizeCreateOrUpdate() {
 		prepareHttpHandler();
-		String responseText = httpHandler.getResponseText();
-		personDataGroup = convertPersonToDataGroup(responseText);
-		List<DataGroup> domainParts = convertDomainPartsToDataGroup(responseText);
+		xmlFromFedora = httpHandler.getResponseText();
+		personDataGroup = convertPersonToDataGroup(xmlFromFedora);
+		domainParts = getPersonDomainPartsFromPerson();
 
-		possiblySynchronizeCreate(responseText, domainParts);
-		possiblySynchronizeUpdate(responseText, domainParts);
+		possiblySynchronizeCreate();
+		possiblySynchronizeUpdate();
 	}
 
-	private void possiblySynchronizeCreate(String responseText, List<DataGroup> domainParts) {
+	private void possiblySynchronizeCreate() {
 		if (isCreateAction()) {
-			synchronizeCreate(responseText, domainParts);
+			synchronizeCreate();
 		}
 	}
 
-	private void possiblySynchronizeUpdate(String responseText, List<DataGroup> domainParts) {
+	private void possiblySynchronizeUpdate() {
 		if (isUpdateAction()) {
-			synchronizeUpdate(responseText, domainParts);
+			synchronizeUpdate();
 		}
 	}
 
@@ -212,9 +216,8 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		return "create".equals(action);
 	}
 
-	private List<DataGroup> convertDomainPartsToDataGroup(String responseText) {
-		return personDataGroup
-				.getAllGroupsWithNameInData(PERSON_DOMAIN_PART);
+	private List<DataGroup> getPersonDomainPartsFromPerson() {
+		return personDataGroup.getAllGroupsWithNameInData(PERSON_DOMAIN_PART);
 	}
 
 	private DataGroup convertPersonToDataGroup(String responseText) {
@@ -223,9 +226,9 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		return toCoraConverter.fromXML(responseText);
 	}
 
-	private void synchronizeCreate(String responseText, List<DataGroup> domainParts) {
+	private void synchronizeCreate() {
 		createAndIndexPerson(personDataGroup);
-		createAndIndexPersonDomainParts(responseText, domainParts);
+		createAndIndexPersonDomainParts();
 	}
 
 	private void indexRecord(String indexAction, String recordType, String recordId) {
@@ -233,15 +236,15 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		logErrorIfResponseNotOk(responseCode, recordType);
 	}
 
-	private void createAndIndexPersonDomainParts(String responseText, List<DataGroup> domainParts) {
+	private void createAndIndexPersonDomainParts() {
 		for (DataGroup domainPartLink : domainParts) {
-			createDataGroupLinkIntoDatabase(responseText, domainPartLink);
+			createDataGroupLinkIntoDatabase(domainPartLink);
 		}
 	}
 
-	private void createDataGroupLinkIntoDatabase(String responseText, DataGroup domainPartLink) {
+	private void createDataGroupLinkIntoDatabase(DataGroup domainPartLink) {
 		String linkedRecordId = extractRecordId(domainPartLink);
-		DataGroup personDomainPart = convertDomainPart(responseText, linkedRecordId);
+		DataGroup personDomainPart = convertDomainPart(linkedRecordId);
 		recordStorage.create(PERSON_DOMAIN_PART, linkedRecordId, personDomainPart,
 				createCollectedTerms(), createLinkList(), dataDivider);
 		createIndexRecordPersonDomainPart(linkedRecordId);
@@ -253,11 +256,11 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		createIndexRecord(recordId);
 	}
 
-	private DataGroup convertDomainPart(String responseText, String linkedRecordId) {
+	private DataGroup convertDomainPart(String linkedRecordId) {
 		FedoraToCoraConverter domainPartConverter = fedoraConverterFactory
 				.factorToCoraConverter(PERSON_DOMAIN_PART);
 		Map<String, Object> parameters = createParameters(linkedRecordId);
-		return domainPartConverter.fromXMLWithParameters(responseText, parameters);
+		return domainPartConverter.fromXMLWithParameters(xmlFromFedora, parameters);
 	}
 
 	private Map<String, Object> createParameters(String id) {
@@ -279,14 +282,14 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		return DataGroupProvider.getDataGroupUsingNameInData("collectedData");
 	}
 
-	private void synchronizeUpdate(String responseText, List<DataGroup> domainParts) {
+	private void synchronizeUpdate() {
 		updateAndIndexPerson();
-		updateAndIndexPersonDomainParts(responseText, domainParts);
+		updateAndIndexPersonDomainParts();
 	}
 
-	private void updateAndIndexPersonDomainParts(String responseText, List<DataGroup> domainParts) {
+	private void updateAndIndexPersonDomainParts() {
 		for (DataGroup domainPartLink : domainParts) {
-			updateAndIndexDomainPart(responseText, domainPartLink);
+			updateAndIndexDomainPart(domainPartLink);
 		}
 	}
 
@@ -296,9 +299,9 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		createIndexRecord(recordId);
 	}
 
-	private void updateAndIndexDomainPart(String responseText, DataGroup domainPartLink) {
+	private void updateAndIndexDomainPart(DataGroup domainPartLink) {
 		String linkedRecordId = extractRecordId(domainPartLink);
-		DataGroup personDomainPart = convertDomainPart(responseText, linkedRecordId);
+		DataGroup personDomainPart = convertDomainPart(linkedRecordId);
 		recordStorage.update(PERSON_DOMAIN_PART, linkedRecordId, personDomainPart,
 				createCollectedTerms(), createLinkList(), dataDivider);
 		createIndexRecordPersonDomainPart(linkedRecordId);
