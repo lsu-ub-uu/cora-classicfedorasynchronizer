@@ -104,7 +104,7 @@ public class CoraIndexerImp implements CoraIndexer {
 
 	private int addToIndex(String recordType, String recordId, String typeAndIdPart) {
 		logBeforeIndexing(typeAndIdPart);
-		coraClient.indexData(recordType, recordId);
+		coraClient.indexDataWithoutExplicitCommit(recordType, recordId);
 		logAfterIndexing(typeAndIdPart);
 		return HTTP_STATUS_OK;
 	}

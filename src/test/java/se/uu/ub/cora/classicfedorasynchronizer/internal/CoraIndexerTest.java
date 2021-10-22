@@ -54,7 +54,7 @@ public class CoraIndexerTest {
 		int response = coraIndexer.handleWorkorderType("index", "someRecordType", "someRecordId");
 		assertEquals(coraClient.recordTypes.get(0), "someRecordType");
 		assertEquals(coraClient.recordIds.get(0), "someRecordId");
-		assertEquals(coraClient.methodCalled, "index");
+		assertEquals(coraClient.methodCalled, "indexDataWithoutExplicitCommit");
 
 		assertEquals(response, 200);
 
