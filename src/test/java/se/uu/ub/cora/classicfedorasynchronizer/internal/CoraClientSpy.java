@@ -128,4 +128,18 @@ public class CoraClientSpy implements CoraClient {
 		return "some remove responsetext from cora client spy";
 	}
 
+	@Override
+	public String indexDataWithoutExplicitCommit(String recordType, String recordId) {
+		recordTypes.add(recordType);
+		recordIds.add(recordId);
+		methodCalled = "indexDataWithoutExplicitCommit";
+		if (throwErrorOnIndex) {
+			if ("CoraClientException".equals(errorToThrow)) {
+				throw new CoraClientException("Some error from spy");
+			}
+			throw new RuntimeException("Some runtime error from spy");
+		}
+		return "some responsetext from cora client spy";
+	}
+
 }

@@ -213,9 +213,8 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	private List<DataGroup> convertDomainPartsToDataGroup(String responseText) {
-		List<DataGroup> domainParts = personDataGroup
+		return personDataGroup
 				.getAllGroupsWithNameInData(PERSON_DOMAIN_PART);
-		return domainParts;
 	}
 
 	private DataGroup convertPersonToDataGroup(String responseText) {
