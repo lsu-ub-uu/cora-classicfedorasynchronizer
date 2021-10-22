@@ -20,6 +20,8 @@
 package se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning;
 
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import se.uu.ub.cora.classicfedorasynchronizer.messaging.FedoraMessageException;
 import se.uu.ub.cora.logger.Logger;
@@ -58,14 +60,20 @@ public class FedoraMessageParser implements MessageParser {
 	private boolean workOrderShouldBeCreatedForMessage(Map<String, String> headers,
 			String message) {
 		String methodName = headers.get("methodName");
-		String typePartOfId = extractTypePartOfId(headers);
-
-		return calculateWorkOrderShouldBeCreated(message, methodName, typePartOfId);
+		String pid = headers.get("pid");
+		Pattern idPattern = Pattern.compile("^[a-z-]*:\\d*$");
+		Matcher idMatcher = idPattern.matcher(pid);
+		if (!idMatcher.matches()) {
+			return false;
+		} else {
+			String typePartOfId = extractTypePartOfId(pid);
+			return calculateWorkOrderShouldBeCreated(message, methodName, typePartOfId);
+		}
 	}
 
-	private String extractTypePartOfId(Map<String, String> headers) {
-		String pid = headers.get("pid");
+	private String extractTypePartOfId(String pid) {
 		return pid.substring(0, pid.indexOf(':'));
+
 	}
 
 	private boolean calculateWorkOrderShouldBeCreated(String message, String methodName,

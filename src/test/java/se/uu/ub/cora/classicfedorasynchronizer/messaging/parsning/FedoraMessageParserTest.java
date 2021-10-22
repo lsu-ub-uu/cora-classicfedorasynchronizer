@@ -230,4 +230,15 @@ public class FedoraMessageParserTest {
 		assertEquals(messageParser.getAction(), "delete");
 	}
 
+	@Test
+	public void testMessagesWithNoValidId() throws Exception {
+		headers = new HashMap<>();
+		headers.put("methodName", "someMethod");
+		headers.put("pid", "someId");
+
+		messageParser.parseHeadersAndMessage(headers, message);
+
+		assertFalse(messageParser.synchronizationRequired());
+	}
+
 }
