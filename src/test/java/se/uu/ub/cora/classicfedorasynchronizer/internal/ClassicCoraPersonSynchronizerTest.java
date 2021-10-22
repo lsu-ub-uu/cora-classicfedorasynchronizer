@@ -148,9 +148,9 @@ public class ClassicCoraPersonSynchronizerTest {
 	}
 
 	private void assertCorrectIndexCallForPerson() {
-		assertEquals(coraIndexer.workOrderTypes.get(0), "index");
-		assertEquals(coraIndexer.recordTypes.get(0), "person");
-		assertEquals(coraIndexer.recordIds.get(0), "someRecordId");
+		coraIndexer.MCR.assertParameters("handleWorkorderType", 0, "index", "person",
+				"someRecordId");
+
 	}
 
 	@Test
@@ -382,14 +382,18 @@ public class ClassicCoraPersonSynchronizerTest {
 		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
 
 		assertCorrectIndexCallForPerson();
+
 		assertEquals(coraIndexer.recordTypes.size(), 4);
 		assertCorrectIndexedDomainParts();
 	}
 
 	private void assertCorrectIndexedDomainParts() {
-		assertCorrectIndexedDomainPartUsingIndex(1, "index");
-		assertCorrectIndexedDomainPartUsingIndex(2, "index");
-		assertCorrectIndexedDomainPartUsingIndex(3, "index");
+		coraIndexer.MCR.assertParameters("handleWorkorderType", 1, "index", "personDomainPart",
+				"authority-person:0:kth0");
+		coraIndexer.MCR.assertParameters("handleWorkorderType", 2, "index", "personDomainPart",
+				"authority-person:1:kth1");
+		coraIndexer.MCR.assertParameters("handleWorkorderType", 3, "index", "personDomainPart",
+				"authority-person:2:kth2");
 	}
 
 	private void assertCorrectIndexedDomainPartUsingIndex(int index, String workOrderType) {
@@ -404,8 +408,7 @@ public class ClassicCoraPersonSynchronizerTest {
 		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
 
 		assertCorrectIndexCallForPerson();
-		assertEquals(coraIndexer.recordTypes.size(), 4);
-		assertCorrectIndexedDomainParts();
+		coraIndexer.MCR.assertNumberOfCallsToMethod("handleWorkorderType", 4);
 	}
 
 	@Test
@@ -416,16 +419,6 @@ public class ClassicCoraPersonSynchronizerTest {
 
 		assertEquals(loggerFactorySpy.getErrorLogMessageUsingClassNameAndNo(testedClassName, 0),
 				"Error when indexing record from synchronizer, update personDomainPart.");
-	}
-
-	@Test
-	public void testErrorWhenIndexingDomainPartForCreate() {
-		setUpPersonWithDomainParts();
-		coraIndexer.typesToThrowErrorFor.add("personDomainPart");
-		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
-
-		assertEquals(loggerFactorySpy.getErrorLogMessageUsingClassNameAndNo(testedClassName, 0),
-				"Error when indexing record from synchronizer, create personDomainPart.");
 	}
 
 	@Test

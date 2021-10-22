@@ -52,8 +52,8 @@ public class FedoraMessageReceiver implements MessageReceiver {
 				String recordType = messageParser.getRecordType();
 				String recordId = messageParser.getRecordId();
 				String action = messageParser.getAction();
-				synchronizer.synchronize(recordType, recordId, action, "diva");
 				writeLogMessage(recordType, recordId, action);
+				synchronizer.synchronize(recordType, recordId, action, "diva");
 			} catch (Exception e) {
 				logger.logErrorUsingMessageAndException(
 						"Message could not be synchronized. " + e.getMessage(), e);
