@@ -66,11 +66,6 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	}
 
-	@Test
-	public void testInit() {
-		assertSame(synchronizer.getHttpHandlerFactory(), httpHandlerFactory);
-	}
-
 	@Test(expectedExceptions = RecordNotFoundException.class, expectedExceptionsMessageRegExp = ""
 			+ "Record not found for recordType: person and recordId: someRecordId")
 	public void testRecordNotFound() {

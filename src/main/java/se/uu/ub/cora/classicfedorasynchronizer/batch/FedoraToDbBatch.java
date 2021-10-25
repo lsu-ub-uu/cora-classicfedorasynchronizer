@@ -22,10 +22,8 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizer;
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactory;
@@ -71,8 +69,7 @@ public class FedoraToDbBatch {
 	}
 
 	private static Map<String, String> createInitInfo(String[] args) throws IOException {
-		Properties properties = FedoraToDbBatchPropertiesLoader.loadProperties(args);
-		return createInitInfoFromProperties(properties);
+		return FedoraToDbBatchPropertiesLoader.createInitInfo(args);
 	}
 
 	private static void constructSynchronizerFactory(Map<String, String> initInfo)
@@ -97,46 +94,14 @@ public class FedoraToDbBatch {
 		ClassicCoraSynchronizer synchronizer = synchronizerFactory.factor();
 		List<String> pids = getListOfPidsFromFedora(initInfo);
 		for (String recordId : pids) {
+			// TODO: catch errors from synchronizer, keep calm, log and carry on...
 			synchronizer.synchronize("person", recordId, "create", "diva");
 		}
 	}
 
 	private static List<String> getListOfPidsFromFedora(Map<String, String> initInfo) {
 		FedoraReader fedoraReader = fedoraReaderFactory.factor(initInfo.get("fedoraBaseUrl"));
-		return fedoraReader.readPidsForType("");
-	}
-
-	private static Map<String, String> createInitInfoFromProperties(Properties properties) {
-		Map<String, String> initInfo = new HashMap<>();
-		addPropertyToInitInfo(initInfo, properties, "databaseUrl", "database.url");
-		addPropertyToInitInfo(initInfo, properties, "databaseUser", "database.user");
-		addPropertyToInitInfo(initInfo, properties, "databasePassword", "database.password");
-		addPropertyToInitInfo(initInfo, properties, "fedoraBaseUrl", "fedora.baseUrl");
-		addPropertyToInitInfo(initInfo, properties, "coraApptokenVerifierURL",
-				"cora.apptokenVerifierUrl");
-		addPropertyToInitInfo(initInfo, properties, "coraBaseUrl", "cora.baseUrl");
-		addPropertyToInitInfo(initInfo, properties, "coraUserId", "cora.userId");
-		addPropertyToInitInfo(initInfo, properties, "coraApptoken", "cora.apptoken");
-		return initInfo;
-	}
-
-	private static void addPropertyToInitInfo(Map<String, String> initInfo, Properties properties,
-			String key, String propertyName) {
-		initInfo.put(key, extractPropertyThrowErrorIfNotFound(properties, propertyName));
-	}
-
-	private static String extractPropertyThrowErrorIfNotFound(Properties properties,
-			String propertyName) {
-		throwErrorIfPropertyNameIsMissing(properties, propertyName);
-		return properties.getProperty(propertyName);
-	}
-
-	private static void throwErrorIfPropertyNameIsMissing(Properties properties,
-			String propertyName) {
-		if (!properties.containsKey(propertyName)) {
-			throw new RuntimeException(
-					"Property with name " + propertyName + " not found in properties");
-		}
+		return fedoraReader.readPidsForType("authority-person");
 	}
 
 }

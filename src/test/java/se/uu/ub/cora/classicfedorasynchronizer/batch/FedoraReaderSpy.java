@@ -59,4 +59,10 @@ public class FedoraReaderSpy implements FedoraReader {
 		return null;
 	}
 
+	@Override
+	public List<String> readPidsForTypeCreatedBeforeAndUpdatedAfter(String type, String dateTime) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

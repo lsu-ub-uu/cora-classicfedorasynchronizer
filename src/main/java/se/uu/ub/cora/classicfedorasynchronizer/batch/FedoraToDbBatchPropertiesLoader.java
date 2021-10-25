@@ -19,6 +19,8 @@
 package se.uu.ub.cora.classicfedorasynchronizer.batch;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import se.uu.ub.cora.classicfedorasynchronizer.internal.PropertiesLoader;
@@ -31,9 +33,11 @@ class FedoraToDbBatchPropertiesLoader {
 		this.args = args;
 	}
 
-	public static Properties loadProperties(String[] args) throws IOException {
+	public static Map<String, String> createInitInfo(String[] args) throws IOException {
 		FedoraToDbBatchPropertiesLoader loader = new FedoraToDbBatchPropertiesLoader(args);
-		return loader.load();
+		// return loader.load();
+		Properties properties = loader.load();
+		return createInitInfoFromProperties(properties);
 	}
 
 	private Properties load() throws IOException {
@@ -62,5 +66,38 @@ class FedoraToDbBatchPropertiesLoader {
 		properties.put("cora.apptoken", args[7]);
 
 		return properties;
+	}
+
+	private static Map<String, String> createInitInfoFromProperties(Properties properties) {
+		Map<String, String> initInfo = new HashMap<>();
+		addPropertyToInitInfo(initInfo, properties, "databaseUrl", "database.url");
+		addPropertyToInitInfo(initInfo, properties, "databaseUser", "database.user");
+		addPropertyToInitInfo(initInfo, properties, "databasePassword", "database.password");
+		addPropertyToInitInfo(initInfo, properties, "fedoraBaseUrl", "fedora.baseUrl");
+		addPropertyToInitInfo(initInfo, properties, "coraApptokenVerifierURL",
+				"cora.apptokenVerifierUrl");
+		addPropertyToInitInfo(initInfo, properties, "coraBaseUrl", "cora.baseUrl");
+		addPropertyToInitInfo(initInfo, properties, "coraUserId", "cora.userId");
+		addPropertyToInitInfo(initInfo, properties, "coraApptoken", "cora.apptoken");
+		return initInfo;
+	}
+
+	private static void addPropertyToInitInfo(Map<String, String> initInfo, Properties properties,
+			String key, String propertyName) {
+		initInfo.put(key, extractPropertyThrowErrorIfNotFound(properties, propertyName));
+	}
+
+	private static String extractPropertyThrowErrorIfNotFound(Properties properties,
+			String propertyName) {
+		throwErrorIfPropertyNameIsMissing(properties, propertyName);
+		return properties.getProperty(propertyName);
+	}
+
+	private static void throwErrorIfPropertyNameIsMissing(Properties properties,
+			String propertyName) {
+		if (!properties.containsKey(propertyName)) {
+			throw new RuntimeException(
+					"Property with name " + propertyName + " not found in properties");
+		}
 	}
 }

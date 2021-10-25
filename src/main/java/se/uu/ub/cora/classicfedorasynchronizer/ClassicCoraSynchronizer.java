@@ -26,8 +26,19 @@ package se.uu.ub.cora.classicfedorasynchronizer;
 public interface ClassicCoraSynchronizer {
 
 	/**
-	 * Handles synchronization of a record between two systems
+	 * Synchronize handles synchronization of one record between two systems.
+	 * <p>
+	 * If the synchronization fails MUST an error be thrown detailing what went wrong.
 	 * 
+	 * @param recordType
+	 *            A String with the recordType of the record to synchronize
+	 * @param recordId
+	 *            A String with the recordId of the record to synchronize
+	 * @param action
+	 *            A String with an synchronization action, possible values are: create, update and
+	 *            delete
+	 * @param dataDivider
+	 *            A String with the dataDivider to store the record under
 	 */
 	void synchronize(String recordType, String recordId, String action, String dataDivider);
 

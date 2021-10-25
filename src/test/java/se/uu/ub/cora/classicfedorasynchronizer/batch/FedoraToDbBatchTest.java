@@ -66,8 +66,7 @@ public class FedoraToDbBatchTest {
 
 	@Test
 	public void testMainMethod() throws Exception {
-		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
-		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
+		setFactoryClassNamesToSpies();
 		FedoraToDbBatch.main(args);
 
 		assertTrue(
@@ -83,8 +82,7 @@ public class FedoraToDbBatchTest {
 
 	@Test
 	public void testMainMethodUsingArgs() throws Exception {
-		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
-		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
+		setFactoryClassNamesToSpies();
 
 		FedoraToDbBatch.main(args);
 
@@ -110,8 +108,7 @@ public class FedoraToDbBatchTest {
 
 	@Test
 	public void testFactorSynchronizerUsingFactorySpy() throws Exception {
-		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
-		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
+		setFactoryClassNamesToSpies();
 
 		FedoraToDbBatch.main(args);
 		ClassicCoraSynchronizerFactorySpy synchronizerFactory = (ClassicCoraSynchronizerFactorySpy) FedoraToDbBatch.synchronizerFactory;
@@ -121,6 +118,8 @@ public class FedoraToDbBatchTest {
 		FedoraReaderFactorySpy fedoraReaderFactory = (FedoraReaderFactorySpy) FedoraToDbBatch.fedoraReaderFactory;
 		assertEquals(fedoraReaderFactory.baseUrl, "args-someFedoraBaseUrl");
 		FedoraReaderSpy factoredFedoraReader = fedoraReaderFactory.factoredFedoraReader;
+
+		assertEquals(factoredFedoraReader.type, "authority-person");
 
 		assertCorrectCallToSynchronizer(synchronizer, 0, factoredFedoraReader.listToReturn.get(0));
 		assertCorrectCallToSynchronizer(synchronizer, 1, factoredFedoraReader.listToReturn.get(1));
@@ -141,19 +140,22 @@ public class FedoraToDbBatchTest {
 	@Test
 	public void testMainMethodUsingDefaultFile() throws Exception {
 		args = new String[] {};
-		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
-		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
+		setFactoryClassNamesToSpies();
 
 		FedoraToDbBatch.main(args);
 
 		assertCorrectInitInfoInSynchronizerUsingPrefix("");
 	}
 
+	private void setFactoryClassNamesToSpies() {
+		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
+		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
+	}
+
 	@Test
 	public void testMainMethodUsingFileName() throws Exception {
 		String argsWithFileName[] = new String[] { "divaIndexerSentIn.properties" };
-		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
-		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
+		setFactoryClassNamesToSpies();
 
 		FedoraToDbBatch.main(argsWithFileName);
 
@@ -163,8 +165,7 @@ public class FedoraToDbBatchTest {
 	@Test
 	public void testMainMethodWrongNumberOfArguments() throws Exception {
 		args = new String[] { "arg1", "arg2" };
-		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
-		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
+		setFactoryClassNamesToSpies();
 
 		FedoraToDbBatch.main(args);
 
@@ -179,8 +180,7 @@ public class FedoraToDbBatchTest {
 	@Test
 	public void testMainMethodMissingParameter() throws Exception {
 		args = new String[] { "propertiesForTestingMissingDatabasePassword.properties" };
-		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
-		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
+		setFactoryClassNamesToSpies();
 
 		FedoraToDbBatch.main(args);
 

@@ -161,6 +161,15 @@ public class FedoraMessageParserTest {
 	}
 
 	@Test
+	public void testMessageParserWrongPidTypeWorkOrderShouldNotBeCreated() throws Exception {
+		headers.remove("pid");
+		headers.put("pid", "notauthority-person:666498");
+
+		messageParser.parseHeadersAndMessage(headers, message);
+		assertFalse(messageParser.synchronizationRequired());
+	}
+
+	@Test
 	public void testMessageParserLogsWhenNoPidsynchronizationRequired() throws Exception {
 		headers.remove("pid");
 
