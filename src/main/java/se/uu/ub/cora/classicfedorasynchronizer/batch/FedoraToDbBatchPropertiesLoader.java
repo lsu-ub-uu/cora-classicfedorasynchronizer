@@ -35,7 +35,6 @@ class FedoraToDbBatchPropertiesLoader {
 
 	public static Map<String, String> createInitInfo(String[] args) throws IOException {
 		FedoraToDbBatchPropertiesLoader loader = new FedoraToDbBatchPropertiesLoader(args);
-		// return loader.load();
 		Properties properties = loader.load();
 		return createInitInfoFromProperties(properties);
 	}
