@@ -137,9 +137,42 @@ public class ClassicCoraPersonSynchronizerTest {
 	public void testSynchronizeIndexCalledCorrectlyForUpdate() {
 		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
 
+		dbStorage.MCR.assertParameters("read", 0, "person", "someRecordId");
+		dbStorage.MCR.assertMethodNotCalled("deleteByTypeAndId");
+
 		assertEquals(coraIndexer.recordTypes.size(), 1);
 		assertCorrectIndexCallForPerson();
 		assertEquals(loggerFactorySpy.getNoOfErrorLogMessagesUsingClassName(testedClassName), 0);
+	}
+
+	@Test
+	public void testUpdateWithLessDomainPartsThanStored() throws Exception {
+		setUpFedoraPersonConverterWithDomainParts(2);
+		setUpPersonInDbWithDomainParts(4);
+		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
+
+		dbStorage.MCR.assertParameters("deleteByTypeAndId", 0, "personDomainPart",
+				"authority-person:2:kth2");
+		dbStorage.MCR.assertParameters("deleteByTypeAndId", 1, "personDomainPart",
+				"authority-person:3:kth3");
+		dbStorage.MCR.assertNumberOfCallsToMethod("deleteByTypeAndId", 2);
+		coraIndexer.MCR.assertParameters("handleWorkorderType", 3, "removeFromIndex",
+				"personDomainPart", "authority-person:2:kth2");
+		coraIndexer.MCR.assertParameters("handleWorkorderType", 4, "removeFromIndex",
+				"personDomainPart", "authority-person:3:kth3");
+	}
+
+	@Test
+	public void testUpdateWithMoreDomainPartsThanStored() throws Exception {
+		setUpFedoraPersonConverterWithDomainParts(4);
+		setUpPersonInDbWithDomainParts(2);
+		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
+
+		dbStorage.MCR.assertMethodNotCalled("deleteByTypeAndId");
+		coraIndexer.MCR.assertParameters("handleWorkorderType", 3, "index", "personDomainPart",
+				"authority-person:2:kth2");
+		coraIndexer.MCR.assertParameters("handleWorkorderType", 4, "index", "personDomainPart",
+				"authority-person:3:kth3");
 	}
 
 	private void assertCorrectIndexCallForPerson() {
@@ -151,7 +184,6 @@ public class ClassicCoraPersonSynchronizerTest {
 	@Test
 	public void testSynchronizeIndexCalledCorrectlyForCreateNoPersonDomains() {
 		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
-
 		coraIndexer.MCR.assertNumberOfCallsToMethod("handleWorkorderType", 1);
 		assertCorrectIndexCallForPerson();
 		assertEquals(loggerFactorySpy.getNoOfErrorLogMessagesUsingClassName(testedClassName), 0);
@@ -159,7 +191,7 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	@Test
 	public void testSynchronizeIndexCalledCorrectlyForCreateSeveralPersonDomains() {
-		setUpPersonWithDomainParts();
+		setUpFedoraPersonConverterWithDomainParts(3);
 		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
 
 		coraIndexer.MCR.assertNumberOfCallsToMethod("handleWorkorderType", 4);
@@ -202,9 +234,7 @@ public class ClassicCoraPersonSynchronizerTest {
 
 		assertEquals(fedoraConverterFactory.factoredFedoraConverters.size(), 0);
 
-		assertEquals(dbStorage.alteredRecordTypes.get(0), "person");
-		assertEquals(dbStorage.alteredRecordIds.get(0), "someRecordId");
-		assertEquals(dbStorage.methodName, "delete");
+		dbStorage.MCR.assertParameters("deleteByTypeAndId", 0, "person", "someRecordId");
 	}
 
 	@Test
@@ -230,7 +260,7 @@ public class ClassicCoraPersonSynchronizerTest {
 	/************************* with domainParts *******************************/
 	@Test
 	public void testFactoredFedoraToCoraConverterWhenDomainPartsForUpdate() {
-		setUpPersonWithDomainParts();
+		setUpFedoraPersonConverterWithDomainParts(3);
 		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
 		assertCorrectFactoredAndUsedConverters();
 	}
@@ -255,14 +285,14 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	@Test
 	public void testFactoredFedoraToCoraConverterWhenDomainPartsForCreate() {
-		setUpPersonWithDomainParts();
+		setUpFedoraPersonConverterWithDomainParts(3);
 		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
 		assertCorrectFactoredAndUsedConverters();
 	}
 
 	@Test
 	public void testConvertedDataGroupSentToStorageWhenDomainPartsForUpdate() {
-		setUpPersonWithDomainParts();
+		setUpFedoraPersonConverterWithDomainParts(3);
 		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
 		assertConvertedGroupsAreSentToStorage();
 
@@ -280,7 +310,7 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	@Test
 	public void testConvertedDataGroupSentToStorageWhenDomainPartsForCreate() {
-		setUpPersonWithDomainParts();
+		setUpFedoraPersonConverterWithDomainParts(3);
 		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
 		assertConvertedGroupsAreSentToStorage();
 
@@ -288,7 +318,7 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	@Test
 	public void testDbCallsWhenDomainPartsForUpdate() {
-		setUpPersonWithDomainParts();
+		setUpFedoraPersonConverterWithDomainParts(3);
 		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
 		assertCorrectDomainPartDataSentToStorage();
 	}
@@ -316,36 +346,35 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	@Test
 	public void testDbCallsWhenDomainPartsForCreate() {
-		setUpPersonWithDomainParts();
+		setUpFedoraPersonConverterWithDomainParts(3);
 		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
 		assertCorrectDomainPartDataSentToStorage();
 	}
 
 	@Test
 	public void testDbCallsWhenDomainPartsForDelete() {
-		setUpPersonInDbWithDomainParts();
+		setUpPersonInDbWithDomainParts(3);
 		synchronizer.synchronize("person", "someRecordId", "delete", dataDivider);
 
-		assertEquals(dbStorage.alteredRecordTypes.get(0), "personDomainPart");
-		assertEquals(dbStorage.alteredRecordIds.get(0), "authority-person:0:kth0");
-		assertEquals(dbStorage.alteredRecordTypes.get(1), "personDomainPart");
-		assertEquals(dbStorage.alteredRecordIds.get(1), "authority-person:1:kth1");
-		assertEquals(dbStorage.alteredRecordTypes.get(2), "personDomainPart");
-		assertEquals(dbStorage.alteredRecordIds.get(2), "authority-person:2:kth2");
+		dbStorage.MCR.assertParameters("deleteByTypeAndId", 0, "personDomainPart",
+				"authority-person:0:kth0");
+		dbStorage.MCR.assertParameters("deleteByTypeAndId", 1, "personDomainPart",
+				"authority-person:1:kth1");
+		dbStorage.MCR.assertParameters("deleteByTypeAndId", 2, "personDomainPart",
+				"authority-person:2:kth2");
 
-		assertEquals(dbStorage.alteredRecordTypes.get(3), "person");
-		assertEquals(dbStorage.alteredRecordIds.get(3), "someRecordId");
+		dbStorage.MCR.assertParameters("deleteByTypeAndId", 3, "person", "someRecordId");
 	}
 
-	private void setUpPersonInDbWithDomainParts() {
+	private void setUpPersonInDbWithDomainParts(int noOfDomainParts) {
 		DataGroupSpy personToReturnFromDb = new DataGroupSpy("person");
-		personToReturnFromDb.numberOfDomainParts = 3;
+		personToReturnFromDb.numberOfDomainParts = noOfDomainParts;
 		dbStorage.readDataGroup = personToReturnFromDb;
 	}
 
 	@Test
 	public void testSynchronizeRecordResultHandledCorrectlyWhenDomainPartsForUpdate() {
-		setUpPersonWithDomainParts();
+		setUpFedoraPersonConverterWithDomainParts(3);
 		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
 
 		HttpHandlerSpy factoredHttpHandler = httpHandlerFactory.factoredHttpHandlerSpy;
@@ -357,20 +386,20 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	}
 
-	private void setUpPersonWithDomainParts() {
+	private void setUpFedoraPersonConverterWithDomainParts(int noOfDomainParts) {
 		dataGroupsReturnedFromConverter = new ArrayList<>();
 		DataGroupSpy person = new DataGroupSpy("person");
-		person.numberOfDomainParts = 3;
+		person.numberOfDomainParts = noOfDomainParts;
 		dataGroupsReturnedFromConverter.add(person);
-		dataGroupsReturnedFromConverter.add(new DataGroupSpy("personDomainPart"));
-		dataGroupsReturnedFromConverter.add(new DataGroupSpy("personDomainPart"));
-		dataGroupsReturnedFromConverter.add(new DataGroupSpy("personDomainPart"));
+		for (int i = 0; i < noOfDomainParts; i++) {
+			dataGroupsReturnedFromConverter.add(new DataGroupSpy("personDomainPart"));
+		}
 		fedoraConverterFactory.convertedGroups = dataGroupsReturnedFromConverter;
 	}
 
 	@Test
 	public void testSynchronizeRecordResultHandledCorrectlyWhenDomainPartsForCreate() {
-		setUpPersonWithDomainParts();
+		setUpFedoraPersonConverterWithDomainParts(3);
 		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
 
 		HttpHandlerSpy factoredHttpHandler = httpHandlerFactory.factoredHttpHandlerSpy;
@@ -384,7 +413,7 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	@Test
 	public void testSynchronizeIndexCalledCorrectlyWhenDomainPartsForUpdate() {
-		setUpPersonWithDomainParts();
+		setUpFedoraPersonConverterWithDomainParts(3);
 		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
 
 		assertCorrectIndexCallForPerson();
@@ -410,7 +439,7 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	@Test
 	public void testSynchronizeIndexCalledCorrectlyWhenDomainPartsForCreate() {
-		setUpPersonWithDomainParts();
+		setUpFedoraPersonConverterWithDomainParts(3);
 		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
 
 		assertCorrectIndexCallForPerson();
@@ -419,7 +448,7 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	@Test
 	public void testErrorWhenIndexingDomainPartForUpdate() {
-		setUpPersonWithDomainParts();
+		setUpFedoraPersonConverterWithDomainParts(3);
 		coraIndexer.typesToThrowErrorFor.add("personDomainPart");
 		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
 
@@ -429,7 +458,7 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	@Test
 	public void testSynchronizeIndexCalledCorrectlyWhenDomainPartsForDelete() {
-		setUpPersonInDbWithDomainParts();
+		setUpPersonInDbWithDomainParts(3);
 		synchronizer.synchronize("person", "someRecordId", "delete", dataDivider);
 
 		assertEquals(coraIndexer.workOrderTypes.get(3), "removeFromIndex");
@@ -444,7 +473,7 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	@Test
 	public void testErrorWhenIndexingDomainPartForDelete() {
-		setUpPersonInDbWithDomainParts();
+		setUpPersonInDbWithDomainParts(3);
 		coraIndexer.typesToThrowErrorFor.add("personDomainPart");
 		synchronizer.synchronize("person", "someRecordId", "delete", dataDivider);
 

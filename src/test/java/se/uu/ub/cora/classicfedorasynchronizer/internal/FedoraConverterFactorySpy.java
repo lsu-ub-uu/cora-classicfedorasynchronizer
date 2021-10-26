@@ -28,7 +28,6 @@ public class FedoraConverterFactorySpy implements FedoraConverterFactory {
 
 	public List<String> types = new ArrayList<>();
 	public List<FedoraToCoraConverterSpy> factoredFedoraConverters = new ArrayList<>();
-	// public DataGroupSpy convertedGroup;
 	public List<DataGroupSpy> convertedGroups = new ArrayList<>();
 	private int numberOfConvertersReturned = 0;
 
@@ -44,11 +43,5 @@ public class FedoraConverterFactorySpy implements FedoraConverterFactory {
 		factoredFedoraConverters.add(factoredFedoraConverter);
 		return factoredFedoraConverter;
 	}
-	//
-	// @Override
-	// public CoraToFedoraConverter factorToFedoraConverter(String type) {
-	// // TODO Auto-generated method stub
-	// return null;
-	// }
 
 }

@@ -25,8 +25,10 @@ import java.util.List;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.storage.RecordStorage;
 import se.uu.ub.cora.storage.StorageReadResult;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class RecordStorageSpy implements RecordStorage {
+	MethodCallRecorder MCR = new MethodCallRecorder();
 
 	public List<String> alteredRecordTypes = new ArrayList<>();
 	public List<String> readRecordTypes = new ArrayList<>();
@@ -41,17 +43,21 @@ public class RecordStorageSpy implements RecordStorage {
 
 	@Override
 	public DataGroup read(String type, String id) {
+		MCR.addCall("type", type, "id", id);
 		readRecordTypes.add(type);
 		readRecordIds.add(id);
 		if (readDataGroup == null) {
 			readDataGroup = new DataGroupSpy("someNameInData");
 		}
+		MCR.addReturned(readDataGroup);
 		return readDataGroup;
 	}
 
 	@Override
 	public void create(String type, String id, DataGroup record, DataGroup collectedTerms,
 			DataGroup linkList, String dataDivider) {
+		MCR.addCall("type", type, "id", id, "record", record, "collectedTerms", collectedTerms,
+				"linkList", linkList, "dataDivider", dataDivider);
 		alteredRecordTypes.add(type);
 		alteredRecordIds.add(id);
 		handledDataGroups.add(record);
@@ -63,6 +69,7 @@ public class RecordStorageSpy implements RecordStorage {
 
 	@Override
 	public void deleteByTypeAndId(String type, String id) {
+		MCR.addCall("type", type, "id", id);
 		alteredRecordTypes.add(type);
 		alteredRecordIds.add(id);
 		methodName = "delete";
@@ -70,13 +77,16 @@ public class RecordStorageSpy implements RecordStorage {
 
 	@Override
 	public boolean linksExistForRecord(String type, String id) {
-		// TODO Auto-generated method stub
+		MCR.addCall("type", type, "id", id);
+		MCR.addReturned(false);
 		return false;
 	}
 
 	@Override
 	public void update(String type, String id, DataGroup record, DataGroup collectedTerms,
 			DataGroup linkList, String dataDivider) {
+		MCR.addCall("type", type, "id", id, "record", record, "collectedTerms", collectedTerms,
+				"linkList", linkList, "dataDivider", dataDivider);
 		alteredRecordTypes.add(type);
 		alteredRecordIds.add(id);
 		handledDataGroups.add(record);
@@ -89,45 +99,53 @@ public class RecordStorageSpy implements RecordStorage {
 
 	@Override
 	public StorageReadResult readList(String type, DataGroup filter) {
-		// TODO Auto-generated method stub
+		MCR.addCall("type", type, "filter", filter);
+		MCR.addReturned(null);
 		return null;
 	}
 
 	@Override
 	public StorageReadResult readAbstractList(String type, DataGroup filter) {
-		// TODO Auto-generated method stub
+		MCR.addCall("type", type, "filter", filter);
+		MCR.addReturned(null);
 		return null;
 	}
 
 	@Override
 	public DataGroup readLinkList(String type, String id) {
-		// TODO Auto-generated method stub
+		MCR.addCall("type", type, "id", id);
+		MCR.addReturned(null);
 		return null;
 	}
 
 	@Override
 	public Collection<DataGroup> generateLinkCollectionPointingToRecord(String type, String id) {
-		// TODO Auto-generated method stub
+		MCR.addCall("type", type, "id", id);
+		MCR.addReturned(null);
 		return null;
 	}
 
 	@Override
 	public boolean recordExistsForAbstractOrImplementingRecordTypeAndRecordId(String type,
 			String id) {
-		// TODO Auto-generated method stub
+		MCR.addCall("type", type, "id", id);
+		MCR.addReturned(false);
 		return false;
 	}
 
 	@Override
 	public long getTotalNumberOfRecordsForType(String type, DataGroup filter) {
-		// TODO Auto-generated method stub
+		MCR.addCall("type", type, "filter", filter);
+		MCR.addReturned(0);
 		return 0;
 	}
 
 	@Override
 	public long getTotalNumberOfRecordsForAbstractType(String abstractType,
 			List<String> implementingTypes, DataGroup filter) {
-		// TODO Auto-generated method stub
+		MCR.addCall("abstractType", abstractType, "implementingTypes", implementingTypes, "filter",
+				filter);
+		MCR.addReturned(0);
 		return 0;
 	}
 

@@ -18,6 +18,7 @@
  */
 package se.uu.ub.cora.classicfedorasynchronizer.internal;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +65,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	private CoraIndexer coraIndexer;
 	private String action;
 	private String xmlFromFedora;
-	private List<DataGroup> domainParts;
+	private List<String> domainPartIds;
 
 	public ClassicCoraPersonSynchronizer(RecordStorage recordStorage,
 			HttpHandlerFactory httpHandlerFactory, FedoraConverterFactory fedoraConverterFactory,
@@ -105,7 +106,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		prepareHttpHandler();
 		xmlFromFedora = httpHandler.getResponseText();
 		personDataGroup = convertPersonToDataGroup(xmlFromFedora);
-		domainParts = getPersonDomainPartsFromPerson();
+		domainPartIds = getPersonDomainPartIdsFromPerson(personDataGroup);
 	}
 
 	private void prepareHttpHandler() {
@@ -150,20 +151,15 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	private void createAndIndexPersonDomainParts() {
-		for (DataGroup domainPartLink : domainParts) {
-			createAndIndexDomainPart(domainPartLink);
+		for (String domainPartId : domainPartIds) {
+			createAndIndexDomainPart(domainPartId);
 		}
 	}
 
-	private void createAndIndexDomainPart(DataGroup domainPartLink) {
-		String linkedRecordId = extractRecordId(domainPartLink);
-		DataGroup personDomainPart = convertDomainPart(linkedRecordId);
-		createPersonDomainPart(linkedRecordId, personDomainPart);
-		indexPersonDomainPart(linkedRecordId);
-	}
-
-	private String extractRecordId(DataGroup personDomainPart) {
-		return personDomainPart.getFirstAtomicValueWithNameInData("linkedRecordId");
+	private void createAndIndexDomainPart(String domainPartId) {
+		DataGroup personDomainPart = convertDomainPart(domainPartId);
+		createPersonDomainPart(domainPartId, personDomainPart);
+		indexPersonDomainPart(domainPartId);
 	}
 
 	private DataGroup convertDomainPart(String linkedRecordId) {
@@ -195,10 +191,13 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	private void synchronizeUpdate() {
+		DataGroup oldPerson = recordStorage.read(recordType, recordId);
+
+		List<String> oldDomainPartIds = getPersonDomainPartIdsFromPerson(oldPerson);
 		readPersonFromFedora();
 		updatePerson();
 		indexPerson();
-		updateAndIndexPersonDomainParts();
+		updateAndIndexPersonDomainParts(oldDomainPartIds);
 	}
 
 	private void updatePerson() {
@@ -206,17 +205,28 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 				createLinkList(), dataDivider);
 	}
 
-	private void updateAndIndexPersonDomainParts() {
-		for (DataGroup domainPartLink : domainParts) {
-			updateAndIndexPersonDomainPart(domainPartLink);
+	private void updateAndIndexPersonDomainParts(List<String> oldDomainPartIds) {
+		handleNewDomainParts(oldDomainPartIds);
+		removeOldDomainParts(oldDomainPartIds);
+	}
+
+	private void handleNewDomainParts(List<String> oldDomainPartIds) {
+		for (String domainPartId : domainPartIds) {
+			oldDomainPartIds.remove(domainPartId);
+			updateAndIndexPersonDomainPart(domainPartId);
 		}
 	}
 
-	private void updateAndIndexPersonDomainPart(DataGroup domainPartLink) {
-		String linkedRecordId = extractRecordId(domainPartLink);
-		DataGroup personDomainPart = convertDomainPart(linkedRecordId);
-		updatePersonDomainPart(linkedRecordId, personDomainPart);
-		indexPersonDomainPart(linkedRecordId);
+	private void removeOldDomainParts(List<String> oldDomainPartIds) {
+		for (String partId : oldDomainPartIds) {
+			removeDomainPartAndIndex(partId);
+		}
+	}
+
+	private void updateAndIndexPersonDomainPart(String domainPartId) {
+		DataGroup personDomainPart = convertDomainPart(domainPartId);
+		updatePersonDomainPart(domainPartId, personDomainPart);
+		indexPersonDomainPart(domainPartId);
 	}
 
 	private void updatePersonDomainPart(String linkedRecordId, DataGroup personDomainPart) {
@@ -236,20 +246,16 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	private void removeDomainPartsAndIndexes(DataGroup readDataGroup) {
-		List<DataGroup> personDomainParts = readDataGroup
-				.getAllGroupsWithNameInData(PERSON_DOMAIN_PART);
-		for (DataGroup personDomainPart : personDomainParts) {
-			removeDomainPartAndIndex(personDomainPart);
-		}
+		List<String> partIds = getPersonDomainPartIdsFromPerson(readDataGroup);
+		removeOldDomainParts(partIds);
 	}
 
-	private void removeDomainPartAndIndex(DataGroup personDomainPart) {
-		String linkedRecordId = extractRecordId(personDomainPart);
-		recordStorage.deleteByTypeAndId(PERSON_DOMAIN_PART, linkedRecordId);
-		removeIndexRecordPersonDomainPart(linkedRecordId);
+	private void removeDomainPartAndIndex(String domainPartId) {
+		recordStorage.deleteByTypeAndId(PERSON_DOMAIN_PART, domainPartId);
+		removePersonDomainPartIndex(domainPartId);
 	}
 
-	private void removeIndexRecordPersonDomainPart(String recordId) {
+	private void removePersonDomainPartIndex(String recordId) {
 		int responseCode = coraIndexer.handleWorkorderType(REMOVE_FROM_INDEX, PERSON_DOMAIN_PART,
 				recordId);
 		logErrorIfResponseNotOk(responseCode, PERSON_DOMAIN_PART);
@@ -260,8 +266,14 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		logErrorIfResponseNotOk(responseCode, recordType);
 	}
 
-	private List<DataGroup> getPersonDomainPartsFromPerson() {
-		return personDataGroup.getAllGroupsWithNameInData(PERSON_DOMAIN_PART);
+	private List<String> getPersonDomainPartIdsFromPerson(DataGroup dataGroup) {
+		List<String> partIds = new ArrayList<>();
+		List<DataGroup> allGroupsWithNameInData = dataGroup
+				.getAllGroupsWithNameInData(PERSON_DOMAIN_PART);
+		for (DataGroup domainPart : allGroupsWithNameInData) {
+			partIds.add(domainPart.getFirstAtomicValueWithNameInData("linkedRecordId"));
+		}
+		return partIds;
 	}
 
 	private DataGroup createLinkList() {
