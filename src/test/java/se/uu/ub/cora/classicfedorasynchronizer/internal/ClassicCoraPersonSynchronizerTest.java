@@ -46,7 +46,7 @@ public class ClassicCoraPersonSynchronizerTest {
 	private String dataDivider = "diva";
 	private DataGroupFactorySpy dataGroupFactory;
 	private List<DataGroupSpy> dataGroupsReturnedFromConverter;
-	private CoraIndexerSpy coraIndexer;
+	private CoraClientSpy coraClientSpy;
 	private String testedClassName = "ClassicCoraPersonSynchronizer";
 
 	@BeforeMethod
@@ -60,9 +60,10 @@ public class ClassicCoraPersonSynchronizerTest {
 		dbStorage = new RecordStorageSpy();
 		dataGroupFactory = new DataGroupFactorySpy();
 		DataGroupProvider.setDataGroupFactory(dataGroupFactory);
-		coraIndexer = new CoraIndexerSpy();
+		coraClientSpy = new CoraClientSpy();
+
 		synchronizer = new ClassicCoraPersonSynchronizer(dbStorage, httpHandlerFactory,
-				fedoraConverterFactory, coraIndexer, baseURL);
+				fedoraConverterFactory, coraClientSpy, baseURL);
 
 	}
 
@@ -140,9 +141,8 @@ public class ClassicCoraPersonSynchronizerTest {
 		dbStorage.MCR.assertParameters("read", 0, "person", "someRecordId");
 		dbStorage.MCR.assertMethodNotCalled("deleteByTypeAndId");
 
-		assertEquals(coraIndexer.recordTypes.size(), 1);
 		assertCorrectIndexCallForPerson();
-		assertEquals(loggerFactorySpy.getNoOfErrorLogMessagesUsingClassName(testedClassName), 0);
+		coraClientSpy.MCR.assertNumberOfCallsToMethod("indexData", 1);
 	}
 
 	@Test
@@ -156,10 +156,10 @@ public class ClassicCoraPersonSynchronizerTest {
 		dbStorage.MCR.assertParameters("deleteByTypeAndId", 1, "personDomainPart",
 				"authority-person:3:kth3");
 		dbStorage.MCR.assertNumberOfCallsToMethod("deleteByTypeAndId", 2);
-		coraIndexer.MCR.assertParameters("handleWorkorderType", 3, "removeFromIndex",
-				"personDomainPart", "authority-person:2:kth2");
-		coraIndexer.MCR.assertParameters("handleWorkorderType", 4, "removeFromIndex",
-				"personDomainPart", "authority-person:3:kth3");
+		coraClientSpy.MCR.assertParameters("removeFromIndex", 0, "personDomainPart",
+				"authority-person:2:kth2");
+		coraClientSpy.MCR.assertParameters("removeFromIndex", 1, "personDomainPart",
+				"authority-person:3:kth3");
 	}
 
 	@Test
@@ -169,24 +169,22 @@ public class ClassicCoraPersonSynchronizerTest {
 		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
 
 		dbStorage.MCR.assertMethodNotCalled("deleteByTypeAndId");
-		coraIndexer.MCR.assertParameters("handleWorkorderType", 3, "index", "personDomainPart",
+		coraClientSpy.MCR.assertParameters("indexData", 3, "personDomainPart",
 				"authority-person:2:kth2");
-		coraIndexer.MCR.assertParameters("handleWorkorderType", 4, "index", "personDomainPart",
+		coraClientSpy.MCR.assertParameters("indexData", 4, "personDomainPart",
 				"authority-person:3:kth3");
 	}
 
 	private void assertCorrectIndexCallForPerson() {
-		coraIndexer.MCR.assertParameters("handleWorkorderType", 0, "index", "person",
-				"someRecordId");
+		coraClientSpy.MCR.assertParameters("indexData", 0, "person", "someRecordId");
 
 	}
 
 	@Test
 	public void testSynchronizeIndexCalledCorrectlyForCreateNoPersonDomains() {
 		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
-		coraIndexer.MCR.assertNumberOfCallsToMethod("handleWorkorderType", 1);
+		coraClientSpy.MCR.assertNumberOfCallsToMethod("indexData", 1);
 		assertCorrectIndexCallForPerson();
-		assertEquals(loggerFactorySpy.getNoOfErrorLogMessagesUsingClassName(testedClassName), 0);
 	}
 
 	@Test
@@ -194,29 +192,9 @@ public class ClassicCoraPersonSynchronizerTest {
 		setUpFedoraPersonConverterWithDomainParts(3);
 		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
 
-		coraIndexer.MCR.assertNumberOfCallsToMethod("handleWorkorderType", 4);
+		coraClientSpy.MCR.assertNumberOfCallsToMethod("indexData", 4);
 		assertCorrectIndexCallForPerson();
-		assertEquals(loggerFactorySpy.getNoOfErrorLogMessagesUsingClassName(testedClassName), 0);
 		assertCorrectIndexedDomainParts();
-	}
-
-	@Test
-	public void testErrorWhenIndexingForUpdate() {
-		coraIndexer.typesToThrowErrorFor.add("person");
-		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
-
-		assertEquals(loggerFactorySpy.getErrorLogMessageUsingClassNameAndNo(testedClassName, 0),
-				"Error when indexing record from synchronizer, update person.");
-
-	}
-
-	@Test
-	public void testErrorWhenIndexingForCreate() {
-		coraIndexer.typesToThrowErrorFor.add("person");
-		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
-
-		assertEquals(loggerFactorySpy.getErrorLogMessageUsingClassNameAndNo(testedClassName, 0),
-				"Error when indexing record from synchronizer, create person.");
 	}
 
 	@Test
@@ -241,20 +219,9 @@ public class ClassicCoraPersonSynchronizerTest {
 	public void testSynchronizeIndexCalledCorrectlyForDelete() {
 		synchronizer.synchronize("person", "someRecordId", "delete", dataDivider);
 
-		assertEquals(coraIndexer.recordTypes.size(), 1);
-		assertEquals(coraIndexer.workOrderTypes.get(0), "removeFromIndex");
-		assertEquals(coraIndexer.recordTypes.get(0), "person");
-		assertEquals(coraIndexer.recordIds.get(0), "someRecordId");
-		assertEquals(loggerFactorySpy.getNoOfErrorLogMessagesUsingClassName(testedClassName), 0);
-	}
-
-	@Test
-	public void testErrorWhenIndexingForDelete() {
-		coraIndexer.typesToThrowErrorFor.add("person");
-		synchronizer.synchronize("person", "someRecordId", "delete", dataDivider);
-
-		assertEquals(loggerFactorySpy.getErrorLogMessageUsingClassNameAndNo(testedClassName, 0),
-				"Error when indexing record from synchronizer, delete person.");
+		assertEquals(coraClientSpy.recordTypes.size(), 1);
+		assertEquals(coraClientSpy.recordTypes.get(0), "person");
+		assertEquals(coraClientSpy.recordIds.get(0), "someRecordId");
 	}
 
 	/************************* with domainParts *******************************/
@@ -418,23 +385,23 @@ public class ClassicCoraPersonSynchronizerTest {
 
 		assertCorrectIndexCallForPerson();
 
-		assertEquals(coraIndexer.recordTypes.size(), 4);
+		assertEquals(coraClientSpy.recordTypes.size(), 4);
 		assertCorrectIndexedDomainParts();
 	}
 
 	private void assertCorrectIndexedDomainParts() {
-		coraIndexer.MCR.assertParameters("handleWorkorderType", 1, "index", "personDomainPart",
+		coraClientSpy.MCR.assertParameters("indexData", 1, "personDomainPart",
 				"authority-person:0:kth0");
-		coraIndexer.MCR.assertParameters("handleWorkorderType", 2, "index", "personDomainPart",
+		coraClientSpy.MCR.assertParameters("indexData", 2, "personDomainPart",
 				"authority-person:1:kth1");
-		coraIndexer.MCR.assertParameters("handleWorkorderType", 3, "index", "personDomainPart",
+		coraClientSpy.MCR.assertParameters("indexData", 3, "personDomainPart",
 				"authority-person:2:kth2");
 	}
 
 	private void assertCorrectIndexedDomainPartUsingIndex(int index, String workOrderType) {
-		assertEquals(coraIndexer.workOrderTypes.get(index), workOrderType);
-		assertEquals(coraIndexer.recordTypes.get(index), "personDomainPart");
-		assertEquals(coraIndexer.recordIds.get(index), dbStorage.alteredRecordIds.get(index));
+		// assertEquals(coraClientSpy.workOrderTypes.get(index), workOrderType);
+		assertEquals(coraClientSpy.recordTypes.get(index), "personDomainPart");
+		assertEquals(coraClientSpy.recordIds.get(index), dbStorage.alteredRecordIds.get(index));
 	}
 
 	@Test
@@ -443,17 +410,7 @@ public class ClassicCoraPersonSynchronizerTest {
 		synchronizer.synchronize("person", "someRecordId", "create", dataDivider);
 
 		assertCorrectIndexCallForPerson();
-		coraIndexer.MCR.assertNumberOfCallsToMethod("handleWorkorderType", 4);
-	}
-
-	@Test
-	public void testErrorWhenIndexingDomainPartForUpdate() {
-		setUpFedoraPersonConverterWithDomainParts(3);
-		coraIndexer.typesToThrowErrorFor.add("personDomainPart");
-		synchronizer.synchronize("person", "someRecordId", "update", dataDivider);
-
-		assertEquals(loggerFactorySpy.getErrorLogMessageUsingClassNameAndNo(testedClassName, 0),
-				"Error when indexing record from synchronizer, update personDomainPart.");
+		coraClientSpy.MCR.assertNumberOfCallsToMethod("indexData", 4);
 	}
 
 	@Test
@@ -461,24 +418,14 @@ public class ClassicCoraPersonSynchronizerTest {
 		setUpPersonInDbWithDomainParts(3);
 		synchronizer.synchronize("person", "someRecordId", "delete", dataDivider);
 
-		assertEquals(coraIndexer.workOrderTypes.get(3), "removeFromIndex");
-		assertEquals(coraIndexer.recordTypes.get(3), "person");
-		assertEquals(coraIndexer.recordIds.get(3), "someRecordId");
-		assertEquals(coraIndexer.recordTypes.size(), 4);
+		// assertEquals(coraClientSpy.workOrderTypes.get(3), "removeFromIndex");
+		assertEquals(coraClientSpy.recordTypes.get(3), "person");
+		assertEquals(coraClientSpy.recordIds.get(3), "someRecordId");
+		assertEquals(coraClientSpy.recordTypes.size(), 4);
 
 		assertCorrectIndexedDomainPartUsingIndex(0, "removeFromIndex");
 		assertCorrectIndexedDomainPartUsingIndex(1, "removeFromIndex");
 		assertCorrectIndexedDomainPartUsingIndex(2, "removeFromIndex");
-	}
-
-	@Test
-	public void testErrorWhenIndexingDomainPartForDelete() {
-		setUpPersonInDbWithDomainParts(3);
-		coraIndexer.typesToThrowErrorFor.add("personDomainPart");
-		synchronizer.synchronize("person", "someRecordId", "delete", dataDivider);
-
-		assertEquals(loggerFactorySpy.getErrorLogMessageUsingClassNameAndNo(testedClassName, 0),
-				"Error when indexing record from synchronizer, delete personDomainPart.");
 	}
 
 }

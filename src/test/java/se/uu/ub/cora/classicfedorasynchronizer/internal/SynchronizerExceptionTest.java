@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Uppsala University Library
+ * Copyright 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -18,10 +18,25 @@
  */
 package se.uu.ub.cora.classicfedorasynchronizer.internal;
 
-import se.uu.ub.cora.classicfedorasynchronizer.CoraIndexer;
+import static org.testng.Assert.assertEquals;
 
-public interface CoraIndexerFactory {
+import org.testng.annotations.Test;
 
-	CoraIndexer factor(String userId, String apptoken);
+public class SynchronizerExceptionTest {
+	@Test
+	public void testInit() {
+		String message = "message";
+		SynchronizerException exception = SynchronizerException.withMessage(message);
+		assertEquals(exception.getMessage(), "message");
+	}
 
+	@Test
+	public void testWithMessageAndException() throws Exception {
+		Exception e = new Exception("some message");
+		SynchronizerException exception = SynchronizerException
+				.withMessageAndException("second message", e);
+		assertEquals(exception.getMessage(), "second message");
+		assertEquals(exception.getCause().getMessage(), "some message");
+
+	}
 }

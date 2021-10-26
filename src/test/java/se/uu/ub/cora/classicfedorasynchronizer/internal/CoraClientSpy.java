@@ -25,8 +25,10 @@ import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.javaclient.cora.CoraClient;
 import se.uu.ub.cora.javaclient.cora.CoraClientException;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class CoraClientSpy implements CoraClient {
+	MethodCallRecorder MCR = new MethodCallRecorder();
 
 	public List<String> recordTypes = new ArrayList<>();
 	public List<String> recordIds = new ArrayList<>();
@@ -102,6 +104,8 @@ public class CoraClientSpy implements CoraClient {
 
 	@Override
 	public String indexData(String recordType, String recordId) {
+		MCR.addCall("recordType", recordType, "recordId", recordId);
+
 		recordTypes.add(recordType);
 		recordIds.add(recordId);
 		methodCalled = "index";
@@ -111,11 +115,16 @@ public class CoraClientSpy implements CoraClient {
 			}
 			throw new RuntimeException("Some runtime error from spy");
 		}
-		return "some responsetext from cora client spy";
+
+		String response = "some responsetext from cora client spy";
+		MCR.addReturned(response);
+		return response;
 	}
 
 	@Override
 	public String removeFromIndex(String recordType, String recordId) {
+		MCR.addCall("recordType", recordType, "recordId", recordId);
+
 		recordTypes.add(recordType);
 		recordIds.add(recordId);
 		methodCalled = "removeFromIndex";
@@ -125,11 +134,16 @@ public class CoraClientSpy implements CoraClient {
 			}
 			throw new RuntimeException("Some runtime error from spy");
 		}
-		return "some remove responsetext from cora client spy";
+
+		String response = "some remove responsetext from cora client spy";
+		MCR.addReturned(response);
+		return response;
 	}
 
 	@Override
 	public String indexDataWithoutExplicitCommit(String recordType, String recordId) {
+		MCR.addCall("recordType", recordType, "recordId", recordId);
+
 		recordTypes.add(recordType);
 		recordIds.add(recordId);
 		methodCalled = "indexDataWithoutExplicitCommit";
@@ -139,7 +153,10 @@ public class CoraClientSpy implements CoraClient {
 			}
 			throw new RuntimeException("Some runtime error from spy");
 		}
-		return "some responsetext from cora client spy";
+
+		String response = "some responsetext from cora client spy";
+		MCR.addReturned(response);
+		return response;
 	}
 
 }

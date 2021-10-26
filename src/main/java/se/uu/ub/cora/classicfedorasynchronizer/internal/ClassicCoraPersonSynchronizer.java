@@ -24,15 +24,13 @@ import java.util.List;
 import java.util.Map;
 
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizer;
-import se.uu.ub.cora.classicfedorasynchronizer.CoraIndexer;
 import se.uu.ub.cora.classicfedorasynchronizer.FedoraConverterFactory;
 import se.uu.ub.cora.classicfedorasynchronizer.FedoraToCoraConverter;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataGroupProvider;
 import se.uu.ub.cora.httphandler.HttpHandler;
 import se.uu.ub.cora.httphandler.HttpHandlerFactory;
-import se.uu.ub.cora.logger.Logger;
-import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.javaclient.cora.CoraClient;
 import se.uu.ub.cora.storage.RecordNotFoundException;
 import se.uu.ub.cora.storage.RecordStorage;
 
@@ -43,14 +41,6 @@ import se.uu.ub.cora.storage.RecordStorage;
  * ClassicCoraPersonSynchronizer is NOT threadsafe
  */
 public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
-
-	private static final int HTTP_STATUS_OK = 200;
-
-	private static Logger logger = LoggerProvider
-			.getLoggerForClass(ClassicCoraPersonSynchronizer.class);
-
-	private static final String INDEX = "index";
-	private static final String REMOVE_FROM_INDEX = "removeFromIndex";
 	private static final String PERSON_DOMAIN_PART = "personDomainPart";
 	private static final int NOT_FOUND = 404;
 	private HttpHandlerFactory httpHandlerFactory;
@@ -62,19 +52,20 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	private String dataDivider;
 	private HttpHandler httpHandler;
 	private DataGroup personDataGroup;
-	private CoraIndexer coraIndexer;
+	private CoraClient coraClient;
 	private String action;
 	private String xmlFromFedora;
 	private List<String> domainPartIds;
 
 	public ClassicCoraPersonSynchronizer(RecordStorage recordStorage,
 			HttpHandlerFactory httpHandlerFactory, FedoraConverterFactory fedoraConverterFactory,
-			CoraIndexer coraIndexer, String baseURL) {
+			CoraClient coraClient, String baseURL) {
 		this.recordStorage = recordStorage;
 		this.httpHandlerFactory = httpHandlerFactory;
 		this.fedoraConverterFactory = fedoraConverterFactory;
-		this.coraIndexer = coraIndexer;
+		this.coraClient = coraClient;
 		this.baseURL = baseURL;
+
 	}
 
 	@Override
@@ -139,15 +130,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	private void indexPerson() {
-		int responseCode = coraIndexer.handleWorkorderType(INDEX, recordType, recordId);
-		logErrorIfResponseNotOk(responseCode, recordType);
-	}
-
-	private void logErrorIfResponseNotOk(int responseCode, String type) {
-		if (responseCode != HTTP_STATUS_OK) {
-			logger.logErrorUsingMessage(
-					"Error when indexing record from synchronizer, " + action + " " + type + ".");
-		}
+		coraClient.indexData(recordType, recordId);
 	}
 
 	private void createAndIndexPersonDomainParts() {
@@ -186,8 +169,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	private void indexPersonDomainPart(String recordId) {
-		int responseCode = coraIndexer.handleWorkorderType(INDEX, PERSON_DOMAIN_PART, recordId);
-		logErrorIfResponseNotOk(responseCode, PERSON_DOMAIN_PART);
+		coraClient.indexData(PERSON_DOMAIN_PART, recordId);
 	}
 
 	private void synchronizeUpdate() {
@@ -237,7 +219,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	private void synchronizeDelete() {
 		DataGroup readDataGroup = recordStorage.read(recordType, recordId);
 		removeRecordAndLinks(readDataGroup);
-		removeIndexRecord(recordId);
+		removeFromIndexUsingTypeAndId(recordType, recordId);
 	}
 
 	private void removeRecordAndLinks(DataGroup readDataGroup) {
@@ -252,18 +234,11 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 
 	private void removeDomainPartAndIndex(String domainPartId) {
 		recordStorage.deleteByTypeAndId(PERSON_DOMAIN_PART, domainPartId);
-		removePersonDomainPartIndex(domainPartId);
+		removeFromIndexUsingTypeAndId(PERSON_DOMAIN_PART, domainPartId);
 	}
 
-	private void removePersonDomainPartIndex(String recordId) {
-		int responseCode = coraIndexer.handleWorkorderType(REMOVE_FROM_INDEX, PERSON_DOMAIN_PART,
-				recordId);
-		logErrorIfResponseNotOk(responseCode, PERSON_DOMAIN_PART);
-	}
-
-	private void removeIndexRecord(String recordId) {
-		int responseCode = coraIndexer.handleWorkorderType(REMOVE_FROM_INDEX, recordType, recordId);
-		logErrorIfResponseNotOk(responseCode, recordType);
+	private void removeFromIndexUsingTypeAndId(String type, String recordId) {
+		coraClient.removeFromIndex(type, recordId);
 	}
 
 	private List<String> getPersonDomainPartIdsFromPerson(DataGroup dataGroup) {
@@ -300,8 +275,8 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		return baseURL;
 	}
 
-	public CoraIndexer onlyForTestGetCoraIndexer() {
-		return coraIndexer;
+	public CoraClient onlyForTestGetCoraClient() {
+		return coraClient;
 	}
 
 }

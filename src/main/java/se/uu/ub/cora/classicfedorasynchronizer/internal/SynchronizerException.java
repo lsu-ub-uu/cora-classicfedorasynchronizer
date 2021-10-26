@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Uppsala University Library
+ * Copyright 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -18,18 +18,24 @@
  */
 package se.uu.ub.cora.classicfedorasynchronizer.internal;
 
-import se.uu.ub.cora.classicfedorasynchronizer.CoraIndexer;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+public final class SynchronizerException extends RuntimeException {
 
-public class CoraIndexerFactorySpy implements CoraIndexerFactory {
-	MethodCallRecorder MCR = new MethodCallRecorder();
+	private static final long serialVersionUID = 1L;
 
-	@Override
-	public CoraIndexer factor(String userId, String apptoken) {
-		MCR.addCall("userId", userId, "apptoken", apptoken);
-		CoraIndexer factored = new CoraIndexerSpy();
-		MCR.addReturned(factored);
-		return factored;
+	public static SynchronizerException withMessage(String message) {
+		return new SynchronizerException(message);
+	}
+
+	public static SynchronizerException withMessageAndException(String message, Exception e) {
+		return new SynchronizerException(message, e);
+	}
+
+	private SynchronizerException(String message) {
+		super(message);
+	}
+
+	private SynchronizerException(String message, Exception e) {
+		super(message, e);
 	}
 
 }

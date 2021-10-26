@@ -20,8 +20,10 @@ package se.uu.ub.cora.classicfedorasynchronizer.internal;
 
 import se.uu.ub.cora.javaclient.cora.CoraClient;
 import se.uu.ub.cora.javaclient.cora.CoraClientFactory;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class CoraClientFactorySpy implements CoraClientFactory {
+	MethodCallRecorder MCR = new MethodCallRecorder();
 
 	public CoraClientSpy factoredCoraClient;
 	public String userId;
@@ -31,17 +33,22 @@ public class CoraClientFactorySpy implements CoraClientFactory {
 
 	@Override
 	public CoraClient factor(String userId, String appToken) {
+		MCR.addCall("userId", userId, "appToken", appToken);
 		this.userId = userId;
 		this.appToken = appToken;
 		factoredCoraClient = new CoraClientSpy();
 		factoredCoraClient.throwErrorOnIndex = throwErrorOnIndex;
 		factoredCoraClient.errorToThrow = errorToThrow;
+
+		MCR.addReturned(factoredCoraClient);
 		return factoredCoraClient;
 	}
 
 	@Override
 	public CoraClient factorUsingAuthToken(String authToken) {
-		// TODO Auto-generated method stub
+		MCR.addCall("authToken", authToken);
+
+		MCR.addReturned(null);
 		return null;
 	}
 
