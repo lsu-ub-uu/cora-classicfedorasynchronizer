@@ -44,7 +44,7 @@ public class FedoraMessageReceiver implements MessageReceiver {
 	@Override
 	public void receiveMessage(Map<String, String> headers, String message) {
 		MessageParser messageParser = messageParserFactory.factor();
-		ClassicCoraSynchronizer synchronizer = classicCoraSynchronizerFactory.factor();
+		ClassicCoraSynchronizer synchronizer = classicCoraSynchronizerFactory.factorForMessaging();
 
 		messageParser.parseHeadersAndMessage(headers, message);
 		if (messageParser.synchronizationRequired()) {

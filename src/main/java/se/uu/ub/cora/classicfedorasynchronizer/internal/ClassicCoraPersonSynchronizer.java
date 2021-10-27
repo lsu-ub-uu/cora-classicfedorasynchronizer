@@ -43,6 +43,7 @@ import se.uu.ub.cora.storage.RecordStorage;
 public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	private static final String PERSON_DOMAIN_PART = "personDomainPart";
 	private static final int NOT_FOUND = 404;
+
 	private HttpHandlerFactory httpHandlerFactory;
 	private String baseURL;
 	private FedoraConverterFactory fedoraConverterFactory;
@@ -56,15 +57,32 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	private String action;
 	private String xmlFromFedora;
 	private List<String> domainPartIds;
+	private boolean explicitIndexCommit;
 
-	public ClassicCoraPersonSynchronizer(RecordStorage recordStorage,
+	public static ClassicCoraPersonSynchronizer createClassicCoraPersonSynchronizerForMessaging(
+			RecordStorage recordStorage, HttpHandlerFactory httpHandlerFactory,
+			FedoraConverterFactory fedoraConverterFactory, CoraClient coraClient, String baseURL) {
+
+		return new ClassicCoraPersonSynchronizer(recordStorage, httpHandlerFactory,
+				fedoraConverterFactory, coraClient, baseURL, true);
+	}
+
+	public static ClassicCoraPersonSynchronizer createClassicCoraPersonSynchronizerForBatch(
+			RecordStorage recordStorage, HttpHandlerFactory httpHandlerFactory,
+			FedoraConverterFactory fedoraConverterFactory, CoraClient coraClient, String baseURL) {
+		return new ClassicCoraPersonSynchronizer(recordStorage, httpHandlerFactory,
+				fedoraConverterFactory, coraClient, baseURL, false);
+	}
+
+	private ClassicCoraPersonSynchronizer(RecordStorage recordStorage,
 			HttpHandlerFactory httpHandlerFactory, FedoraConverterFactory fedoraConverterFactory,
-			CoraClient coraClient, String baseURL) {
+			CoraClient coraClient, String baseURL, boolean explicitIndexCommit) {
 		this.recordStorage = recordStorage;
 		this.httpHandlerFactory = httpHandlerFactory;
 		this.fedoraConverterFactory = fedoraConverterFactory;
 		this.coraClient = coraClient;
 		this.baseURL = baseURL;
+		this.explicitIndexCommit = explicitIndexCommit;
 
 	}
 
@@ -130,7 +148,15 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	private void indexPerson() {
-		coraClient.indexData(recordType, recordId);
+		indexRecordUsingTypeAndId(recordType, recordId);
+	}
+
+	private void indexRecordUsingTypeAndId(String type, String id) {
+		if (explicitIndexCommit) {
+			coraClient.indexData(type, id);
+		} else {
+			coraClient.indexDataWithoutExplicitCommit(type, id);
+		}
 	}
 
 	private void createAndIndexPersonDomainParts() {
@@ -169,7 +195,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	private void indexPersonDomainPart(String recordId) {
-		coraClient.indexData(PERSON_DOMAIN_PART, recordId);
+		indexRecordUsingTypeAndId(PERSON_DOMAIN_PART, recordId);
 	}
 
 	private void synchronizeUpdate() {
@@ -277,6 +303,10 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 
 	public CoraClient onlyForTestGetCoraClient() {
 		return coraClient;
+	}
+
+	public boolean onlyForTestGetExplicitIndexCommit() {
+		return explicitIndexCommit;
 	}
 
 }

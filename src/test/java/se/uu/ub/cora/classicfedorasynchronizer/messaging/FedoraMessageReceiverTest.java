@@ -70,9 +70,9 @@ public class FedoraMessageReceiverTest {
 
 	@Test
 	public void testSynchronizerFactoryFactorsInReceiveMessage() {
-		synchronizerFactory.MCR.assertMethodNotCalled("factor");
+		synchronizerFactory.MCR.assertMethodNotCalled("factorForMessaging");
 		receiver.receiveMessage(headers, message);
-		synchronizerFactory.MCR.assertMethodWasCalled("factor");
+		synchronizerFactory.MCR.assertMethodWasCalled("factorForMessaging");
 	}
 
 	@Test
@@ -118,7 +118,7 @@ public class FedoraMessageReceiverTest {
 		MessageParserSpy messageParserSpy = messageParserFactorySpy.messageParserSpy;
 
 		ClassicCoraSynchronizerSpy synchronizer = (ClassicCoraSynchronizerSpy) synchronizerFactory.MCR
-				.getReturnValue("factor", 0);
+				.getReturnValue("factorForMessaging", 0);
 
 		String recordType = (String) messageParserSpy.MCR.getReturnValue("getRecordType", 0);
 		String recordId = (String) messageParserSpy.MCR.getReturnValue("getRecordId", 0);

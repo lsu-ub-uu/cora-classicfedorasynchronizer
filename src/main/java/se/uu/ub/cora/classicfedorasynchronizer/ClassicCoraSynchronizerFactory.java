@@ -20,6 +20,8 @@ package se.uu.ub.cora.classicfedorasynchronizer;
 
 public interface ClassicCoraSynchronizerFactory {
 
-	ClassicCoraSynchronizer factor();
+	ClassicCoraSynchronizer factorForMessaging();
+
+	ClassicCoraSynchronizer factorForBatch();
 
 }

@@ -91,7 +91,7 @@ public class FedoraToDbBatch {
 	}
 
 	private static void synchronize(Map<String, String> initInfo) {
-		ClassicCoraSynchronizer synchronizer = synchronizerFactory.factor();
+		ClassicCoraSynchronizer synchronizer = synchronizerFactory.factorForMessaging();
 		List<String> pids = getListOfPidsFromFedora(initInfo);
 		for (String recordId : pids) {
 			// TODO: catch errors from synchronizer, keep calm, log and carry on...

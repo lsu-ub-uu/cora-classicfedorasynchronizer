@@ -98,24 +98,22 @@ public class SynchronizerFactory implements ClassicCoraSynchronizerFactory {
 	}
 
 	@Override
-	public ClassicCoraSynchronizer factor() {
+	public ClassicCoraSynchronizer factorForMessaging() {
 
-		return createSynchronizerWithChoosenIndexer(coraClient);
+		return ClassicCoraPersonSynchronizer.createClassicCoraPersonSynchronizerForMessaging(
+				recordStorage, httpHandlerFactory, fedoraConverterFactory, coraClient,
+				initInfo.get("fedoraBaseUrl"));
 	}
 
-	private ClassicCoraSynchronizer createSynchronizerWithChoosenIndexer(CoraClient coraClient2) {
-		return new ClassicCoraPersonSynchronizer(recordStorage, httpHandlerFactory,
-				fedoraConverterFactory, coraClient2, initInfo.get("fedoraBaseUrl"));
+	@Override
+	public ClassicCoraSynchronizer factorForBatch() {
+		return ClassicCoraPersonSynchronizer.createClassicCoraPersonSynchronizerForBatch(
+				recordStorage, httpHandlerFactory, fedoraConverterFactory, coraClient,
+				initInfo.get("fedoraBaseUrl"));
 	}
 
 	public Map<String, String> onlyForTestGetInitInfo() {
 		return initInfo;
-	}
-
-	public ClassicCoraPersonSynchronizer factorForBatch() {
-		// TODO:
-		// coraIndexer.setImplicitCommit(false);
-		return null;
 	}
 
 	public CoraClientFactory onlyForTestGetCoraClientFactory() {

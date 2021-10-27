@@ -19,6 +19,7 @@
 package se.uu.ub.cora.classicfedorasynchronizer.internal;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
@@ -70,7 +71,7 @@ public class ClassicCoraSynchronizerFactoryTest {
 	@Test
 	public void testRecordStorageSetUpFromInitInfo() throws Exception {
 		ClassicCoraPersonSynchronizer synchronizer = (ClassicCoraPersonSynchronizer) synchronizerFactory
-				.factor();
+				.factorForMessaging();
 
 		DatabaseRecordStorage databaseRecordStorage = (DatabaseRecordStorage) synchronizer
 				.onlyForTestGetRecordStorage();
@@ -87,17 +88,16 @@ public class ClassicCoraSynchronizerFactoryTest {
 	@Test
 	public void testHttpHandlersFactorySent() throws Exception {
 		ClassicCoraPersonSynchronizer synchronizer = (ClassicCoraPersonSynchronizer) synchronizerFactory
-				.factor();
+				.factorForMessaging();
 
 		assertTrue(
 				synchronizer.onlyForTestGetHttpHandlerFactory() instanceof HttpHandlerFactoryImp);
-
 	}
 
 	@Test
 	public void testFedoraConverterFactorySent() throws Exception {
 		ClassicCoraPersonSynchronizer synchronizer = (ClassicCoraPersonSynchronizer) synchronizerFactory
-				.factor();
+				.factorForMessaging();
 
 		assertFedoraConverterFactory(synchronizer);
 	}
@@ -116,7 +116,7 @@ public class ClassicCoraSynchronizerFactoryTest {
 		CoraClientFactoryImp coraClientFactory = (CoraClientFactoryImp) synchronizerFactory
 				.onlyForTestGetCoraClientFactory();
 		ClassicCoraPersonSynchronizer synchronizer = (ClassicCoraPersonSynchronizer) synchronizerFactory
-				.factor();
+				.factorForMessaging();
 		CoraClient coraClient = synchronizer.onlyForTestGetCoraClient();
 		assertTrue(coraClient instanceof CoraClient);
 		assertEquals(coraClientFactory.getAppTokenVerifierUrl(),
@@ -129,7 +129,7 @@ public class ClassicCoraSynchronizerFactoryTest {
 		CoraClientFactorySpy coraClientFactorySpy = new CoraClientFactorySpy();
 		synchronizerFactory.onlyForTestSetCoraClientFactory(coraClientFactorySpy);
 		ClassicCoraPersonSynchronizer synchronizer = (ClassicCoraPersonSynchronizer) synchronizerFactory
-				.factor();
+				.factorForMessaging();
 
 		coraClientFactorySpy.MCR.assertParameters("factor", 0, initInfo.get("coraUserId"),
 				initInfo.get("coraApptoken"));
@@ -141,13 +141,33 @@ public class ClassicCoraSynchronizerFactoryTest {
 	@Test
 	public void testFedoraBaseUrlSent() throws Exception {
 		ClassicCoraPersonSynchronizer synchronizer = (ClassicCoraPersonSynchronizer) synchronizerFactory
-				.factor();
+				.factorForMessaging();
 		assertEquals(synchronizer.onlyForTestGetBaseUrl(), initInfo.get("fedoraBaseUrl"));
 	}
 
 	@Test
+	public void testMessagingStarted() throws Exception {
+		ClassicCoraPersonSynchronizer synchronizer = (ClassicCoraPersonSynchronizer) synchronizerFactory
+				.factorForMessaging();
+		assertTrue(synchronizer.onlyForTestGetExplicitIndexCommit());
+	}
+
+	@Test
 	public void testFactorForBatch() throws Exception {
-		ClassicCoraPersonSynchronizer synchronizer = synchronizerFactory.factorForBatch();
+		ClassicCoraPersonSynchronizer synchronizerM = (ClassicCoraPersonSynchronizer) synchronizerFactory
+				.factorForMessaging();
+		ClassicCoraPersonSynchronizer synchronizerB = (ClassicCoraPersonSynchronizer) synchronizerFactory
+				.factorForBatch();
+		assertFalse(synchronizerB.onlyForTestGetExplicitIndexCommit());
+		assertEquals(synchronizerM.onlyForTestGetRecordStorage(),
+				synchronizerB.onlyForTestGetRecordStorage());
+		assertEquals(synchronizerM.onlyForTestGetHttpHandlerFactory(),
+				synchronizerB.onlyForTestGetHttpHandlerFactory());
+		assertEquals(synchronizerM.onlyForTestGetFedoraConverterFactory(),
+				synchronizerB.onlyForTestGetFedoraConverterFactory());
+		assertEquals(synchronizerM.onlyForTestGetCoraClient(),
+				synchronizerB.onlyForTestGetCoraClient());
+		assertEquals(synchronizerM.onlyForTestGetBaseUrl(), synchronizerB.onlyForTestGetBaseUrl());
 	}
 
 }

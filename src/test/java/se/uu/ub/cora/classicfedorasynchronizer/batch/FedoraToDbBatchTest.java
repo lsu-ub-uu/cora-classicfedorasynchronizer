@@ -113,7 +113,7 @@ public class FedoraToDbBatchTest {
 		FedoraToDbBatch.main(args);
 		ClassicCoraSynchronizerFactorySpy synchronizerFactory = (ClassicCoraSynchronizerFactorySpy) FedoraToDbBatch.synchronizerFactory;
 		ClassicCoraSynchronizerSpy synchronizer = (ClassicCoraSynchronizerSpy) synchronizerFactory.MCR
-				.getReturnValue("factor", 0);
+				.getReturnValue("factorForMessaging", 0);
 
 		FedoraReaderFactorySpy fedoraReaderFactory = (FedoraReaderFactorySpy) FedoraToDbBatch.fedoraReaderFactory;
 		assertEquals(fedoraReaderFactory.baseUrl, "args-someFedoraBaseUrl");
