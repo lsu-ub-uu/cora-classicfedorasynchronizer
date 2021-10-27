@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +36,7 @@ import se.uu.ub.cora.logger.LoggerProvider;
 
 public class FedoraToDbBatch {
 
+	private static final String PERSON = "person";
 	private static Logger logger = LoggerProvider.getLoggerForClass(FedoraToDbBatch.class);
 	static String synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory";
 	static String fedoraReaderFactoryClassName = "se.uu.ub.cora.fedora.reader.FedoraReaderFactoryImp";
@@ -42,6 +45,7 @@ public class FedoraToDbBatch {
 	private static ClassicCoraSynchronizer synchronizer;
 	private static Map<String, String> initInfo;
 	private static String[] args;
+	private static FedoraReader fedoraReader;
 
 	private FedoraToDbBatch() {
 	}
@@ -96,6 +100,7 @@ public class FedoraToDbBatch {
 		Constructor<?> constructor = Class.forName(fedoraReaderFactoryClassName).getConstructor();
 
 		fedoraReaderFactory = (FedoraReaderFactory) constructor.newInstance();
+		fedoraReader = fedoraReaderFactory.factor(initInfo.get("fedoraBaseUrl"));
 	}
 
 	private static void synchronize(Map<String, String> initInfo) {
@@ -103,6 +108,14 @@ public class FedoraToDbBatch {
 		synchronizePids(listOfPids);
 		logger.logInfoUsingMessage("FedoraToDbBatch done synchronizing the found pids");
 		logger.logInfoUsingMessage("Looking for pids created after batch job started");
+
+		// String time = "yyyy-MM-ddTHH:mm:ssZ";
+		// String time = "2031-12-03T10:15:30Z";
+		DateTimeFormatter dateTimeFormatter = DateTimeFormatter
+				.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		LocalDateTime startTime = LocalDateTime.now();
+
+		fedoraReader.readPidsForTypeCreatedAfter(PERSON, startTime.format(dateTimeFormatter));
 	}
 
 	private static void synchronizePids(List<String> listOfPids) {
@@ -118,7 +131,7 @@ public class FedoraToDbBatch {
 		logger.logInfoUsingMessage(
 				"Synchronizing(" + pidNo + "/" + totalNoPids + ") recordId: " + recordId);
 		try {
-			synchronizer.synchronize("person", recordId, "create", "diva");
+			synchronizer.synchronize(PERSON, recordId, "create", "diva");
 		} catch (Exception e) {
 			logger.logErrorUsingMessageAndException("Error synchronizing recordId: " + recordId, e);
 		}
@@ -133,7 +146,6 @@ public class FedoraToDbBatch {
 	}
 
 	private static List<String> getListOfPidsFromFedora(Map<String, String> initInfo) {
-		FedoraReader fedoraReader = fedoraReaderFactory.factor(initInfo.get("fedoraBaseUrl"));
 		return fedoraReader.readPidsForType("authority-person");
 	}
 

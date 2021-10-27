@@ -20,9 +20,13 @@ package se.uu.ub.cora.classicfedorasynchronizer.batch;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraToDbBatch.fedoraReaderFactoryClassName;
+import static se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraToDbBatch.synchronizerFactoryClassName;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -59,10 +63,12 @@ public class FedoraToDbBatchTest {
 	}
 
 	@Test
-	public void testDefaultFactoryClassNames() {
-		assertEquals(FedoraToDbBatch.synchronizerFactoryClassName,
+	public void A_testDefaultFactoryClassNamesRunsFirst() {
+		// TODO: Think about a better way to run this test before tests that change classnames
+
+		assertEquals(synchronizerFactoryClassName,
 				"se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory");
-		assertEquals(FedoraToDbBatch.fedoraReaderFactoryClassName,
+		assertEquals(fedoraReaderFactoryClassName,
 				"se.uu.ub.cora.fedora.reader.FedoraReaderFactoryImp");
 	}
 
@@ -91,8 +97,8 @@ public class FedoraToDbBatchTest {
 	}
 
 	private void setFactoryClassNamesToSpies() {
-		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
-		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
+		synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
+		fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
 	}
 
 	private Object getNoOfFatalLogs() {
@@ -221,8 +227,8 @@ public class FedoraToDbBatchTest {
 
 	@Test
 	public void testMainMethodWrongClassNameForSynchronizerFactory() throws Exception {
-		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.NOTClassicCoraSynchronizerFactorySpy";
-		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
+		synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.NOTClassicCoraSynchronizerFactorySpy";
+		fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraReaderFactorySpy";
 
 		FedoraToDbBatch.main(args);
 		assertEquals(getInfoLogNo(0), "FedoraToDbBatch starting...");
@@ -234,8 +240,8 @@ public class FedoraToDbBatchTest {
 
 	@Test
 	public void testMainMethodWrongClassNameForFedoraReaderFactory() throws Exception {
-		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
-		FedoraToDbBatch.fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.NOTFedoraReaderFactorySpy";
+		synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactorySpy";
+		fedoraReaderFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.batch.NOTFedoraReaderFactorySpy";
 
 		FedoraToDbBatch.main(args);
 		assertEquals(getInfoLogNo(0), "FedoraToDbBatch starting...");
@@ -249,7 +255,7 @@ public class FedoraToDbBatchTest {
 	public void testErrorWhileSynchronizingShouldContinueToNextOne() throws Exception {
 
 		setFactoryClassNamesToSpies();
-		FedoraToDbBatch.synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactoryThrowExceptionSpy";
+		synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactoryThrowExceptionSpy";
 
 		FedoraToDbBatch.main(args);
 		int exceptionNo = 0;
@@ -272,18 +278,35 @@ public class FedoraToDbBatchTest {
 	private String getErrorLogNo(int messageNo) {
 		return loggerFactorySpy.getErrorLogMessageUsingClassNameAndNo(testedClassName, messageNo);
 	}
-	//
-	// @Test
-	// public void testCreatedAfter() throws Exception {
-	// setFactoryClassNamesToSpies();
-	//
-	// FedoraToDbBatch.main(args);
-	//
-	// FedoraReaderFactorySpy fedoraReaderFactory = (FedoraReaderFactorySpy)
-	// FedoraToDbBatch.fedoraReaderFactory;
-	// FedoraReaderSpy fedoraReader = (FedoraReaderSpy) fedoraReaderFactory.MCR
-	// .getReturnValue("factor", 0);
-	//
-	// fedoraReader
-	// }
+
+	@Test
+	public void testCreatedAfter() throws Exception {
+		setFactoryClassNamesToSpies();
+		DateTimeFormatter ofPattern2 = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
+		LocalDateTime dateTimeBefore = LocalDateTime.now();
+		FedoraToDbBatch.main(args);
+		LocalDateTime dateTimeAfter = LocalDateTime.now();
+
+		FedoraReaderFactorySpy fedoraReaderFactory = (FedoraReaderFactorySpy) FedoraToDbBatch.fedoraReaderFactory;
+		FedoraReaderSpy fedoraReader = (FedoraReaderSpy) fedoraReaderFactory.MCR
+				.getReturnValue("factor", 0);
+
+		fedoraReader.MCR.assertParameters("readPidsForTypeCreatedAfter", 0, "person");
+		String dateTimeString = (String) fedoraReader.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("readPidsForTypeCreatedAfter",
+						0, "dateTime");
+		LocalDateTime createdDateTime = LocalDateTime.parse(dateTimeString, ofPattern2);
+
+		System.out.println("Before: " + dateTimeBefore.format(ofPattern2));
+		System.out.println(" Start: " + createdDateTime.format(ofPattern2));
+		System.out.println(" After: " + dateTimeAfter.format(ofPattern2));
+
+		assertTrue(dateTimeBefore.isBefore(createdDateTime)
+				|| dateTimeBefore.isEqual(createdDateTime));
+
+		assertTrue(
+				dateTimeAfter.isAfter(createdDateTime) || dateTimeAfter.isEqual(createdDateTime));
+
+	}
 }
