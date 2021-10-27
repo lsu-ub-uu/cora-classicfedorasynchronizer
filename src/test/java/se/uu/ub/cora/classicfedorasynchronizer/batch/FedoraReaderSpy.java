@@ -22,8 +22,10 @@ import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.fedora.reader.FedoraReader;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class FedoraReaderSpy implements FedoraReader {
+	MethodCallRecorder MCR = new MethodCallRecorder();
 
 	public String type;
 	public DataGroup filter;
@@ -54,20 +56,26 @@ public class FedoraReaderSpy implements FedoraReader {
 	}
 
 	@Override
-	public List<String> readPidsForTypeCreatedAfter(String someType, String dateTime) {
+	public List<String> readPidsForTypeCreatedAfter(String type, String dateTime) {
+		MCR.addCall("type", type, "dateTime", dateTime);
 		// TODO Auto-generated method stub
+		MCR.addReturned(null);
 		return null;
 	}
 
 	@Override
 	public List<String> readPidsForTypeCreatedBeforeAndUpdatedAfter(String type, String dateTime) {
+		MCR.addCall("type", type, "dateTime", dateTime);
 		// TODO Auto-generated method stub
+		MCR.addReturned(null);
 		return null;
 	}
 
 	@Override
-	public List<String> readPidsForTypeDeletedAfter(String type, String datetime) {
+	public List<String> readPidsForTypeDeletedAfter(String type, String dateTime) {
+		MCR.addCall("type", type, "dateTime", dateTime);
 		// TODO Auto-generated method stub
+		MCR.addReturned(null);
 		return null;
 	}
 

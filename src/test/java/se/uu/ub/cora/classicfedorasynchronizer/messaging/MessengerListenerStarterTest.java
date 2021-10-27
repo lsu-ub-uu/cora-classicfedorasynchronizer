@@ -181,7 +181,7 @@ public class MessengerListenerStarterTest {
 
 		MessengerListenerStarter.main(args);
 
-		Exception exception = loggerFactorySpy.getFatalLogErrorUsingClassNameAndNo(testedClassName,
+		Exception exception = loggerFactorySpy.getFatalExceptionUsingClassNameAndNo(testedClassName,
 				0);
 		assertTrue(exception instanceof RuntimeException);
 		assertEquals(exception.getMessage(), "Number of arguments should be 13.");
@@ -207,7 +207,7 @@ public class MessengerListenerStarterTest {
 
 	private void assertCorrectErrorForMissingProperty(String propertyName) {
 		assertEquals(loggerFactorySpy.getNoOfFatalLogMessagesUsingClassName(testedClassName), 1);
-		Exception exception = loggerFactorySpy.getFatalLogErrorUsingClassNameAndNo(testedClassName,
+		Exception exception = loggerFactorySpy.getFatalExceptionUsingClassNameAndNo(testedClassName,
 				0);
 		assertTrue(exception instanceof RuntimeException);
 		assertEquals(exception.getMessage(),

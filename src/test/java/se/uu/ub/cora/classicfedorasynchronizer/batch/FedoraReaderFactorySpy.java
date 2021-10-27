@@ -21,8 +21,10 @@ package se.uu.ub.cora.classicfedorasynchronizer.batch;
 import se.uu.ub.cora.fedora.reader.FedoraReader;
 import se.uu.ub.cora.fedora.reader.FedoraReaderFactory;
 import se.uu.ub.cora.httphandler.HttpHandlerFactory;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class FedoraReaderFactorySpy implements FedoraReaderFactory {
+	MethodCallRecorder MCR = new MethodCallRecorder();
 
 	public HttpHandlerFactory httpHandlerFactory;
 	public FedoraReaderSpy factoredFedoraReader;
@@ -30,8 +32,12 @@ public class FedoraReaderFactorySpy implements FedoraReaderFactory {
 
 	@Override
 	public FedoraReader factor(String baseUrl) {
+		MCR.addCall("baseUrl", baseUrl);
+
 		this.baseUrl = baseUrl;
 		factoredFedoraReader = new FedoraReaderSpy();
+
+		MCR.addReturned(factoredFedoraReader);
 		return factoredFedoraReader;
 	}
 

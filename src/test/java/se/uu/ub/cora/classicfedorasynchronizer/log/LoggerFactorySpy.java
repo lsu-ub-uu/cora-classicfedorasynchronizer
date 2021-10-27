@@ -55,15 +55,15 @@ public class LoggerFactorySpy implements LoggerFactory {
 		return ((createdLoggers.get(testedClassname)).infoMessages).size();
 	}
 
-	public Object getNoOfFatalLogMessagesUsingClassName(String testedClassname) {
+	public int getNoOfFatalLogMessagesUsingClassName(String testedClassname) {
 		return ((createdLoggers.get(testedClassname)).fatalMessages).size();
 	}
 
-	public Object getNoOfErrorLogMessagesUsingClassName(String testedClassname) {
+	public int getNoOfErrorLogMessagesUsingClassName(String testedClassname) {
 		return ((createdLoggers.get(testedClassname)).errorMessages).size();
 	}
 
-	public Exception getFatalLogErrorUsingClassNameAndNo(String testedClassname, int exceptionNo) {
+	public Exception getFatalExceptionUsingClassNameAndNo(String testedClassname, int exceptionNo) {
 		return ((createdLoggers.get(testedClassname)).fatalExceptions).get(exceptionNo);
 	}
 
@@ -74,7 +74,7 @@ public class LoggerFactorySpy implements LoggerFactory {
 		}
 	}
 
-	public Exception getErrorLogErrorUsingClassNameAndNo(String testedClassname, int exceptionNo) {
+	public Exception getErrorExceptionUsingClassNameAndNo(String testedClassname, int exceptionNo) {
 		return ((createdLoggers.get(testedClassname)).errorExceptions).get(exceptionNo);
 	}
 }

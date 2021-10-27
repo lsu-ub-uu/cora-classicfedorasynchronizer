@@ -39,37 +39,43 @@ public class FedoraToDbBatch {
 	static String fedoraReaderFactoryClassName = "se.uu.ub.cora.fedora.reader.FedoraReaderFactoryImp";
 	static ClassicCoraSynchronizerFactory synchronizerFactory;
 	static FedoraReaderFactory fedoraReaderFactory;
+	private static ClassicCoraSynchronizer synchronizer;
+	private static Map<String, String> initInfo;
+	private static String[] args;
 
 	private FedoraToDbBatch() {
 	}
 
 	public static void main(String[] args) {
+		FedoraToDbBatch.args = args;
 		logger.logInfoUsingMessage("FedoraToDbBatch starting...");
-		tryToReadAndSynchronize(args);
-
-	}
-
-	private static void tryToReadAndSynchronize(String[] args) {
 		try {
-			readAndSynchronize(args);
-			logger.logInfoUsingMessage("FedoraToDbBatch started");
+			tryToSynchronize();
 		} catch (Exception e) {
 			logger.logFatalUsingMessageAndException(
-					"Unable to start FedoraToDbBatch: " + e.getMessage(), e);
+					"Error running FedoraToDbBatch: " + e.getMessage(), e);
 		}
 	}
 
-	private static void readAndSynchronize(String[] args) throws IOException, NoSuchMethodException,
-			ClassNotFoundException, IllegalAccessException, InvocationTargetException,
-			InstantiationException, IllegalArgumentException {
-		Map<String, String> initInfo = createInitInfo(args);
+	private static void tryToSynchronize() throws Exception {
+		initInfo = createInitInfoFromArgs();
+		startBatchDependencies(initInfo);
+		synchronize(initInfo);
+		// createdAfter
+		// updatedAfter
+		// deletedAfter
+	}
+
+	private static void startBatchDependencies(Map<String, String> initInfo) throws IOException,
+			NoSuchMethodException, ClassNotFoundException, IllegalAccessException,
+			InvocationTargetException, InstantiationException, IllegalArgumentException {
 
 		constructSynchronizerFactory(initInfo);
 		constructFedoraReaderFactory();
-		synchronize(initInfo);
+		logger.logInfoUsingMessage("FedoraToDbBatch started");
 	}
 
-	private static Map<String, String> createInitInfo(String[] args) throws IOException {
+	private static Map<String, String> createInitInfoFromArgs() throws IOException {
 		return FedoraToDbBatchPropertiesLoader.createInitInfo(args);
 	}
 
@@ -81,6 +87,7 @@ public class FedoraToDbBatch {
 		Method constructor = Class.forName(synchronizerFactoryClassName).getMethod("usingInitInfo",
 				cArg);
 		synchronizerFactory = (ClassicCoraSynchronizerFactory) constructor.invoke(null, initInfo);
+		synchronizer = synchronizerFactory.factorForBatch();
 	}
 
 	private static void constructFedoraReaderFactory()
@@ -92,12 +99,37 @@ public class FedoraToDbBatch {
 	}
 
 	private static void synchronize(Map<String, String> initInfo) {
-		ClassicCoraSynchronizer synchronizer = synchronizerFactory.factorForBatch();
-		List<String> pids = getListOfPidsFromFedora(initInfo);
-		for (String recordId : pids) {
-			// TODO: catch errors from synchronizer, keep calm, log and carry on...
-			synchronizer.synchronize("person", recordId, "create", "diva");
+		List<String> listOfPids = fetchPids(initInfo);
+		synchronizePids(listOfPids);
+		logger.logInfoUsingMessage("FedoraToDbBatch done synchronizing the found pids");
+		logger.logInfoUsingMessage("Looking for pids created after batch job started");
+	}
+
+	private static void synchronizePids(List<String> listOfPids) {
+		int totalNoPids = listOfPids.size();
+		int pidNo = 1;
+		for (String recordId : listOfPids) {
+			synchronizePid(totalNoPids, pidNo, recordId);
+			pidNo++;
 		}
+	}
+
+	private static void synchronizePid(int totalNoPids, int pidNo, String recordId) {
+		logger.logInfoUsingMessage(
+				"Synchronizing(" + pidNo + "/" + totalNoPids + ") recordId: " + recordId);
+		try {
+			synchronizer.synchronize("person", recordId, "create", "diva");
+		} catch (Exception e) {
+			logger.logErrorUsingMessageAndException("Error synchronizing recordId: " + recordId, e);
+		}
+
+	}
+
+	private static List<String> fetchPids(Map<String, String> initInfo) {
+		logger.logInfoUsingMessage("Fetching pids for person...");
+		List<String> pids = getListOfPidsFromFedora(initInfo);
+		logger.logInfoUsingMessage("Fetched " + pids.size() + " pids");
+		return pids;
 	}
 
 	private static List<String> getListOfPidsFromFedora(Map<String, String> initInfo) {
