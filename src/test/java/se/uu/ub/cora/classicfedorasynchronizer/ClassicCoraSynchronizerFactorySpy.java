@@ -20,7 +20,6 @@ package se.uu.ub.cora.classicfedorasynchronizer;
 
 import java.util.Map;
 
-import se.uu.ub.cora.classicfedorasynchronizer.internal.ClassicCoraPersonSynchronizer;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class ClassicCoraSynchronizerFactorySpy implements ClassicCoraSynchronizerFactory {
@@ -49,8 +48,12 @@ public class ClassicCoraSynchronizerFactorySpy implements ClassicCoraSynchronize
 	}
 
 	@Override
-	public ClassicCoraPersonSynchronizer factorForBatch() {
-		// TODO Auto-generated method stub
-		return null;
+	public ClassicCoraSynchronizer factorForBatch() {
+		MCR.addCall();
+
+		ClassicCoraSynchronizerSpy synchronizer = new ClassicCoraSynchronizerSpy();
+		synchronizer.throwError = throwError;
+		MCR.addReturned(synchronizer);
+		return synchronizer;
 	}
 }
