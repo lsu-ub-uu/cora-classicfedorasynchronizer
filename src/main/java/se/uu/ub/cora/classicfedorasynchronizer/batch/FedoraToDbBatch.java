@@ -54,7 +54,8 @@ public class FedoraToDbBatch {
 			readAndSynchronize(args);
 			logger.logInfoUsingMessage("FedoraToDbBatch started");
 		} catch (Exception e) {
-			logger.logFatalUsingMessage("Unable to start FedoraToDbBatch: " + e.getMessage());
+			logger.logFatalUsingMessageAndException(
+					"Unable to start FedoraToDbBatch: " + e.getMessage(), e);
 		}
 	}
 
