@@ -46,21 +46,23 @@ public interface MessageParser {
 	/**
 	 * getRecordType reads the recordType from the JMS message
 	 * 
-	 * @return a String.
+	 * @return a String with the specified recordType.
 	 */
 	String getRecordType();
 
 	/**
 	 * getRecordId reads the recordId from the JMS message
 	 * 
-	 * @return a String
+	 * @return a String with the specified recordId
 	 */
 	String getRecordId();
 
 	/**
-	 * getAction reads the recordId from the JMS message.
+	 * getAction returns the action part of a JMS message.
+	 * <p>
+	 * Possible values are "create", "update" and "delete"
 	 * 
-	 * @return a String.
+	 * @return a String with the specified action.
 	 */
 	String getAction();
 

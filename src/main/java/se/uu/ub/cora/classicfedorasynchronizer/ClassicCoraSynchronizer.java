@@ -34,12 +34,13 @@ public interface ClassicCoraSynchronizer {
 	 *            A String with the recordType of the record to synchronize
 	 * @param recordId
 	 *            A String with the recordId of the record to synchronize
-	 * @param action
-	 *            A String with an synchronization action, possible values are: create, update and
-	 *            delete
 	 * @param dataDivider
 	 *            A String with the dataDivider to store the record under
 	 */
-	void synchronize(String recordType, String recordId, String action, String dataDivider);
+	void synchronizeCreated(String recordType, String recordId, String dataDivider);
+
+	void synchronizeUpdated(String recordType, String recordId, String dataDivider);
+
+	void synchronizeDeleted(String recordType, String recordId, String dataDivider);
 
 }

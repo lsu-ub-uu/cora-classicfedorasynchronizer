@@ -112,7 +112,9 @@ public class FedoraMessageReceiverTest {
 	}
 
 	@Test
-	public void testCallSynchronizerCorrectValues() throws Exception {
+	public void testCallSynchronizerCorrectValuesForCreate() throws Exception {
+		// messageParserFactorySpy.synchronizationRequired = true;
+		// messageParserFactorySpy.modificationType = "create";
 		receiver.receiveMessage(headers, message);
 
 		MessageParserSpy messageParserSpy = messageParserFactorySpy.messageParserSpy;
@@ -124,9 +126,16 @@ public class FedoraMessageReceiverTest {
 		String recordId = (String) messageParserSpy.MCR.getReturnValue("getRecordId", 0);
 		String action = (String) messageParserSpy.MCR.getReturnValue("getAction", 0);
 
-		synchronizer.MCR.assertParameters("synchronize", 0, recordType, recordId, action, "diva");
+		synchronizer.MCR.assertParameters("synchronizeCreated", 0, recordType, recordId, "diva");
 
 	}
+	// modificationType "create", "update" and "delete"
+	// TODO: create, synchronizationRequired, true
+	// TODO: create, synchronizationRequired, false
+	// TODO: update, synchronizationRequired, true
+	// TODO: update, synchronizationRequired, false
+	// TODO: delete, synchronizationRequired, true
+	// TODO: delete, synchronizationRequired, false
 
 	@Test
 	public void testWriteLogWhenSynchronizeIsCalledAndRecordHasToBeSynchronized() throws Exception {
@@ -141,7 +150,7 @@ public class FedoraMessageReceiverTest {
 
 	@Test
 	public void testWriteLogWhenSynchronizeIsCalledAndRecordIsNotSynchronized() throws Exception {
-		messageParserFactorySpy.createWorkOrder = false;
+		messageParserFactorySpy.synchronizationRequired = false;
 		receiver.receiveMessage(headers, message);
 
 		Object noOfErrorLogMessagesUsingClassName = loggerFactory

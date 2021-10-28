@@ -87,10 +87,30 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	@Override
-	public void synchronize(String recordType, String recordId, String action, String dataDivider) {
+	public void synchronizeCreated(String recordType, String recordId, String dataDivider) {
 		this.recordType = recordType;
 		this.recordId = recordId;
-		this.action = action;
+		this.action = "create";
+		this.dataDivider = dataDivider;
+
+		synchronizeDependingOnAction();
+	}
+
+	@Override
+	public void synchronizeUpdated(String recordType, String recordId, String dataDivider) {
+		this.recordType = recordType;
+		this.recordId = recordId;
+		this.action = "update";
+		this.dataDivider = dataDivider;
+
+		synchronizeDependingOnAction();
+	}
+
+	@Override
+	public void synchronizeDeleted(String recordType, String recordId, String dataDivider) {
+		this.recordType = recordType;
+		this.recordId = recordId;
+		this.action = "delete";
 		this.dataDivider = dataDivider;
 
 		synchronizeDependingOnAction();

@@ -97,12 +97,12 @@ public class ClassicCoraPersonSynchronizerTest {
 			+ "Record not found for recordType: person and recordId: someRecordId")
 	public void testRecordNotFound() {
 		httpHandlerFactory.responseCode = 404;
-		synchronizerMessaging.synchronize("person", "someRecordId", "create", dataDivider);
+		synchronizerMessaging.synchronizeCreated("person", "someRecordId", dataDivider);
 	}
 
 	@Test
 	public void testSychronizeRecordFactoredHttpHandler() {
-		synchronizerMessaging.synchronize("person", "someRecordId", "create", dataDivider);
+		synchronizerMessaging.synchronizeCreated("person", "someRecordId", dataDivider);
 		HttpHandlerSpy httpHandler = httpHandlerFactory.factoredHttpHandlerSpy;
 		assertEquals(httpHandlerFactory.url,
 				baseURL + "objects/" + "someRecordId" + "/datastreams/METADATA/content");
@@ -112,13 +112,13 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	@Test
 	public void testFactoredFedoraToCoraConverter() {
-		synchronizerMessaging.synchronize("person", "someRecordId", "create", dataDivider);
+		synchronizerMessaging.synchronizeCreated("person", "someRecordId", dataDivider);
 		assertEquals(fedoraConverterFactory.types.get(0), "person");
 	}
 
 	@Test
 	public void testSyncronizeRecordResultHandledCorrectlyForCreate() {
-		synchronizerMessaging.synchronize("person", "someRecordId", "create", dataDivider);
+		synchronizerMessaging.synchronizeCreated("person", "someRecordId", dataDivider);
 
 		HttpHandlerSpy factoredHttpHandler = httpHandlerFactory.factoredHttpHandlerSpy;
 		FedoraToCoraConverterSpy factoredFedoraConverter = fedoraConverterFactory.factoredFedoraConverters
@@ -151,7 +151,7 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	@Test
 	public void testSynchronizeRecordResultHandledCorrectlyForUpdate() {
-		synchronizerMessaging.synchronize("person", "someRecordId", "update", dataDivider);
+		synchronizerMessaging.synchronizeUpdated("person", "someRecordId", dataDivider);
 
 		HttpHandlerSpy factoredHttpHandler = httpHandlerFactory.factoredHttpHandlerSpy;
 		FedoraToCoraConverterSpy factoredFedoraConverter = fedoraConverterFactory.factoredFedoraConverters
@@ -162,7 +162,7 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	@Test
 	public void testSynchronizeIndexCalledCorrectlyForUpdate() {
-		synchronizerMessaging.synchronize("person", "someRecordId", "update", dataDivider);
+		synchronizerMessaging.synchronizeUpdated("person", "someRecordId", dataDivider);
 
 		dbStorage.MCR.assertParameters("read", 0, "person", "someRecordId");
 		dbStorage.MCR.assertMethodNotCalled("deleteByTypeAndId");
@@ -173,7 +173,7 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	@Test
 	public void testSynchronizeIndexCalledCorrectlyForBatchUpdate() {
-		synchronizerBatch.synchronize("person", "someRecordId", "update", dataDivider);
+		synchronizerBatch.synchronizeUpdated("person", "someRecordId", dataDivider);
 
 		dbStorage.MCR.assertParameters("read", 0, "person", "someRecordId");
 		dbStorage.MCR.assertMethodNotCalled("deleteByTypeAndId");
@@ -187,7 +187,7 @@ public class ClassicCoraPersonSynchronizerTest {
 	public void testUpdateWithLessDomainPartsThanStored() throws Exception {
 		setUpFedoraPersonConverterWithDomainParts(2);
 		setUpPersonInDbWithDomainParts(4);
-		synchronizerMessaging.synchronize("person", "someRecordId", "update", dataDivider);
+		synchronizerMessaging.synchronizeUpdated("person", "someRecordId", dataDivider);
 
 		dbStorage.MCR.assertParameters("deleteByTypeAndId", 0, "personDomainPart",
 				"authority-person:2:kth2");
@@ -204,7 +204,7 @@ public class ClassicCoraPersonSynchronizerTest {
 	public void testUpdateWithMoreDomainPartsThanStored() throws Exception {
 		setUpFedoraPersonConverterWithDomainParts(4);
 		setUpPersonInDbWithDomainParts(2);
-		synchronizerMessaging.synchronize("person", "someRecordId", "update", dataDivider);
+		synchronizerMessaging.synchronizeUpdated("person", "someRecordId", dataDivider);
 
 		dbStorage.MCR.assertMethodNotCalled("deleteByTypeAndId");
 		coraClientSpy.MCR.assertParameters("indexData", 3, "personDomainPart",
@@ -217,7 +217,7 @@ public class ClassicCoraPersonSynchronizerTest {
 	public void testUpdateForBatchWithMoreDomainPartsThanStored() throws Exception {
 		setUpFedoraPersonConverterWithDomainParts(4);
 		setUpPersonInDbWithDomainParts(2);
-		synchronizerBatch.synchronize("person", "someRecordId", "update", dataDivider);
+		synchronizerBatch.synchronizeUpdated("person", "someRecordId", dataDivider);
 
 		dbStorage.MCR.assertMethodNotCalled("deleteByTypeAndId");
 		coraClientSpy.MCR.assertParameters("indexDataWithoutExplicitCommit", 3, "personDomainPart",
@@ -233,7 +233,7 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	@Test
 	public void testSynchronizeIndexCalledCorrectlyForCreateNoPersonDomains() {
-		synchronizerMessaging.synchronize("person", "someRecordId", "create", dataDivider);
+		synchronizerMessaging.synchronizeCreated("person", "someRecordId", dataDivider);
 		coraClientSpy.MCR.assertNumberOfCallsToMethod("indexData", 1);
 		assertCorrectIndexCallForPerson();
 	}
@@ -241,7 +241,7 @@ public class ClassicCoraPersonSynchronizerTest {
 	@Test
 	public void testSynchronizeIndexCalledCorrectlyForCreateSeveralPersonDomains() {
 		setUpFedoraPersonConverterWithDomainParts(3);
-		synchronizerMessaging.synchronize("person", "someRecordId", "create", dataDivider);
+		synchronizerMessaging.synchronizeCreated("person", "someRecordId", dataDivider);
 
 		coraClientSpy.MCR.assertNumberOfCallsToMethod("indexData", 4);
 		assertCorrectIndexCallForPerson();
@@ -250,7 +250,7 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	@Test
 	public void testSychronizeRecordReadFromDataBaseForDelete() {
-		synchronizerMessaging.synchronize("person", "someRecordId", "delete", dataDivider);
+		synchronizerMessaging.synchronizeDeleted("person", "someRecordId", dataDivider);
 
 		assertEquals(dbStorage.readRecordTypes.get(0), "person");
 		assertEquals(dbStorage.readRecordIds.get(0), "someRecordId");
@@ -259,7 +259,7 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	@Test
 	public void testSynchronizeRecordResultHandledCorrectlyForDelete() {
-		synchronizerMessaging.synchronize("person", "someRecordId", "delete", dataDivider);
+		synchronizerMessaging.synchronizeDeleted("person", "someRecordId", dataDivider);
 
 		assertEquals(fedoraConverterFactory.factoredFedoraConverters.size(), 0);
 
@@ -268,7 +268,7 @@ public class ClassicCoraPersonSynchronizerTest {
 
 	@Test
 	public void testSynchronizeIndexCalledCorrectlyForDelete() {
-		synchronizerMessaging.synchronize("person", "someRecordId", "delete", dataDivider);
+		synchronizerMessaging.synchronizeDeleted("person", "someRecordId", dataDivider);
 
 		assertEquals(coraClientSpy.recordTypes.size(), 1);
 		assertEquals(coraClientSpy.recordTypes.get(0), "person");
@@ -279,7 +279,7 @@ public class ClassicCoraPersonSynchronizerTest {
 	@Test
 	public void testFactoredFedoraToCoraConverterWhenDomainPartsForUpdate() {
 		setUpFedoraPersonConverterWithDomainParts(3);
-		synchronizerMessaging.synchronize("person", "someRecordId", "update", dataDivider);
+		synchronizerMessaging.synchronizeCreated("person", "someRecordId", dataDivider);
 		assertCorrectFactoredAndUsedConverters();
 	}
 
@@ -304,14 +304,14 @@ public class ClassicCoraPersonSynchronizerTest {
 	@Test
 	public void testFactoredFedoraToCoraConverterWhenDomainPartsForCreate() {
 		setUpFedoraPersonConverterWithDomainParts(3);
-		synchronizerMessaging.synchronize("person", "someRecordId", "create", dataDivider);
+		synchronizerMessaging.synchronizeCreated("person", "someRecordId", dataDivider);
 		assertCorrectFactoredAndUsedConverters();
 	}
 
 	@Test
 	public void testConvertedDataGroupSentToStorageWhenDomainPartsForUpdate() {
 		setUpFedoraPersonConverterWithDomainParts(3);
-		synchronizerMessaging.synchronize("person", "someRecordId", "update", dataDivider);
+		synchronizerMessaging.synchronizeCreated("person", "someRecordId", dataDivider);
 		assertConvertedGroupsAreSentToStorage();
 
 	}
@@ -329,7 +329,7 @@ public class ClassicCoraPersonSynchronizerTest {
 	@Test
 	public void testConvertedDataGroupSentToStorageWhenDomainPartsForCreate() {
 		setUpFedoraPersonConverterWithDomainParts(3);
-		synchronizerMessaging.synchronize("person", "someRecordId", "create", dataDivider);
+		synchronizerMessaging.synchronizeCreated("person", "someRecordId", dataDivider);
 		assertConvertedGroupsAreSentToStorage();
 
 	}
@@ -337,7 +337,7 @@ public class ClassicCoraPersonSynchronizerTest {
 	@Test
 	public void testDbCallsWhenDomainPartsForUpdate() {
 		setUpFedoraPersonConverterWithDomainParts(3);
-		synchronizerMessaging.synchronize("person", "someRecordId", "update", dataDivider);
+		synchronizerMessaging.synchronizeCreated("person", "someRecordId", dataDivider);
 		assertCorrectDomainPartDataSentToStorage();
 	}
 
@@ -365,14 +365,14 @@ public class ClassicCoraPersonSynchronizerTest {
 	@Test
 	public void testDbCallsWhenDomainPartsForCreate() {
 		setUpFedoraPersonConverterWithDomainParts(3);
-		synchronizerMessaging.synchronize("person", "someRecordId", "update", dataDivider);
+		synchronizerMessaging.synchronizeCreated("person", "someRecordId", dataDivider);
 		assertCorrectDomainPartDataSentToStorage();
 	}
 
 	@Test
 	public void testDbCallsWhenDomainPartsForDelete() {
 		setUpPersonInDbWithDomainParts(3);
-		synchronizerMessaging.synchronize("person", "someRecordId", "delete", dataDivider);
+		synchronizerMessaging.synchronizeDeleted("person", "someRecordId", dataDivider);
 
 		dbStorage.MCR.assertParameters("deleteByTypeAndId", 0, "personDomainPart",
 				"authority-person:0:kth0");
@@ -393,7 +393,7 @@ public class ClassicCoraPersonSynchronizerTest {
 	@Test
 	public void testSynchronizeRecordResultHandledCorrectlyWhenDomainPartsForUpdate() {
 		setUpFedoraPersonConverterWithDomainParts(3);
-		synchronizerMessaging.synchronize("person", "someRecordId", "update", dataDivider);
+		synchronizerMessaging.synchronizeUpdated("person", "someRecordId", dataDivider);
 
 		HttpHandlerSpy factoredHttpHandler = httpHandlerFactory.factoredHttpHandlerSpy;
 		FedoraToCoraConverterSpy factoredFedoraConverter = fedoraConverterFactory.factoredFedoraConverters
@@ -418,7 +418,7 @@ public class ClassicCoraPersonSynchronizerTest {
 	@Test
 	public void testSynchronizeRecordResultHandledCorrectlyWhenDomainPartsForCreate() {
 		setUpFedoraPersonConverterWithDomainParts(3);
-		synchronizerMessaging.synchronize("person", "someRecordId", "create", dataDivider);
+		synchronizerMessaging.synchronizeCreated("person", "someRecordId", dataDivider);
 
 		HttpHandlerSpy factoredHttpHandler = httpHandlerFactory.factoredHttpHandlerSpy;
 		FedoraToCoraConverterSpy factoredFedoraConverter = fedoraConverterFactory.factoredFedoraConverters
@@ -432,7 +432,7 @@ public class ClassicCoraPersonSynchronizerTest {
 	@Test
 	public void testSynchronizeIndexCalledCorrectlyWhenDomainPartsForUpdate() {
 		setUpFedoraPersonConverterWithDomainParts(3);
-		synchronizerMessaging.synchronize("person", "someRecordId", "update", dataDivider);
+		synchronizerMessaging.synchronizeCreated("person", "someRecordId", dataDivider);
 
 		assertCorrectIndexCallForPerson();
 
@@ -458,7 +458,7 @@ public class ClassicCoraPersonSynchronizerTest {
 	@Test
 	public void testSynchronizeIndexCalledCorrectlyWhenDomainPartsForCreate() {
 		setUpFedoraPersonConverterWithDomainParts(3);
-		synchronizerMessaging.synchronize("person", "someRecordId", "create", dataDivider);
+		synchronizerMessaging.synchronizeCreated("person", "someRecordId", dataDivider);
 
 		assertCorrectIndexCallForPerson();
 		coraClientSpy.MCR.assertNumberOfCallsToMethod("indexData", 4);
@@ -467,9 +467,8 @@ public class ClassicCoraPersonSynchronizerTest {
 	@Test
 	public void testSynchronizeIndexCalledCorrectlyWhenDomainPartsForDelete() {
 		setUpPersonInDbWithDomainParts(3);
-		synchronizerMessaging.synchronize("person", "someRecordId", "delete", dataDivider);
+		synchronizerMessaging.synchronizeDeleted("person", "someRecordId", dataDivider);
 
-		// assertEquals(coraClientSpy.workOrderTypes.get(3), "removeFromIndex");
 		assertEquals(coraClientSpy.recordTypes.get(3), "person");
 		assertEquals(coraClientSpy.recordIds.get(3), "someRecordId");
 		assertEquals(coraClientSpy.recordTypes.size(), 4);

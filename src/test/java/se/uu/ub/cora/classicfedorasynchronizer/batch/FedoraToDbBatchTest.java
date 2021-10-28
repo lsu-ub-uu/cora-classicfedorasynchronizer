@@ -171,12 +171,11 @@ public class FedoraToDbBatchTest {
 		assertCorrectCallToSynchronizer(synchronizer, 2, listToReturn.get(2));
 		assertCorrectCallToSynchronizer(synchronizer, 3, listToReturn.get(3));
 		assertCorrectCallToSynchronizer(synchronizer, 4, listToReturn.get(4));
-
 	}
 
 	private void assertCorrectCallToSynchronizer(ClassicCoraSynchronizerSpy synchronizer,
 			int callNumber, String recordId) {
-		synchronizer.MCR.assertParameters("synchronize", callNumber, "person", recordId, "create",
+		synchronizer.MCR.assertParameters("synchronizeCreated", callNumber, "person", recordId,
 				"diva");
 	}
 
@@ -345,19 +344,19 @@ public class FedoraToDbBatchTest {
 		List<String> listToReturn = (List<String>) fedoraReader.MCR
 				.getReturnValue("readPidsForTypeDeletedAfter", 0);
 
-		synchronizer.MCR.assertParameters("synchronize", 5, "person", listToReturn.get(0), "delete",
+		synchronizer.MCR.assertParameters("synchronizeDeleted", 0, "person", listToReturn.get(0),
 				"diva");
-		synchronizer.MCR.assertParameters("synchronize", 6, "person", listToReturn.get(1), "delete",
+		synchronizer.MCR.assertParameters("synchronizeDeleted", 1, "person", listToReturn.get(1),
 				"diva");
 
-		synchronizer.MCR.assertNumberOfCallsToMethod("synchronize", 7);
+		synchronizer.MCR.assertNumberOfCallsToMethod("synchronizeDeleted", 2);
+		synchronizer.MCR.assertNumberOfCallsToMethod("synchronizeCreated", 5);
 	}
 
 	private ClassicCoraSynchronizerSpy getSynchronizerSpy() {
 		ClassicCoraSynchronizerFactorySpy synchronizerFactory = (ClassicCoraSynchronizerFactorySpy) FedoraToDbBatch.synchronizerFactory;
-		ClassicCoraSynchronizerSpy synchronizer = (ClassicCoraSynchronizerSpy) synchronizerFactory.MCR
-				.getReturnValue("factorForBatch", 0);
-		return synchronizer;
+		return (ClassicCoraSynchronizerSpy) synchronizerFactory.MCR.getReturnValue("factorForBatch",
+				0);
 	}
 
 }

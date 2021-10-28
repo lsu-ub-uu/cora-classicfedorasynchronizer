@@ -143,7 +143,11 @@ public class FedoraToDbBatch {
 		logger.logInfoUsingMessage(
 				"Synchronizing(" + pidNo + "/" + totalNoPids + ") recordId: " + recordId);
 		try {
-			synchronizer.synchronize(PERSON, recordId, action, "diva");
+			if (action.equals("create")) {
+				synchronizer.synchronizeCreated(PERSON, recordId, "diva");
+			} else {
+				synchronizer.synchronizeDeleted(PERSON, recordId, "diva");
+			}
 		} catch (Exception e) {
 			logger.logErrorUsingMessageAndException("Error synchronizing recordId: " + recordId, e);
 		}

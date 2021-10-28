@@ -27,12 +27,29 @@ public class ClassicCoraSynchronizerSpy implements ClassicCoraSynchronizer {
 	public boolean throwError = false;
 
 	@Override
-	public void synchronize(String recordType, String recordId, String action, String dataDivider) {
+	public void synchronizeCreated(String recordType, String recordId, String dataDivider) {
 		if (throwError) {
 			throw new RecordNotFoundException("Record not found error from spy");
 		}
-		MCR.addCall("recordType", recordType, "recordId", recordId, "action", action, "dataDivider",
-				dataDivider);
+		MCR.addCall("recordType", recordType, "recordId", recordId, "dataDivider", dataDivider);
+	}
+
+	@Override
+	public void synchronizeUpdated(String recordType, String recordId, String dataDivider) {
+		if (throwError) {
+			throw new RecordNotFoundException("Record not found error from spy");
+		}
+		MCR.addCall("recordType", recordType, "recordId", recordId, "dataDivider", dataDivider);
+
+	}
+
+	@Override
+	public void synchronizeDeleted(String recordType, String recordId, String dataDivider) {
+		if (throwError) {
+			throw new RecordNotFoundException("Record not found error from spy");
+		}
+		MCR.addCall("recordType", recordType, "recordId", recordId, "dataDivider", dataDivider);
+
 	}
 
 }
