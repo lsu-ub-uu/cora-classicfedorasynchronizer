@@ -24,7 +24,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -51,6 +50,7 @@ public class FedoraToDbBatch {
 	private static DateTimeFormatter dateTimeFormatter = DateTimeFormatter
 			.ofPattern(DATE_TIME_PATTERN);
 	private static String startBatchTime;
+	private static String action;
 
 	FedoraToDbBatch() {
 	}
@@ -112,14 +112,15 @@ public class FedoraToDbBatch {
 		startBatchTime = getCurrentFormattedTime();
 		logger.logInfoUsingMessage("Batch started at: " + startBatchTime);
 
-		fetchPidsUsingFetchType(initInfo, "default");
-		fetchPidsUsingFetchType(initInfo, "createdAfter");
+		action = "create";
+		fetchPidsUsingFetchType(initInfo);
+		action = "delete";
+		fetchPidsUsingFetchType(initInfo);
 
 	}
 
-	private static void fetchPidsUsingFetchType(Map<String, String> initInfo,
-			String typeOfFetchToFedora) {
-		List<String> listOfPids = fetchPids(initInfo, typeOfFetchToFedora);
+	private static void fetchPidsUsingFetchType(Map<String, String> initInfo) {
+		List<String> listOfPids = fetchPids(initInfo);
 		synchronizePids(listOfPids);
 		logger.logInfoUsingMessage("Synchronizing done");
 	}
@@ -142,19 +143,19 @@ public class FedoraToDbBatch {
 		logger.logInfoUsingMessage(
 				"Synchronizing(" + pidNo + "/" + totalNoPids + ") recordId: " + recordId);
 		try {
-			synchronizer.synchronize(PERSON, recordId, "create", "diva");
+			synchronizer.synchronize(PERSON, recordId, action, "diva");
 		} catch (Exception e) {
 			logger.logErrorUsingMessageAndException("Error synchronizing recordId: " + recordId, e);
 		}
 
 	}
 
-	private static List<String> fetchPids(Map<String, String> initInfo, String fetchType) {
-		List<String> pids = new ArrayList<>();
-		logger.logInfoUsingMessage("Fetching pids (" + fetchType + ")");
-		if (fetchType.equals("default")) {
+	private static List<String> fetchPids(Map<String, String> initInfo) {
+		List<String> pids;
+		logger.logInfoUsingMessage("Fetching pids (" + action + ")");
+		if (action.equals("create")) {
 			pids = getListOfPidsFromFedora(initInfo);
-		} else if (fetchType.equals("createdAfter")) {
+		} else {
 			pids = fedoraReader.readPidsForTypeDeletedAfter(PERSON, startBatchTime);
 		}
 		logger.logInfoUsingMessage("Fetched " + pids.size() + " pids");

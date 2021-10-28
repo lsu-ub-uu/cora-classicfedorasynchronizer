@@ -93,7 +93,7 @@ public class FedoraToDbBatchTest {
 		assertEquals(getInfoLogNo(1), "FedoraToDbBatch started");
 		assertTrue(getInfoLogNo(2).startsWith("Batch started at: "));
 		assertTrue(getInfoLogNo(2).endsWith("Z"));
-		assertEquals(getInfoLogNo(3), "Fetching pids (default)");
+		assertEquals(getInfoLogNo(3), "Fetching pids (create)");
 		assertEquals(getInfoLogNo(4), "Fetched 5 pids");
 		assertEquals(getInfoLogNo(5), "Synchronizing(1/5) recordId: auhority-person:245");
 		assertEquals(getInfoLogNo(6), "Synchronizing(2/5) recordId: auhority-person:322");
@@ -101,11 +101,12 @@ public class FedoraToDbBatchTest {
 		assertEquals(getInfoLogNo(8), "Synchronizing(4/5) recordId: auhority-person:127");
 		assertEquals(getInfoLogNo(9), "Synchronizing(5/5) recordId: auhority-person:1211");
 		assertEquals(getInfoLogNo(10), "Synchronizing done");
-		assertEquals(getInfoLogNo(11), "Fetching pids (createdAfter)");
+		assertEquals(getInfoLogNo(11), "Fetching pids (delete)");
 		assertEquals(getInfoLogNo(12), "Fetched 2 pids");
 		assertEquals(getInfoLogNo(13), "Synchronizing(1/2) recordId: auhority-person:127");
 		assertEquals(getInfoLogNo(14), "Synchronizing(2/2) recordId: auhority-person:1211");
 		assertEquals(getInfoLogNo(15), "Synchronizing done");
+		// assertEquals(getInfoLogNo(16), "FedoraToDbBatch done");
 	}
 
 	private void setFactoryClassNamesToSpies() {
@@ -297,7 +298,7 @@ public class FedoraToDbBatchTest {
 	}
 
 	@Test
-	public void testCreatedAfter() throws Exception {
+	public void testDeletedAfterDateTime() throws Exception {
 		setFactoryClassNamesToSpies();
 
 		LocalDateTime dateTimeBefore = whatTimeIsIt().minus(2, ChronoUnit.SECONDS);
@@ -333,20 +334,21 @@ public class FedoraToDbBatchTest {
 	}
 
 	@Test
-	public void testNameDeletedAfter() throws Exception {
+	public void testDeletedAfter() throws Exception {
 		setFactoryClassNamesToSpies();
 
 		FedoraToDbBatch.main(args);
 
 		ClassicCoraSynchronizerSpy synchronizer = getSynchronizerSpy();
-
 		FedoraReaderSpy fedoraReader = getFedoraReader();
 
 		List<String> listToReturn = (List<String>) fedoraReader.MCR
 				.getReturnValue("readPidsForTypeDeletedAfter", 0);
 
-		assertCorrectCallToSynchronizer(synchronizer, 5, listToReturn.get(0));
-		assertCorrectCallToSynchronizer(synchronizer, 6, listToReturn.get(1));
+		synchronizer.MCR.assertParameters("synchronize", 5, "person", listToReturn.get(0), "delete",
+				"diva");
+		synchronizer.MCR.assertParameters("synchronize", 6, "person", listToReturn.get(1), "delete",
+				"diva");
 
 		synchronizer.MCR.assertNumberOfCallsToMethod("synchronize", 7);
 	}
@@ -359,11 +361,3 @@ public class FedoraToDbBatchTest {
 	}
 
 }
-
-// class FedoraToDbBatchOnlyForTest extends FedoraToDbBatch {
-//
-// @Override
-// private static void synchronizePids(List<String> listOfPids) {
-//
-// }
-// }
