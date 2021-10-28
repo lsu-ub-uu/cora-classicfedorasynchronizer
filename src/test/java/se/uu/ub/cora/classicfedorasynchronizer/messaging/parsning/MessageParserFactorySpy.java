@@ -20,7 +20,7 @@ package se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning;
 
 public class MessageParserFactorySpy implements MessageParserFactory {
 	public boolean factorWasCalled = false;
-	public boolean createWorkOrder = true;
+	public boolean synchronizationRequired = true;
 	public MessageParserSpy messageParserSpy;
 	public String modificationType = "update";
 
@@ -28,7 +28,7 @@ public class MessageParserFactorySpy implements MessageParserFactory {
 	public MessageParser factor() {
 		factorWasCalled = true;
 		messageParserSpy = new MessageParserSpy();
-		messageParserSpy.synchronizationRequired = createWorkOrder;
+		messageParserSpy.synchronizationRequired = synchronizationRequired;
 		messageParserSpy.modificationType = modificationType;
 		return messageParserSpy;
 	}

@@ -47,13 +47,16 @@ public class FedoraMessageReceiver implements MessageReceiver {
 		ClassicCoraSynchronizer synchronizer = classicCoraSynchronizerFactory.factorForMessaging();
 
 		messageParser.parseHeadersAndMessage(headers, message);
-		if (messageParser.synchronizationRequired()) {
+		// TODO: fix...
+		messageParser.synchronizationRequired();
+		// if (messageParser.synchronizationRequired()) {
+		if (true) {
 			try {
 				String recordType = messageParser.getRecordType();
 				String recordId = messageParser.getRecordId();
 				String action = messageParser.getAction();
 				writeLogMessage(recordType, recordId, action);
-				synchronizer.synchronize(recordType, recordId, action, "diva");
+				synchronizer.synchronizeCreated(recordType, recordId, "diva");
 			} catch (Exception e) {
 				logger.logErrorUsingMessageAndException(
 						"Message could not be synchronized. " + e.getMessage(), e);
