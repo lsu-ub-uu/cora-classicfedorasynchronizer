@@ -19,6 +19,7 @@
 package se.uu.ub.cora.classicfedorasynchronizer.batch;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraToDbBatch.fedoraReaderFactoryClassName;
 import static se.uu.ub.cora.classicfedorasynchronizer.batch.FedoraToDbBatch.synchronizerFactoryClassName;
@@ -27,6 +28,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
@@ -40,10 +42,12 @@ import se.uu.ub.cora.logger.LoggerProvider;
 
 public class FedoraToDbBatchTest {
 
+	private static final String DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 	private LoggerFactorySpy loggerFactorySpy = new LoggerFactorySpy();
 	private String testedClassName = "FedoraToDbBatch";
 
 	private String[] args;
+	private DateTimeFormatter dateTimePattern = DateTimeFormatter.ofPattern(DATE_PATTERN);;
 
 	@BeforeMethod
 	public void setUp() {
@@ -57,9 +61,13 @@ public class FedoraToDbBatchTest {
 	@Test
 	public void testConstructorIsPrivate() throws Exception {
 		Constructor<FedoraToDbBatch> constructor = FedoraToDbBatch.class.getDeclaredConstructor();
-		assertTrue(Modifier.isPrivate(constructor.getModifiers()));
+		assertFalse(constructorIsPublic(constructor));
 		constructor.setAccessible(true);
 		constructor.newInstance();
+	}
+
+	private boolean constructorIsPublic(Constructor<FedoraToDbBatch> constructor) {
+		return Modifier.isPublic(constructor.getModifiers());
 	}
 
 	@Test
@@ -83,17 +91,21 @@ public class FedoraToDbBatchTest {
 		assertEquals(getNoOfFatalLogs(), 0);
 		assertEquals(getInfoLogNo(0), "FedoraToDbBatch starting...");
 		assertEquals(getInfoLogNo(1), "FedoraToDbBatch started");
-		assertEquals(getInfoLogNo(2), "Fetching pids for person...");
-		assertEquals(getInfoLogNo(3), "Fetched 5 pids");
-		assertEquals(getInfoLogNo(4), "Synchronizing(1/5) recordId: auhority-person:245");
-		assertEquals(getInfoLogNo(5), "Synchronizing(2/5) recordId: auhority-person:322");
-		assertEquals(getInfoLogNo(6), "Synchronizing(3/5) recordId: auhority-person:4029");
-		assertEquals(getInfoLogNo(7), "Synchronizing(4/5) recordId: auhority-person:127");
-		assertEquals(getInfoLogNo(8), "Synchronizing(5/5) recordId: auhority-person:1211");
-		assertEquals(getInfoLogNo(9), "FedoraToDbBatch done synchronizing the found pids");
-		assertEquals(getInfoLogNo(10), "Looking for pids created after batch job started");
-		// assertEquals(getInfoLogNo(9), "FedoraToDbBatch done synchronizing the found pids");
-		// assertEquals(getNoOfInfoLogs(), 4);
+		assertTrue(getInfoLogNo(2).startsWith("Batch started at: "));
+		assertTrue(getInfoLogNo(2).endsWith("Z"));
+		assertEquals(getInfoLogNo(3), "Fetching pids (default)");
+		assertEquals(getInfoLogNo(4), "Fetched 5 pids");
+		assertEquals(getInfoLogNo(5), "Synchronizing(1/5) recordId: auhority-person:245");
+		assertEquals(getInfoLogNo(6), "Synchronizing(2/5) recordId: auhority-person:322");
+		assertEquals(getInfoLogNo(7), "Synchronizing(3/5) recordId: auhority-person:4029");
+		assertEquals(getInfoLogNo(8), "Synchronizing(4/5) recordId: auhority-person:127");
+		assertEquals(getInfoLogNo(9), "Synchronizing(5/5) recordId: auhority-person:1211");
+		assertEquals(getInfoLogNo(10), "Synchronizing done");
+		assertEquals(getInfoLogNo(11), "Fetching pids (createdAfter)");
+		assertEquals(getInfoLogNo(12), "Fetched 2 pids");
+		assertEquals(getInfoLogNo(13), "Synchronizing(1/2) recordId: auhority-person:127");
+		assertEquals(getInfoLogNo(14), "Synchronizing(2/2) recordId: auhority-person:1211");
+		assertEquals(getInfoLogNo(15), "Synchronizing done");
 	}
 
 	private void setFactoryClassNamesToSpies() {
@@ -263,8 +275,13 @@ public class FedoraToDbBatchTest {
 				"Error synchronizing recordId: auhority-person:245");
 		Exception exception = getErrorExceptionNo(exceptionNo);
 		assertEquals(exception.getMessage(), "Record not found error from spy");
+
 		int noOfRecordsInFakeFedora = 5;
-		assertEquals(getNoOfErrorLogs(), noOfRecordsInFakeFedora);
+		int noOfRecordsDeleteddAfterInFakeFedora = 2;
+
+		int noOfRecords = noOfRecordsInFakeFedora + noOfRecordsDeleteddAfterInFakeFedora;
+
+		assertEquals(getNoOfErrorLogs(), noOfRecords);
 	}
 
 	private Exception getErrorExceptionNo(int exceptionNo) {
@@ -282,31 +299,71 @@ public class FedoraToDbBatchTest {
 	@Test
 	public void testCreatedAfter() throws Exception {
 		setFactoryClassNamesToSpies();
-		DateTimeFormatter ofPattern2 = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
-		LocalDateTime dateTimeBefore = LocalDateTime.now();
+		LocalDateTime dateTimeBefore = whatTimeIsIt().minus(2, ChronoUnit.SECONDS);
 		FedoraToDbBatch.main(args);
-		LocalDateTime dateTimeAfter = LocalDateTime.now();
+		LocalDateTime dateTimeAfter = whatTimeIsIt().plus(2, ChronoUnit.SECONDS);
+		FedoraReaderSpy fedoraReader = getFedoraReader();
 
+		fedoraReader.MCR.assertParameters("readPidsForTypeDeletedAfter", 0, "person");
+		LocalDateTime batchStartedDateTime = getBatchStartedDateTime(fedoraReader);
+
+		assertTrue(dateTimeBefore.isBefore(batchStartedDateTime));
+		assertTrue(dateTimeAfter.isAfter(batchStartedDateTime));
+
+	}
+
+	private LocalDateTime whatTimeIsIt() {
+		return LocalDateTime.now();
+	}
+
+	private FedoraReaderSpy getFedoraReader() {
 		FedoraReaderFactorySpy fedoraReaderFactory = (FedoraReaderFactorySpy) FedoraToDbBatch.fedoraReaderFactory;
 		FedoraReaderSpy fedoraReader = (FedoraReaderSpy) fedoraReaderFactory.MCR
 				.getReturnValue("factor", 0);
-
-		fedoraReader.MCR.assertParameters("readPidsForTypeCreatedAfter", 0, "person");
-		String dateTimeString = (String) fedoraReader.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("readPidsForTypeCreatedAfter",
-						0, "dateTime");
-		LocalDateTime createdDateTime = LocalDateTime.parse(dateTimeString, ofPattern2);
-
-		System.out.println("Before: " + dateTimeBefore.format(ofPattern2));
-		System.out.println(" Start: " + createdDateTime.format(ofPattern2));
-		System.out.println(" After: " + dateTimeAfter.format(ofPattern2));
-
-		assertTrue(dateTimeBefore.isBefore(createdDateTime)
-				|| dateTimeBefore.isEqual(createdDateTime));
-
-		assertTrue(
-				dateTimeAfter.isAfter(createdDateTime) || dateTimeAfter.isEqual(createdDateTime));
-
+		return fedoraReader;
 	}
+
+	private LocalDateTime getBatchStartedDateTime(FedoraReaderSpy fedoraReader) {
+		String dateTimeString = (String) fedoraReader.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("readPidsForTypeDeletedAfter",
+						0, "dateTime");
+		LocalDateTime createdDateTime = LocalDateTime.parse(dateTimeString, dateTimePattern);
+		return createdDateTime;
+	}
+
+	@Test
+	public void testNameDeletedAfter() throws Exception {
+		setFactoryClassNamesToSpies();
+
+		FedoraToDbBatch.main(args);
+
+		ClassicCoraSynchronizerSpy synchronizer = getSynchronizerSpy();
+
+		FedoraReaderSpy fedoraReader = getFedoraReader();
+
+		List<String> listToReturn = (List<String>) fedoraReader.MCR
+				.getReturnValue("readPidsForTypeDeletedAfter", 0);
+
+		assertCorrectCallToSynchronizer(synchronizer, 5, listToReturn.get(0));
+		assertCorrectCallToSynchronizer(synchronizer, 6, listToReturn.get(1));
+
+		synchronizer.MCR.assertNumberOfCallsToMethod("synchronize", 7);
+	}
+
+	private ClassicCoraSynchronizerSpy getSynchronizerSpy() {
+		ClassicCoraSynchronizerFactorySpy synchronizerFactory = (ClassicCoraSynchronizerFactorySpy) FedoraToDbBatch.synchronizerFactory;
+		ClassicCoraSynchronizerSpy synchronizer = (ClassicCoraSynchronizerSpy) synchronizerFactory.MCR
+				.getReturnValue("factorForBatch", 0);
+		return synchronizer;
+	}
+
 }
+
+// class FedoraToDbBatchOnlyForTest extends FedoraToDbBatch {
+//
+// @Override
+// private static void synchronizePids(List<String> listOfPids) {
+//
+// }
+// }

@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -36,6 +37,7 @@ import se.uu.ub.cora.logger.LoggerProvider;
 
 public class FedoraToDbBatch {
 
+	private static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 	private static final String PERSON = "person";
 	private static Logger logger = LoggerProvider.getLoggerForClass(FedoraToDbBatch.class);
 	static String synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory";
@@ -46,8 +48,11 @@ public class FedoraToDbBatch {
 	private static Map<String, String> initInfo;
 	private static String[] args;
 	private static FedoraReader fedoraReader;
+	private static DateTimeFormatter dateTimeFormatter = DateTimeFormatter
+			.ofPattern(DATE_TIME_PATTERN);
+	private static String startBatchTime;
 
-	private FedoraToDbBatch() {
+	FedoraToDbBatch() {
 	}
 
 	public static void main(String[] args) {
@@ -104,18 +109,24 @@ public class FedoraToDbBatch {
 	}
 
 	private static void synchronize(Map<String, String> initInfo) {
-		List<String> listOfPids = fetchPids(initInfo);
+		startBatchTime = getCurrentFormattedTime();
+		logger.logInfoUsingMessage("Batch started at: " + startBatchTime);
+
+		fetchPidsUsingFetchType(initInfo, "default");
+		fetchPidsUsingFetchType(initInfo, "createdAfter");
+
+	}
+
+	private static void fetchPidsUsingFetchType(Map<String, String> initInfo,
+			String typeOfFetchToFedora) {
+		List<String> listOfPids = fetchPids(initInfo, typeOfFetchToFedora);
 		synchronizePids(listOfPids);
-		logger.logInfoUsingMessage("FedoraToDbBatch done synchronizing the found pids");
-		logger.logInfoUsingMessage("Looking for pids created after batch job started");
+		logger.logInfoUsingMessage("Synchronizing done");
+	}
 
-		// String time = "yyyy-MM-ddTHH:mm:ssZ";
-		// String time = "2031-12-03T10:15:30Z";
-		DateTimeFormatter dateTimeFormatter = DateTimeFormatter
-				.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		LocalDateTime startTime = LocalDateTime.now();
-
-		fedoraReader.readPidsForTypeCreatedAfter(PERSON, startTime.format(dateTimeFormatter));
+	private static String getCurrentFormattedTime() {
+		LocalDateTime currentDateTime = LocalDateTime.now();
+		return currentDateTime.format(dateTimeFormatter);
 	}
 
 	private static void synchronizePids(List<String> listOfPids) {
@@ -138,9 +149,14 @@ public class FedoraToDbBatch {
 
 	}
 
-	private static List<String> fetchPids(Map<String, String> initInfo) {
-		logger.logInfoUsingMessage("Fetching pids for person...");
-		List<String> pids = getListOfPidsFromFedora(initInfo);
+	private static List<String> fetchPids(Map<String, String> initInfo, String fetchType) {
+		List<String> pids = new ArrayList<>();
+		logger.logInfoUsingMessage("Fetching pids (" + fetchType + ")");
+		if (fetchType.equals("default")) {
+			pids = getListOfPidsFromFedora(initInfo);
+		} else if (fetchType.equals("createdAfter")) {
+			pids = fedoraReader.readPidsForTypeDeletedAfter(PERSON, startBatchTime);
+		}
 		logger.logInfoUsingMessage("Fetched " + pids.size() + " pids");
 		return pids;
 	}

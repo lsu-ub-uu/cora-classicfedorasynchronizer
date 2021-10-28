@@ -31,6 +31,12 @@ public class FedoraReaderSpy implements FedoraReader {
 	public DataGroup filter;
 	public List<String> listToReturn = List.of("auhority-person:245", "auhority-person:322",
 			"auhority-person:4029", "auhority-person:127", "auhority-person:1211");
+	public List<String> listCreatedAfter = List.of("auhority-person:104", "auhority-person:22",
+			"auhority-person:2131");
+
+	public List<String> listUpdatedAfter = List.of("auhority-person:245", "auhority-person:322");
+
+	public List<String> listDeletedAfter = List.of("auhority-person:127", "auhority-person:1211");
 
 	@Override
 	public String readObject(String objectId) {
@@ -58,25 +64,25 @@ public class FedoraReaderSpy implements FedoraReader {
 	@Override
 	public List<String> readPidsForTypeCreatedAfter(String type, String dateTime) {
 		MCR.addCall("type", type, "dateTime", dateTime);
-		// TODO Auto-generated method stub
-		MCR.addReturned(null);
-		return null;
+
+		MCR.addReturned(listCreatedAfter);
+		return listCreatedAfter;
 	}
 
 	@Override
 	public List<String> readPidsForTypeCreatedBeforeAndUpdatedAfter(String type, String dateTime) {
 		MCR.addCall("type", type, "dateTime", dateTime);
 		// TODO Auto-generated method stub
-		MCR.addReturned(null);
-		return null;
+		MCR.addReturned(listUpdatedAfter);
+		return listUpdatedAfter;
 	}
 
 	@Override
 	public List<String> readPidsForTypeDeletedAfter(String type, String dateTime) {
 		MCR.addCall("type", type, "dateTime", dateTime);
 		// TODO Auto-generated method stub
-		MCR.addReturned(null);
-		return null;
+		MCR.addReturned(listDeletedAfter);
+		return listDeletedAfter;
 	}
 
 }
