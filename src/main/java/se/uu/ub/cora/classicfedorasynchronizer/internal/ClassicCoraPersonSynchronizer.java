@@ -276,9 +276,9 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	private List<String> getPersonDomainPartIdsFromPerson(DataGroup dataGroup) {
-		List<String> partIds = new ArrayList<>();
 		List<DataGroup> allGroupsWithNameInData = dataGroup
 				.getAllGroupsWithNameInData(PERSON_DOMAIN_PART);
+		List<String> partIds = new ArrayList<>(allGroupsWithNameInData.size());
 		for (DataGroup domainPart : allGroupsWithNameInData) {
 			partIds.add(domainPart.getFirstAtomicValueWithNameInData("linkedRecordId"));
 		}

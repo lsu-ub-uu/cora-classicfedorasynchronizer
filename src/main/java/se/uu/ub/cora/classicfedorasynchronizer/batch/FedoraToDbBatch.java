@@ -75,8 +75,8 @@ public class FedoraToDbBatch {
 		// deletedAfter
 	}
 
-	private static void startBatchDependencies(Map<String, String> initInfo) throws IOException,
-			NoSuchMethodException, ClassNotFoundException, IllegalAccessException,
+	private static void startBatchDependencies(Map<String, String> initInfo)
+			throws NoSuchMethodException, ClassNotFoundException, IllegalAccessException,
 			InvocationTargetException, InstantiationException, IllegalArgumentException {
 
 		constructSynchronizerFactory(initInfo);
