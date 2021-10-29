@@ -159,4 +159,10 @@ public class CoraClientSpy implements CoraClient {
 		return response;
 	}
 
+	@Override
+	public String indexRecordList(String recordType, String filterAsJson) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
