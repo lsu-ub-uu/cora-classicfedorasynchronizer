@@ -56,7 +56,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	private CoraClient coraClient;
 	private String xmlFromFedora;
 	private List<String> domainPartIds;
-	private boolean explicitIndexCommit;
+	private boolean indexRequieredPerRecord;
 
 	public static ClassicCoraPersonSynchronizer createClassicCoraPersonSynchronizerForMessaging(
 			RecordStorage recordStorage, HttpHandlerFactory httpHandlerFactory,
@@ -75,13 +75,13 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 
 	private ClassicCoraPersonSynchronizer(RecordStorage recordStorage,
 			HttpHandlerFactory httpHandlerFactory, FedoraConverterFactory fedoraConverterFactory,
-			CoraClient coraClient, String baseURL, boolean explicitIndexCommit) {
+			CoraClient coraClient, String baseURL, boolean indexRequieredPerRecord) {
 		this.recordStorage = recordStorage;
 		this.httpHandlerFactory = httpHandlerFactory;
 		this.fedoraConverterFactory = fedoraConverterFactory;
 		this.coraClient = coraClient;
 		this.baseURL = baseURL;
-		this.explicitIndexCommit = explicitIndexCommit;
+		this.indexRequieredPerRecord = indexRequieredPerRecord;
 
 	}
 
@@ -156,14 +156,12 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	private void indexPerson() {
-		indexRecordUsingTypeAndId(recordType, recordId);
+		possiblyIndexRecord(recordType, recordId);
 	}
 
-	private void indexRecordUsingTypeAndId(String type, String id) {
-		if (explicitIndexCommit) {
-			coraClient.indexData(type, id);
-		} else {
-			coraClient.indexDataWithoutExplicitCommit(type, id);
+	private void possiblyIndexRecord(String recordType2, String recordId2) {
+		if (indexRequieredPerRecord) {
+			coraClient.indexData(recordType2, recordId2);
 		}
 	}
 
@@ -203,7 +201,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	private void indexPersonDomainPart(String recordId) {
-		indexRecordUsingTypeAndId(PERSON_DOMAIN_PART, recordId);
+		possiblyIndexRecord(PERSON_DOMAIN_PART, recordId);
 	}
 
 	private void synchronizeUpdate() {
@@ -314,7 +312,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	public boolean onlyForTestGetExplicitIndexCommit() {
-		return explicitIndexCommit;
+		return indexRequieredPerRecord;
 	}
 
 }
