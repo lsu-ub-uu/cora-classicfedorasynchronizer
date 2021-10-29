@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Uppsala University Library
+ * Copyright 2019, 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,9 +20,9 @@
 package se.uu.ub.cora.classicfedorasynchronizer.messaging;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -81,111 +81,124 @@ public class FedoraMessageReceiverTest {
 		assertTrue(messageParserFactorySpy.factorWasCalled);
 	}
 
-	// @Test
-	// public void testReceiveMessageCreatesCoraClientForWorkOrder() {
-	// receiver.receiveMessage(headers, message);
-	//
-	// // assertTrue(coraClientSpy.createWasCalled);
-	// // assertEquals(coraClientSpy.createdRecordType, "workOrder");
-	// }
-
 	@Test
-	public void testReceiveMessageUsesMessageParserToGetTypeAndId() throws Exception {
+	public void testSynchronizerCalledWithValuesFromParserAndCallLoggedWhenCreate()
+			throws Exception {
+		messageParserFactorySpy.synchronizationRequired = true;
+		messageParserFactorySpy.modificationType = "create";
+
 		receiver.receiveMessage(headers, message);
-		MessageParserSpy messageParserSpy = messageParserFactorySpy.messageParserSpy;
-		assertSame(messageParserSpy.headers, headers);
-		assertSame(messageParserSpy.message, message);
+
+		assertSynchronizerCalledWithValuesFromParserAndCallLoggedUsingCallNoAndMethod(0,
+				"synchronizeCreated");
 	}
 
-	@Test
-	public void testReceiveMessageUsesParserParameters() throws Exception {
-		receiver.receiveMessage(headers, message);
-
-		MessageParserSpy messageParserSpy = messageParserFactorySpy.messageParserSpy;
-
+	private void assertSynchronizerCalledWithValuesFromParserAndCallLoggedUsingCallNoAndMethod(
+			int callNo, String calledMethodInSynchronizer) {
+		MessageParserSpy messageParserSpy = getMessageParserFromFactoryByNo(callNo);
 		messageParserSpy.MCR.assertParameters("parseHeadersAndMessage", 0, headers, message);
-		messageParserSpy.MCR.assertReturn("synchronizationRequired", 0, true);
 
-		messageParserSpy.MCR.assertReturn("getRecordType", 0, "someParsedTypeFromMessageParserSpy");
-		messageParserSpy.MCR.assertReturn("getRecordId", 0, "someParsedIdFromMessageParserSpy");
-		messageParserSpy.MCR.assertReturn("getAction", 0, "update");
-	}
-
-	@Test
-	public void testCallSynchronizerCorrectValuesForCreate() throws Exception {
-		// messageParserFactorySpy.synchronizationRequired = true;
-		// messageParserFactorySpy.modificationType = "create";
-		receiver.receiveMessage(headers, message);
-
-		MessageParserSpy messageParserSpy = messageParserFactorySpy.messageParserSpy;
-
-		ClassicCoraSynchronizerSpy synchronizer = (ClassicCoraSynchronizerSpy) synchronizerFactory.MCR
-				.getReturnValue("factorForMessaging", 0);
+		ClassicCoraSynchronizerSpy synchronizerSpy = getSynchronizerFromFactoryByNo(callNo);
 
 		String recordType = (String) messageParserSpy.MCR.getReturnValue("getRecordType", 0);
 		String recordId = (String) messageParserSpy.MCR.getReturnValue("getRecordId", 0);
 		String action = (String) messageParserSpy.MCR.getReturnValue("getAction", 0);
 
-		synchronizer.MCR.assertParameters("synchronizeCreated", 0, recordType, recordId, "diva");
+		synchronizerSpy.MCR.assertParameters(calledMethodInSynchronizer, 0, recordType, recordId,
+				"diva");
 
+		String infoLogMessage = getInfoLogMessageByNo(callNo);
+		String logM = "Synchronizer called for type: {0}, id: {1}, action: {2} and dataDivider: diva";
+		assertEquals(infoLogMessage, MessageFormat.format(logM, recordType, recordId, action));
 	}
-	// modificationType "create", "update" and "delete"
-	// TODO: create, synchronizationRequired, true
-	// TODO: create, synchronizationRequired, false
-	// TODO: update, synchronizationRequired, true
-	// TODO: update, synchronizationRequired, false
-	// TODO: delete, synchronizationRequired, true
-	// TODO: delete, synchronizationRequired, false
+
+	private MessageParserSpy getMessageParserFromFactoryByNo(int parserNo) {
+		return (MessageParserSpy) messageParserFactorySpy.MCR.getReturnValue("factor", parserNo);
+	}
+
+	private ClassicCoraSynchronizerSpy getSynchronizerFromFactoryByNo(int synchronizerNo) {
+		return (ClassicCoraSynchronizerSpy) synchronizerFactory.MCR
+				.getReturnValue("factorForMessaging", synchronizerNo);
+	}
+
+	private String getInfoLogMessageByNo(int infoLogMessageNo) {
+		return loggerFactory.getInfoLogMessageUsingClassNameAndNo(testedClassname,
+				infoLogMessageNo);
+	}
 
 	@Test
-	public void testWriteLogWhenSynchronizeIsCalledAndRecordHasToBeSynchronized() throws Exception {
+	public void testSynchronizerCalledWithValuesFromParserAndCallLoggedWhenUpdate()
+			throws Exception {
+		messageParserFactorySpy.synchronizationRequired = true;
+		messageParserFactorySpy.modificationType = "update";
+
 		receiver.receiveMessage(headers, message);
 
-		String firstInfoLogMessage = loggerFactory
-				.getInfoLogMessageUsingClassNameAndNo(testedClassname, 0);
-		assertEquals(firstInfoLogMessage,
-				"Synchronizer called for type: someParsedTypeFromMessageParserSpy, "
-						+ " id: someParsedIdFromMessageParserSpy, action: update and dataDivider: diva ");
+		assertSynchronizerCalledWithValuesFromParserAndCallLoggedUsingCallNoAndMethod(0,
+				"synchronizeUpdated");
 	}
 
 	@Test
-	public void testWriteLogWhenSynchronizeIsCalledAndRecordIsNotSynchronized() throws Exception {
+	public void testSynchronizerCalledWithValuesFromParserAndCallLoggedWhenDelete()
+			throws Exception {
+		messageParserFactorySpy.synchronizationRequired = true;
+		messageParserFactorySpy.modificationType = "delete";
+
+		receiver.receiveMessage(headers, message);
+
+		assertSynchronizerCalledWithValuesFromParserAndCallLoggedUsingCallNoAndMethod(0,
+				"synchronizeDeleted");
+	}
+
+	@Test
+	public void testParserCalledButNotSynchronizerAndLogWhenSynchronizationNotRequired()
+			throws Exception {
 		messageParserFactorySpy.synchronizationRequired = false;
 		receiver.receiveMessage(headers, message);
 
-		Object noOfErrorLogMessagesUsingClassName = loggerFactory
-				.getNoOfErrorLogMessagesUsingClassName(testedClassname);
+		MessageParserSpy messageParserSpy = getMessageParserFromFactoryByNo(0);
+		messageParserSpy.MCR.assertParameters("parseHeadersAndMessage", 0, headers, message);
 
-		assertEquals(noOfErrorLogMessagesUsingClassName, 0);
+		synchronizerFactory.MCR.assertMethodNotCalled("factorForMessaging");
+		assertEquals(loggerFactory.getNoOfInfoLogMessagesUsingClassname(testedClassname), 0);
+		assertEquals((Object) getNumberOfLoggedErrorMessages(), 0);
+	}
+
+	private int getNumberOfLoggedErrorMessages() {
+		return loggerFactory.getNoOfErrorLogMessagesUsingClassName(testedClassname);
 	}
 
 	@Test
 	public void testLogFatalWhenTopicGetsClosed() throws Exception {
-		assertEquals(loggerFactory.getNoOfFatalLogMessagesUsingClassName(testedClassname), 0);
+		assertEquals(getNumberOfLoggedFatalMessages(), 0);
 
 		receiver.topicClosed();
 
-		assertEquals(loggerFactory.getNoOfFatalLogMessagesUsingClassName(testedClassname), 1);
+		assertEquals(getFatalLogMessageForNo(0), "Topic closed!");
+		assertEquals(getNumberOfLoggedFatalMessages(), 1);
 	}
 
-	@Test
-	public void testLogFatalWhenTopicGetsClosedCorrectMessage() throws Exception {
-		receiver.topicClosed();
+	private int getNumberOfLoggedFatalMessages() {
+		return loggerFactory.getNoOfFatalLogMessagesUsingClassName(testedClassname);
+	}
 
-		String firstFatalLogMessage = loggerFactory
-				.getFatalLogMessageUsingClassNameAndNo(testedClassname, 0);
-		assertEquals(firstFatalLogMessage, "Topic closed!");
+	private String getFatalLogMessageForNo(int logNo) {
+		return loggerFactory.getFatalLogMessageUsingClassNameAndNo(testedClassname, 0);
 	}
 
 	@Test
 	public void testErrorWhenReceiveError() {
 		synchronizerFactory.throwError = true;
-		receiver.receiveMessage(headers, message);
-		assertEquals(loggerFactory.getNoOfErrorLogMessagesUsingClassName(testedClassname), 1);
-		String firstInfoLogMessage = loggerFactory
-				.getErrorLogMessageUsingClassNameAndNo(testedClassname, 0);
-		assertEquals(firstInfoLogMessage,
-				"Message could not be synchronized. Record not found error from spy");
+		assertEquals(getNumberOfLoggedErrorMessages(), 0);
 
+		receiver.receiveMessage(headers, message);
+
+		assertEquals(getNumberOfLoggedErrorMessages(), 1);
+		assertEquals(getErrorLogMessageForNo(0),
+				"Message could not be synchronized. Record not found error from spy");
+	}
+
+	private String getErrorLogMessageForNo(int logNo) {
+		return loggerFactory.getErrorLogMessageUsingClassNameAndNo(testedClassname, 0);
 	}
 }

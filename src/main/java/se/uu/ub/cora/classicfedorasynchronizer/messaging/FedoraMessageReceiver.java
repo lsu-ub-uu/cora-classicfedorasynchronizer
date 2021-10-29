@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Uppsala University Library
+ * Copyright 2019, 2021 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -31,6 +31,7 @@ import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class FedoraMessageReceiver implements MessageReceiver {
 
+	private static final String DATA_DIVIDER = "diva";
 	private Logger logger = LoggerProvider.getLoggerForClass(FedoraMessageReceiver.class);
 	private MessageParserFactory messageParserFactory;
 	private ClassicCoraSynchronizerFactory classicCoraSynchronizerFactory;
@@ -44,29 +45,44 @@ public class FedoraMessageReceiver implements MessageReceiver {
 	@Override
 	public void receiveMessage(Map<String, String> headers, String message) {
 		MessageParser messageParser = messageParserFactory.factor();
-		ClassicCoraSynchronizer synchronizer = classicCoraSynchronizerFactory.factorForMessaging();
-
 		messageParser.parseHeadersAndMessage(headers, message);
-		// TODO: fix...
-		messageParser.synchronizationRequired();
-		// if (messageParser.synchronizationRequired()) {
-		if (true) {
-			try {
-				String recordType = messageParser.getRecordType();
-				String recordId = messageParser.getRecordId();
-				String action = messageParser.getAction();
-				writeLogMessage(recordType, recordId, action);
-				synchronizer.synchronizeCreated(recordType, recordId, "diva");
-			} catch (Exception e) {
-				logger.logErrorUsingMessageAndException(
-						"Message could not be synchronized. " + e.getMessage(), e);
-			}
+
+		if (messageParser.synchronizationRequired()) {
+			tryToSynchronizeChange(messageParser);
+		}
+	}
+
+	private void tryToSynchronizeChange(MessageParser messageParser) {
+		try {
+			synchronizeChange(messageParser);
+		} catch (Exception e) {
+			logger.logErrorUsingMessageAndException(
+					"Message could not be synchronized. " + e.getMessage(), e);
+		}
+	}
+
+	private void synchronizeChange(MessageParser messageParser) {
+		String recordType = messageParser.getRecordType();
+		String recordId = messageParser.getRecordId();
+		String action = messageParser.getAction();
+		writeLogMessage(recordType, recordId, action);
+		synchronizeChangeUsingSynchronizer(recordType, recordId, action);
+	}
+
+	private void synchronizeChangeUsingSynchronizer(String recordType, String recordId,
+			String action) {
+		ClassicCoraSynchronizer synchronizer = classicCoraSynchronizerFactory.factorForMessaging();
+		if ("update".equals(action)) {
+			synchronizer.synchronizeUpdated(recordType, recordId, DATA_DIVIDER);
+		} else if ("delete".equals(action)) {
+			synchronizer.synchronizeDeleted(recordType, recordId, DATA_DIVIDER);
+		} else {
+			synchronizer.synchronizeCreated(recordType, recordId, DATA_DIVIDER);
 		}
 	}
 
 	private void writeLogMessage(String recordType, String recordId, String action) {
-		String logM = "Synchronizer called for type: {0}, "
-				+ " id: {1}, action: {2} and dataDivider: diva ";
+		String logM = "Synchronizer called for type: {0}, id: {1}, action: {2} and dataDivider: diva";
 		logger.logInfoUsingMessage(MessageFormat.format(logM, recordType, recordId, action));
 	}
 
