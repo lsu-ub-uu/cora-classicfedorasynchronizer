@@ -34,14 +34,9 @@ import java.util.Map;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.classicfedorasynchronizer.log.LoggerFactorySpy;
-import se.uu.ub.cora.logger.LoggerProvider;
-
 public class FedoraMessageParserTest {
 	private Map<String, String> headers;
 	private String message;
-	private LoggerFactorySpy loggerFactory;
-	private String testedClassname = "FedoraMessageParser";
 	private MessageParser messageParser;
 	private final static String TEST_RESOURCES_FILE_PATH = "./src/test/resources/";
 	private final static String JMS_MESSAGE_WHICH_DOES_TRIGGER_INDEXING = "JmsMessageWhichDoesTriggerIndexing.xml";
@@ -49,9 +44,6 @@ public class FedoraMessageParserTest {
 
 	@BeforeMethod
 	public void setUp() throws RuntimeException {
-		loggerFactory = new LoggerFactorySpy();
-		LoggerProvider.setLoggerFactory(loggerFactory);
-
 		headers = new HashMap<>();
 		headers.put("methodName", "modifyDatastreamByReference");
 		headers.put("pid", "authority-person:666498");
@@ -173,13 +165,9 @@ public class FedoraMessageParserTest {
 	public void testMessageParserLogsWhenNoPidsynchronizationRequired() throws Exception {
 		headers.remove("pid");
 
-		assertEquals(loggerFactory.getNoOfErrorLogMessagesUsingClassName(testedClassname), 0);
-
 		messageParser.parseHeadersAndMessage(headers, message);
 
-		assertEquals(loggerFactory.getNoOfErrorLogMessagesUsingClassName(testedClassname), 1);
-		assertEquals(loggerFactory.getErrorLogMessageUsingClassNameAndNo(testedClassname, 0),
-				"No pid found in header");
+		assertFalse(messageParser.synchronizationRequired());
 	}
 
 	@Test
@@ -240,10 +228,10 @@ public class FedoraMessageParserTest {
 	}
 
 	@Test
-	public void testMessagesWithNoValidId() throws Exception {
+	public void testMessagesWithIdWithoutColon() throws Exception {
 		headers = new HashMap<>();
 		headers.put("methodName", "someMethod");
-		headers.put("pid", "someId");
+		headers.put("pid", "someIdWithoutColon");
 
 		messageParser.parseHeadersAndMessage(headers, message);
 

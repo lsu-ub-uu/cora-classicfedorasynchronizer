@@ -18,7 +18,10 @@
  */
 package se.uu.ub.cora.classicfedorasynchronizer.messaging.parsning;
 
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+
 public class MessageParserFactorySpy implements MessageParserFactory {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public boolean factorWasCalled = false;
 	public boolean synchronizationRequired = true;
 	public MessageParserSpy messageParserSpy;
@@ -26,10 +29,12 @@ public class MessageParserFactorySpy implements MessageParserFactory {
 
 	@Override
 	public MessageParser factor() {
+		MCR.addCall();
 		factorWasCalled = true;
 		messageParserSpy = new MessageParserSpy();
 		messageParserSpy.synchronizationRequired = synchronizationRequired;
 		messageParserSpy.modificationType = modificationType;
+		MCR.addReturned(messageParserSpy);
 		return messageParserSpy;
 	}
 

@@ -54,7 +54,6 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	private HttpHandler httpHandler;
 	private DataGroup personDataGroup;
 	private CoraClient coraClient;
-	private String action;
 	private String xmlFromFedora;
 	private List<String> domainPartIds;
 	private boolean explicitIndexCommit;
@@ -90,38 +89,27 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	public void synchronizeCreated(String recordType, String recordId, String dataDivider) {
 		this.recordType = recordType;
 		this.recordId = recordId;
-		this.action = "create";
 		this.dataDivider = dataDivider;
 
-		synchronizeDependingOnAction();
+		synchronizeCreate();
 	}
 
 	@Override
 	public void synchronizeUpdated(String recordType, String recordId, String dataDivider) {
 		this.recordType = recordType;
 		this.recordId = recordId;
-		this.action = "update";
 		this.dataDivider = dataDivider;
 
-		synchronizeDependingOnAction();
+		synchronizeUpdate();
 	}
 
 	@Override
 	public void synchronizeDeleted(String recordType, String recordId, String dataDivider) {
 		this.recordType = recordType;
 		this.recordId = recordId;
-		this.action = "delete";
 		this.dataDivider = dataDivider;
 
-		synchronizeDependingOnAction();
-	}
-
-	private void synchronizeDependingOnAction() {
-		switch (action) {
-		case "create" -> synchronizeCreate();
-		case "update" -> synchronizeUpdate();
-		case "delete" -> synchronizeDelete();
-		}
+		synchronizeDelete();
 	}
 
 	private void synchronizeCreate() {

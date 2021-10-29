@@ -23,113 +23,96 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import se.uu.ub.cora.classicfedorasynchronizer.messaging.FedoraMessageException;
-import se.uu.ub.cora.logger.Logger;
-import se.uu.ub.cora.logger.LoggerProvider;
-
 public class FedoraMessageParser implements MessageParser {
+	private static final String PID_REGEX = "^[a-z-]*:\\d*$";
 	private static final String TEXT_TO_IDENTIFY_MESSAGES_FOR_DELETE = ""
 			+ "<category term=\"D\" scheme=\"fedora-types:state\" label=\"xsd:string\"></category>";
-	private Logger logger = LoggerProvider.getLoggerForClass(FedoraMessageParser.class);
+	private String message;
+	private String pid;
+
 	private String parsedRecordId;
-	private boolean synchronizationRequired = false;
 	private String parsedType;
+	private String methodName;
 	private String modificationType;
+	private boolean synchronizationRequired = false;
 
 	@Override
 	public void parseHeadersAndMessage(Map<String, String> headers, String message) {
-		try {
-			tryToParseMessage(headers, message);
-		} catch (FedoraMessageException exception) {
-			handleError(exception);
+		setFieldVariables(headers, message);
+		if (synchronizationRequiredForMessage()) {
+			setValuesInThisClass();
 		}
 	}
 
-	private void tryToParseMessage(Map<String, String> headers, String message) {
-		throwErrorIfNoPid(headers);
-		synchronizationRequired = workOrderShouldBeCreatedForMessage(headers, message);
-		possibleSetValues(headers, message);
+	private void setFieldVariables(Map<String, String> headers, String message) {
+		pid = headers.get("pid");
+		methodName = headers.get("methodName");
+		this.message = message;
 	}
 
-	private void throwErrorIfNoPid(Map<String, String> headers) {
-		if (headers.get("pid") == null) {
-			throw FedoraMessageException.withMessage("No pid found in header");
-		}
+	private boolean synchronizationRequiredForMessage() {
+		return pidExistsAndMatchFormat() && typeIsAuthorityPerson() && actionIsRelevant();
 	}
 
-	private boolean workOrderShouldBeCreatedForMessage(Map<String, String> headers,
-			String message) {
-		String methodName = headers.get("methodName");
-		String pid = headers.get("pid");
-		Pattern idPattern = Pattern.compile("^[a-z-]*:\\d*$");
+	private boolean pidExistsAndMatchFormat() {
+		return pid != null && idMatchFormat(pid);
+	}
+
+	private boolean idMatchFormat(String pid) {
+		Pattern idPattern = Pattern.compile(PID_REGEX);
 		Matcher idMatcher = idPattern.matcher(pid);
-		if (!idMatcher.matches()) {
-			return false;
-		} else {
-			String typePartOfId = extractTypePartOfId(pid);
-			return calculateWorkOrderShouldBeCreated(message, methodName, typePartOfId);
-		}
+		return idMatcher.matches();
+	}
+
+	private boolean typeIsAuthorityPerson() {
+		String type = extractTypePartOfId(pid);
+		return "authority-person".equals(type);
 	}
 
 	private String extractTypePartOfId(String pid) {
 		return pid.substring(0, pid.indexOf(':'));
-
 	}
 
-	private boolean calculateWorkOrderShouldBeCreated(String message, String methodName,
-			String typePartOfId) {
-		return (methodNameIsRelevant(methodName) || isDeleteMessage(message, methodName))
-				&& typeIsAuthorityPerson(typePartOfId);
+	private boolean actionIsRelevant() {
+		return isCreateAction() || isUpdateAction() || isDeleteAction();
 	}
 
-	private boolean methodNameIsRelevant(String methodName) {
-		return "modifyDatastreamByReference".equals(methodName) || isPurgeMessage(methodName)
-				|| "addDatastream".equals(methodName);
+	private boolean isCreateAction() {
+		return "addDatastream".equals(methodName);
 	}
 
-	private boolean isPurgeMessage(String methodName) {
+	private boolean isUpdateAction() {
+		return "modifyDatastreamByReference".equals(methodName);
+	}
+
+	private boolean isDeleteAction() {
+		return isDelete() || isPurge();
+	}
+
+	private boolean isPurge() {
 		return "purgeObject".equals(methodName);
 	}
 
-	private boolean isDeleteMessage(String message, String methodName) {
+	private boolean isDelete() {
 		return "modifyObject".equals(methodName)
 				&& message.contains(TEXT_TO_IDENTIFY_MESSAGES_FOR_DELETE);
 	}
 
-	private boolean typeIsAuthorityPerson(String typePartOfId) {
-		return "authority-person".equals(typePartOfId);
+	private void setValuesInThisClass() {
+		parsedRecordId = pid;
+		parsedType = "person";
+		synchronizationRequired = true;
+		modificationType = getModificationType();
 	}
 
-	private void possibleSetValues(Map<String, String> headers, String message) {
-		if (synchronizationRequired) {
-			parsedRecordId = headers.get("pid");
-			parsedType = "person";
-			setModificationTypeFromMessageAndHeaders(message, headers);
+	private String getModificationType() {
+		if (isDeleteAction()) {
+			return "delete";
 		}
-	}
-
-	private void setModificationTypeFromMessageAndHeaders(String message,
-			Map<String, String> headers) {
-		String methodName = headers.get("methodName");
-		modificationType = "update";
-		possiblyChangeModificationTypeToDelete(message, methodName);
-	}
-
-	private void possiblyChangeModificationTypeToDelete(String message, String methodName) {
-		if (messageIsFromDeleteOrPurge(message, methodName)) {
-			modificationType = "delete";
+		if (isCreateAction()) {
+			return "create";
 		}
-		if ("addDatastream".equals(methodName)) {
-			modificationType = "create";
-		}
-	}
-
-	private boolean messageIsFromDeleteOrPurge(String message, String methodName) {
-		return isDeleteMessage(message, methodName) || isPurgeMessage(methodName);
-	}
-
-	private void handleError(FedoraMessageException e) {
-		logger.logErrorUsingMessage(e.getMessage());
+		return "update";
 	}
 
 	@Override
