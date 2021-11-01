@@ -178,9 +178,10 @@ public class ClassicCoraPersonSynchronizerTest {
 		dbStorage.MCR.assertParameters("read", 0, "person", "someRecordId");
 		dbStorage.MCR.assertMethodNotCalled("deleteByTypeAndId");
 
-		coraClientSpy.MCR.assertParameters("indexDataWithoutExplicitCommit", 0, "person",
-				"someRecordId");
-		coraClientSpy.MCR.assertNumberOfCallsToMethod("indexDataWithoutExplicitCommit", 1);
+		// coraClientSpy.MCR.assertParameters("indexDataWithoutExplicitCommit", 0, "person",
+		// "someRecordId");
+		coraClientSpy.MCR.assertMethodNotCalled("indexData");
+		coraClientSpy.MCR.assertMethodNotCalled("indexDataWithoutExplicitCommit");
 	}
 
 	@Test
@@ -210,19 +211,6 @@ public class ClassicCoraPersonSynchronizerTest {
 		coraClientSpy.MCR.assertParameters("indexData", 3, "personDomainPart",
 				"authority-person:2:kth2");
 		coraClientSpy.MCR.assertParameters("indexData", 4, "personDomainPart",
-				"authority-person:3:kth3");
-	}
-
-	@Test
-	public void testUpdateForBatchWithMoreDomainPartsThanStored() throws Exception {
-		setUpFedoraPersonConverterWithDomainParts(4);
-		setUpPersonInDbWithDomainParts(2);
-		synchronizerBatch.synchronizeUpdated("person", "someRecordId", dataDivider);
-
-		dbStorage.MCR.assertMethodNotCalled("deleteByTypeAndId");
-		coraClientSpy.MCR.assertParameters("indexDataWithoutExplicitCommit", 3, "personDomainPart",
-				"authority-person:2:kth2");
-		coraClientSpy.MCR.assertParameters("indexDataWithoutExplicitCommit", 4, "personDomainPart",
 				"authority-person:3:kth3");
 	}
 
