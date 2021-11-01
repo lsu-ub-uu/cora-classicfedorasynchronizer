@@ -177,7 +177,7 @@ public class FedoraToDbBatch {
 
 	private static void synchronizeRecord(String action, String recordId) {
 		try {
-			if (action.equals("create")) {
+			if ("create".equals(action)) {
 				synchronizer.synchronizeCreated(PERSON, recordId, "diva");
 			} else {
 				synchronizer.synchronizeDeleted(PERSON, recordId, "diva");
