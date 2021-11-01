@@ -43,4 +43,6 @@ public interface ClassicCoraSynchronizer {
 
 	void synchronizeDeleted(String recordType, String recordId, String dataDivider);
 
+	String indexAllRecordsForType(String recordType);
+
 }

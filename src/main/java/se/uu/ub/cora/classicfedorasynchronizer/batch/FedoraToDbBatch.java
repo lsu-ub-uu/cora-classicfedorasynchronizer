@@ -38,19 +38,18 @@ public class FedoraToDbBatch {
 
 	private static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 	private static final String PERSON = "person";
+	private static final String PERSON_DOMAIN_PART = "personDomainPart";
 	private static Logger logger = LoggerProvider.getLoggerForClass(FedoraToDbBatch.class);
 	static String synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory";
 	static String fedoraReaderFactoryClassName = "se.uu.ub.cora.fedora.reader.FedoraReaderFactoryImp";
 	static ClassicCoraSynchronizerFactory synchronizerFactory;
 	static FedoraReaderFactory fedoraReaderFactory;
 	private static ClassicCoraSynchronizer synchronizer;
-	private static Map<String, String> initInfo;
 	private static String[] args;
 	private static FedoraReader fedoraReader;
 	private static DateTimeFormatter dateTimeFormatter = DateTimeFormatter
 			.ofPattern(DATE_TIME_PATTERN);
 	private static String startBatchTime;
-	private static String action;
 
 	FedoraToDbBatch() {
 	}
@@ -67,22 +66,38 @@ public class FedoraToDbBatch {
 	}
 
 	private static void tryToSynchronize() throws Exception {
-		initInfo = createInitInfoFromArgs();
-		startBatchDependencies(initInfo);
-		synchronize(initInfo);
-		// createdAfter
-		// updatedAfter
-		// deletedAfter
+		startBatchDependencies();
+		synchronize();
 	}
 
-	private static void startBatchDependencies(Map<String, String> initInfo)
-			throws NoSuchMethodException, ClassNotFoundException, IllegalAccessException,
-			InvocationTargetException, InstantiationException, IllegalArgumentException {
+	private static void startBatchDependencies() throws NoSuchMethodException,
+			ClassNotFoundException, IllegalAccessException, InvocationTargetException,
+			InstantiationException, IllegalArgumentException, IOException {
 
+		Map<String, String> initInfo = createInitInfoFromArgs();
 		constructSynchronizerFactory(initInfo);
-		constructFedoraReaderFactory();
+		constructFedoraReaderFactory(initInfo);
 		logger.logInfoUsingMessage("FedoraToDbBatch started");
 	}
+
+	// here
+	// private void initializeCoraClient() {
+	//
+	// String apptokenVerifierURL = initInfo.get("coraApptokenVerifierURL");
+	// String baseURL = initInfo.get("coraBaseUrl");
+	// coraClientFactory = CoraClientFactoryImp
+	// .usingAppTokenVerifierUrlAndBaseUrl(apptokenVerifierURL, baseURL);
+	//
+	// factorCoraClient();
+	// }
+	//
+	// private void factorCoraClient() {
+	// String userId = initInfo.get("coraUserId");
+	// String apptoken = initInfo.get("coraApptoken");
+	//
+	// coraClient = coraClientFactory.factor(userId, apptoken);
+	// }
+	// to here
 
 	private static Map<String, String> createInitInfoFromArgs() throws IOException {
 		return FedoraToDbBatchPropertiesLoader.createInitInfo(args);
@@ -99,7 +114,7 @@ public class FedoraToDbBatch {
 		synchronizer = synchronizerFactory.factorForBatch();
 	}
 
-	private static void constructFedoraReaderFactory()
+	private static void constructFedoraReaderFactory(Map<String, String> initInfo)
 			throws NoSuchMethodException, ClassNotFoundException, IllegalAccessException,
 			InvocationTargetException, InstantiationException, IllegalArgumentException {
 		Constructor<?> constructor = Class.forName(fedoraReaderFactoryClassName).getConstructor();
@@ -108,21 +123,26 @@ public class FedoraToDbBatch {
 		fedoraReader = fedoraReaderFactory.factor(initInfo.get("fedoraBaseUrl"));
 	}
 
-	private static void synchronize(Map<String, String> initInfo) {
-		startBatchTime = getCurrentFormattedTime();
-		logger.logInfoUsingMessage("Batch started at: " + startBatchTime);
-
-		action = "create";
-		fetchPidsUsingFetchType(initInfo);
-		action = "delete";
-		fetchPidsUsingFetchType(initInfo);
-
+	private static void synchronize() {
+		recordAndLogBatchStartTime();
+		createAllActiveRecordsForPerson();
+		deletePersonRecordsDeletedAfterStartOfBatchJob();
+		indexStuff();
 	}
 
-	private static void fetchPidsUsingFetchType(Map<String, String> initInfo) {
-		List<String> listOfPids = fetchPids(initInfo);
-		synchronizePids(listOfPids);
-		logger.logInfoUsingMessage("Synchronizing done");
+	private static void indexStuff() {
+		logger.logInfoUsingMessage("Start indexing for all records");
+		String indexBatchJobIdPerson = synchronizer.indexAllRecordsForType(PERSON);
+		logger.logInfoUsingMessage("IndexBatchJob created with id: " + indexBatchJobIdPerson);
+		String indexBatchJobIdPersonDomainPart = synchronizer
+				.indexAllRecordsForType(PERSON_DOMAIN_PART);
+		logger.logInfoUsingMessage(
+				"IndexBatchJob created with id: " + indexBatchJobIdPersonDomainPart);
+	}
+
+	private static void recordAndLogBatchStartTime() {
+		startBatchTime = getCurrentFormattedTime();
+		logger.logInfoUsingMessage("Batch started at: " + startBatchTime);
 	}
 
 	private static String getCurrentFormattedTime() {
@@ -130,18 +150,41 @@ public class FedoraToDbBatch {
 		return currentDateTime.format(dateTimeFormatter);
 	}
 
-	private static void synchronizePids(List<String> listOfPids) {
+	private static void createAllActiveRecordsForPerson() {
+		List<String> listOfPids = getListOfActivePidsForPersonFromFedora();
+		synchronizeRecords("create", listOfPids);
+	}
+
+	private static List<String> getListOfActivePidsForPersonFromFedora() {
+		logger.logInfoUsingMessage("Fetching all active person records");
+		return fedoraReader.readPidsForType("authority-person");
+	}
+
+	private static void deletePersonRecordsDeletedAfterStartOfBatchJob() {
+		List<String> listOfPids = getListOfDeletedPidsForPersonAfterTime();
+		synchronizeRecords("delete", listOfPids);
+	}
+
+	private static List<String> getListOfDeletedPidsForPersonAfterTime() {
+		logger.logInfoUsingMessage(
+				"Fetching person records deleted after starting batch at: " + startBatchTime);
+		return fedoraReader.readPidsForTypeDeletedAfter(PERSON, startBatchTime);
+	}
+
+	private static void synchronizeRecords(String action, List<String> listOfPids) {
+		logger.logInfoUsingMessage("Synchronizing " + listOfPids.size() + " records");
 		int totalNoPids = listOfPids.size();
 		int pidNo = 1;
 		for (String recordId : listOfPids) {
-			synchronizePid(totalNoPids, pidNo, recordId);
+			logger.logInfoUsingMessage(
+					"Synchronizing(" + pidNo + "/" + totalNoPids + ") recordId: " + recordId);
+			synchronizeRecord(action, recordId);
 			pidNo++;
 		}
+		logger.logInfoUsingMessage("Synchronizing done");
 	}
 
-	private static void synchronizePid(int totalNoPids, int pidNo, String recordId) {
-		logger.logInfoUsingMessage(
-				"Synchronizing(" + pidNo + "/" + totalNoPids + ") recordId: " + recordId);
+	private static void synchronizeRecord(String action, String recordId) {
 		try {
 			if (action.equals("create")) {
 				synchronizer.synchronizeCreated(PERSON, recordId, "diva");
@@ -151,23 +194,5 @@ public class FedoraToDbBatch {
 		} catch (Exception e) {
 			logger.logErrorUsingMessageAndException("Error synchronizing recordId: " + recordId, e);
 		}
-
 	}
-
-	private static List<String> fetchPids(Map<String, String> initInfo) {
-		List<String> pids;
-		logger.logInfoUsingMessage("Fetching pids (" + action + ")");
-		if (action.equals("create")) {
-			pids = getListOfPidsFromFedora(initInfo);
-		} else {
-			pids = fedoraReader.readPidsForTypeDeletedAfter(PERSON, startBatchTime);
-		}
-		logger.logInfoUsingMessage("Fetched " + pids.size() + " pids");
-		return pids;
-	}
-
-	private static List<String> getListOfPidsFromFedora(Map<String, String> initInfo) {
-		return fedoraReader.readPidsForType("authority-person");
-	}
-
 }

@@ -56,7 +56,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	private CoraClient coraClient;
 	private String xmlFromFedora;
 	private List<String> domainPartIds;
-	private boolean indexRequieredPerRecord;
+	private boolean indexRecordImmediately;
 
 	public static ClassicCoraPersonSynchronizer createClassicCoraPersonSynchronizerForMessaging(
 			RecordStorage recordStorage, HttpHandlerFactory httpHandlerFactory,
@@ -75,13 +75,13 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 
 	private ClassicCoraPersonSynchronizer(RecordStorage recordStorage,
 			HttpHandlerFactory httpHandlerFactory, FedoraConverterFactory fedoraConverterFactory,
-			CoraClient coraClient, String baseURL, boolean indexRequieredPerRecord) {
+			CoraClient coraClient, String baseURL, boolean indexRecordImmediately) {
 		this.recordStorage = recordStorage;
 		this.httpHandlerFactory = httpHandlerFactory;
 		this.fedoraConverterFactory = fedoraConverterFactory;
 		this.coraClient = coraClient;
 		this.baseURL = baseURL;
-		this.indexRequieredPerRecord = indexRequieredPerRecord;
+		this.indexRecordImmediately = indexRecordImmediately;
 
 	}
 
@@ -115,8 +115,8 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	private void synchronizeCreate() {
 		readPersonFromFedora();
 		createPersonInStorage();
-		indexPerson();
-		createAndIndexPersonDomainParts();
+		possiblyIndexRecord(recordType, recordId);
+		createAndPossiblyIndexPersonDomainParts();
 	}
 
 	private void readPersonFromFedora() {
@@ -155,17 +155,13 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 				createLinkList(), dataDivider);
 	}
 
-	private void indexPerson() {
-		possiblyIndexRecord(recordType, recordId);
-	}
-
 	private void possiblyIndexRecord(String recordType2, String recordId2) {
-		if (indexRequieredPerRecord) {
+		if (indexRecordImmediately) {
 			coraClient.indexData(recordType2, recordId2);
 		}
 	}
 
-	private void createAndIndexPersonDomainParts() {
+	private void createAndPossiblyIndexPersonDomainParts() {
 		for (String domainPartId : domainPartIds) {
 			createAndIndexDomainPart(domainPartId);
 		}
@@ -210,7 +206,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 		List<String> oldDomainPartIds = getPersonDomainPartIdsFromPerson(oldPerson);
 		readPersonFromFedora();
 		updatePerson();
-		indexPerson();
+		possiblyIndexRecord(recordType, recordId);
 		updateAndIndexPersonDomainParts(oldDomainPartIds);
 	}
 
@@ -312,7 +308,14 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	public boolean onlyForTestGetExplicitIndexCommit() {
-		return indexRequieredPerRecord;
+		return indexRecordImmediately;
+	}
+
+	@Override
+	public String indexAllRecordsForType(String recordType) {
+		return "";
+		// TODO Auto-generated method stub
+
 	}
 
 }
