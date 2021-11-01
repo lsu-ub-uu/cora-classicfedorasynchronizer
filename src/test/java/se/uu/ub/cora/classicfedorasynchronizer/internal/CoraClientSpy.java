@@ -161,8 +161,12 @@ public class CoraClientSpy implements CoraClient {
 
 	@Override
 	public String indexRecordsOfType(String recordType, String filterAsJson) {
-		// TODO Auto-generated method stub
-		return null;
+		MCR.addCall("recordType", recordType, "filterAsJson", filterAsJson);
+
+		String returnValue = "someIndexBatchJob";
+
+		MCR.addReturned(returnValue);
+		return returnValue;
 	}
 
 }

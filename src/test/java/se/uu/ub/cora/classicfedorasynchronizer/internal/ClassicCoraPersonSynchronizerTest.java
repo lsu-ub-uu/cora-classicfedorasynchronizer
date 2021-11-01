@@ -466,4 +466,11 @@ public class ClassicCoraPersonSynchronizerTest {
 		assertCorrectIndexedDomainPartUsingIndex(2, "removeFromIndex");
 	}
 
+	@Test
+	public void testCallToCoraClient() throws Exception {
+		synchronizerMessaging.indexAllRecordsForType("person");
+
+		coraClientSpy.MCR.assertParameters("indexRecordsOfType", 0, "person");
+
+	}
 }

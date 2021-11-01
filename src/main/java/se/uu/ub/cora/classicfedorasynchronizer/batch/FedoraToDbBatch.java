@@ -127,15 +127,27 @@ public class FedoraToDbBatch {
 		recordAndLogBatchStartTime();
 		createAllActiveRecordsForPerson();
 		deletePersonRecordsDeletedAfterStartOfBatchJob();
-		indexStuff();
+		indexAllRecords();
 	}
 
-	private static void indexStuff() {
+	private static void indexAllRecords() {
 		logger.logInfoUsingMessage("Start indexing for all records");
+		indexPersons();
+		indexPersonDomainParts();
+	}
+
+	private static void indexPersons() {
 		String indexBatchJobIdPerson = synchronizer.indexAllRecordsForType(PERSON);
-		logger.logInfoUsingMessage("IndexBatchJob created with id: " + indexBatchJobIdPerson);
+		logMessageForIndexing(indexBatchJobIdPerson);
+	}
+
+	private static void indexPersonDomainParts() {
 		String indexBatchJobIdPersonDomainPart = synchronizer
 				.indexAllRecordsForType(PERSON_DOMAIN_PART);
+		logMessageForIndexing(indexBatchJobIdPersonDomainPart);
+	}
+
+	private static void logMessageForIndexing(String indexBatchJobIdPersonDomainPart) {
 		logger.logInfoUsingMessage(
 				"IndexBatchJob created with id: " + indexBatchJobIdPersonDomainPart);
 	}

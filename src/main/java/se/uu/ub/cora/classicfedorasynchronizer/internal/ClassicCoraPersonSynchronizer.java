@@ -313,8 +313,8 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 
 	@Override
 	public String indexAllRecordsForType(String recordType) {
+		coraClient.indexRecordsOfType(recordType, null);
 		return "";
-		// TODO Auto-generated method stub
 
 	}
 
