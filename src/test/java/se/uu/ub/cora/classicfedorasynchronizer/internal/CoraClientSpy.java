@@ -160,7 +160,7 @@ public class CoraClientSpy implements CoraClient {
 	}
 
 	@Override
-	public String indexRecordList(String recordType, String filterAsJson) {
+	public String indexRecordsOfType(String recordType, String filterAsJson) {
 		// TODO Auto-generated method stub
 		return null;
 	}
