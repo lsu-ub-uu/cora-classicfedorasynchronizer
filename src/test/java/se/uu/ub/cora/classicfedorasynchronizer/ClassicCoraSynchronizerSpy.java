@@ -53,13 +53,8 @@ public class ClassicCoraSynchronizerSpy implements ClassicCoraSynchronizer {
 	}
 
 	@Override
-	public String indexAllRecordsForType(String recordType) {
+	public void indexAllRecordsForType(String recordType) {
 		MCR.addCall("recordType", recordType);
-
-		String indexBatchJobId = "someBatchJobId";
-		MCR.addReturned(indexBatchJobId);
-		return indexBatchJobId;
-
 	}
 
 }

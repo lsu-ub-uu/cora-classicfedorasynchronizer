@@ -438,7 +438,6 @@ public class ClassicCoraPersonSynchronizerTest {
 	}
 
 	private void assertCorrectIndexedDomainPartUsingIndex(int index, String workOrderType) {
-		// assertEquals(coraClientSpy.workOrderTypes.get(index), workOrderType);
 		assertEquals(coraClientSpy.recordTypes.get(index), "personDomainPart");
 		assertEquals(coraClientSpy.recordIds.get(index), dbStorage.alteredRecordIds.get(index));
 	}
@@ -470,7 +469,7 @@ public class ClassicCoraPersonSynchronizerTest {
 	public void testCallToCoraClient() throws Exception {
 		synchronizerMessaging.indexAllRecordsForType("person");
 
-		coraClientSpy.MCR.assertParameters("indexRecordsOfType", 0, "person");
-
+		coraClientSpy.MCR.assertParameters("indexRecordsOfType", 0, "person",
+				"{\"name\":\"filter\",\"children\":[]}");
 	}
 }

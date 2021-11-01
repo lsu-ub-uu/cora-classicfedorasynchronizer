@@ -108,9 +108,9 @@ public class FedoraToDbBatchTest {
 		assertEquals(getInfoLogNo(13), "Synchronizing(1/2) recordId: auhority-person:127");
 		assertEquals(getInfoLogNo(14), "Synchronizing(2/2) recordId: auhority-person:1211");
 		assertEquals(getInfoLogNo(15), "Synchronizing done");
-		assertEquals(getInfoLogNo(16), "Start indexing for all records");
-		assertEquals(getInfoLogNo(17), "IndexBatchJob created with id: someBatchJobId");
-		// assertEquals(getInfoLogNo(17), "FedoraToDbBatch done");
+		assertEquals(getInfoLogNo(16), "Start indexing for all persons");
+		assertEquals(getInfoLogNo(17), "Start indexing for all personDomainParts");
+		assertEquals(getInfoLogNo(18), "See API for status of batchJobs");
 	}
 
 	private void setFactoryClassNamesToSpies() {
@@ -371,17 +371,8 @@ public class FedoraToDbBatchTest {
 
 		ClassicCoraSynchronizerSpy synchronizer = getSynchronizerSpy();
 
-		String IndexBatchJobId = extractIndexBatchJobIdFromLog(17);
-
 		synchronizer.MCR.assertParameters("indexAllRecordsForType", 0, "person");
-		synchronizer.MCR.assertReturn("indexAllRecordsForType", 0, IndexBatchJobId);
 
-	}
-
-	private String extractIndexBatchJobIdFromLog(int messageLine) {
-		int indexOf = getInfoLogNo(messageLine).indexOf(":");
-		String IndexBatchJobId = getInfoLogNo(messageLine).substring(indexOf + 1).trim();
-		return IndexBatchJobId;
 	}
 
 	@Test
@@ -392,9 +383,6 @@ public class FedoraToDbBatchTest {
 
 		ClassicCoraSynchronizerSpy synchronizer = getSynchronizerSpy();
 
-		String IndexBatchJobId = extractIndexBatchJobIdFromLog(18);
-
 		synchronizer.MCR.assertParameters("indexAllRecordsForType", 1, "personDomainPart");
-		synchronizer.MCR.assertReturn("indexAllRecordsForType", 1, IndexBatchJobId);
 	}
 }

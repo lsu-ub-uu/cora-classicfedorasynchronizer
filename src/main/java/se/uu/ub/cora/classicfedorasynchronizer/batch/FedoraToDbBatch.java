@@ -80,25 +80,6 @@ public class FedoraToDbBatch {
 		logger.logInfoUsingMessage("FedoraToDbBatch started");
 	}
 
-	// here
-	// private void initializeCoraClient() {
-	//
-	// String apptokenVerifierURL = initInfo.get("coraApptokenVerifierURL");
-	// String baseURL = initInfo.get("coraBaseUrl");
-	// coraClientFactory = CoraClientFactoryImp
-	// .usingAppTokenVerifierUrlAndBaseUrl(apptokenVerifierURL, baseURL);
-	//
-	// factorCoraClient();
-	// }
-	//
-	// private void factorCoraClient() {
-	// String userId = initInfo.get("coraUserId");
-	// String apptoken = initInfo.get("coraApptoken");
-	//
-	// coraClient = coraClientFactory.factor(userId, apptoken);
-	// }
-	// to here
-
 	private static Map<String, String> createInitInfoFromArgs() throws IOException {
 		return FedoraToDbBatchPropertiesLoader.createInitInfo(args);
 	}
@@ -131,25 +112,23 @@ public class FedoraToDbBatch {
 	}
 
 	private static void indexAllRecords() {
-		logger.logInfoUsingMessage("Start indexing for all records");
 		indexPersons();
 		indexPersonDomainParts();
+		logger.logInfoUsingMessage("See API for status of batchJobs");
 	}
 
 	private static void indexPersons() {
-		String indexBatchJobIdPerson = synchronizer.indexAllRecordsForType(PERSON);
-		logMessageForIndexing(indexBatchJobIdPerson);
+		logMessageForIndexing(PERSON);
+		synchronizer.indexAllRecordsForType(PERSON);
+	}
+
+	private static void logMessageForIndexing(String recordType) {
+		logger.logInfoUsingMessage("Start indexing for all " + recordType + "s");
 	}
 
 	private static void indexPersonDomainParts() {
-		String indexBatchJobIdPersonDomainPart = synchronizer
-				.indexAllRecordsForType(PERSON_DOMAIN_PART);
-		logMessageForIndexing(indexBatchJobIdPersonDomainPart);
-	}
-
-	private static void logMessageForIndexing(String indexBatchJobIdPersonDomainPart) {
-		logger.logInfoUsingMessage(
-				"IndexBatchJob created with id: " + indexBatchJobIdPersonDomainPart);
+		logMessageForIndexing(PERSON_DOMAIN_PART);
+		synchronizer.indexAllRecordsForType(PERSON_DOMAIN_PART);
 	}
 
 	private static void recordAndLogBatchStartTime() {
