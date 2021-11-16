@@ -41,7 +41,7 @@ import se.uu.ub.cora.storage.RecordStorage;
  * ClassicCoraPersonSynchronizer is NOT threadsafe
  */
 public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
-	private static final String EMPTY_FILTER = "{\"name\":\"filter\",\"children\":[]}";
+	private static final String EMPTY_SETTINGS = "{\"name\":\"indexSettings\",\"children\":[]}";
 	private static final String PERSON_DOMAIN_PART = "personDomainPart";
 	private static final int NOT_FOUND = 404;
 
@@ -314,7 +314,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 
 	@Override
 	public void indexAllRecordsForType(String recordType) {
-		coraClient.indexRecordsOfType(recordType, EMPTY_FILTER);
+		coraClient.indexRecordsOfType(recordType, EMPTY_SETTINGS);
 	}
 
 }

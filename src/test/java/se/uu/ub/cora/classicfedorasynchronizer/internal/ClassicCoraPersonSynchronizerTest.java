@@ -470,6 +470,6 @@ public class ClassicCoraPersonSynchronizerTest {
 		synchronizerMessaging.indexAllRecordsForType("person");
 
 		coraClientSpy.MCR.assertParameters("indexRecordsOfType", 0, "person",
-				"{\"name\":\"filter\",\"children\":[]}");
+				"{\"name\":\"indexSettings\",\"children\":[]}");
 	}
 }
