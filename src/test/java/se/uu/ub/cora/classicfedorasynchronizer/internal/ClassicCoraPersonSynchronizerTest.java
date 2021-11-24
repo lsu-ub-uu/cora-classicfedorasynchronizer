@@ -124,7 +124,13 @@ public class ClassicCoraPersonSynchronizerTest {
 		FedoraToCoraConverterSpy factoredFedoraConverter = fedoraConverterFactory.factoredFedoraConverters
 				.get(0);
 		assertCorrectCommonResultHandledCorrectly(factoredHttpHandler, factoredFedoraConverter, 2);
-		assertEquals(dbStorage.methodName, "create");
+		dbStorage.MCR.assertMethodNotCalled("deleteByTypeAndId");
+		dbStorage.MCR.assertMethodNotCalled("update");
+		dbStorage.MCR.assertParameters("create", 0, "person", "someRecordId");
+		dbStorage.MCR.assertNumberOfCallsToMethod("create", 1);
+
+		coraClientSpy.MCR.assertParameters("indexData", 0, "person", "someRecordId");
+		coraClientSpy.MCR.assertNumberOfCallsToMethod("indexData", 1);
 	}
 
 	private void assertCorrectCommonResultHandledCorrectly(HttpHandlerSpy factoredHttpHandler,
@@ -157,7 +163,13 @@ public class ClassicCoraPersonSynchronizerTest {
 		FedoraToCoraConverterSpy factoredFedoraConverter = fedoraConverterFactory.factoredFedoraConverters
 				.get(0);
 		assertCorrectCommonResultHandledCorrectly(factoredHttpHandler, factoredFedoraConverter, 2);
-		assertEquals(dbStorage.methodName, "update");
+
+		dbStorage.MCR.assertMethodNotCalled("deleteByTypeAndId");
+		dbStorage.MCR.assertMethodNotCalled("create");
+		dbStorage.MCR.assertParameters("update", 0, "person", "someRecordId");
+		dbStorage.MCR.assertNumberOfCallsToMethod("update", 1);
+		coraClientSpy.MCR.assertParameters("indexData", 0, "person", "someRecordId");
+		coraClientSpy.MCR.assertNumberOfCallsToMethod("indexData", 1);
 	}
 
 	@Test
@@ -190,6 +202,7 @@ public class ClassicCoraPersonSynchronizerTest {
 		setUpPersonInDbWithDomainParts(4);
 		synchronizerMessaging.synchronizeUpdated("person", "someRecordId", dataDivider);
 
+		dbStorage.MCR.assertMethodNotCalled("create");
 		dbStorage.MCR.assertParameters("deleteByTypeAndId", 0, "personDomainPart",
 				"authority-person:2:kth2");
 		dbStorage.MCR.assertParameters("deleteByTypeAndId", 1, "personDomainPart",
@@ -208,6 +221,15 @@ public class ClassicCoraPersonSynchronizerTest {
 		synchronizerMessaging.synchronizeUpdated("person", "someRecordId", dataDivider);
 
 		dbStorage.MCR.assertMethodNotCalled("deleteByTypeAndId");
+		dbStorage.MCR.assertParameters("update", 1, "personDomainPart", "authority-person:0:kth0");
+		dbStorage.MCR.assertParameters("update", 2, "personDomainPart", "authority-person:1:kth1");
+		dbStorage.MCR.assertParameters("create", 0, "personDomainPart", "authority-person:2:kth2");
+		dbStorage.MCR.assertParameters("create", 1, "personDomainPart", "authority-person:3:kth3");
+
+		coraClientSpy.MCR.assertParameters("indexData", 1, "personDomainPart",
+				"authority-person:0:kth0");
+		coraClientSpy.MCR.assertParameters("indexData", 2, "personDomainPart",
+				"authority-person:1:kth1");
 		coraClientSpy.MCR.assertParameters("indexData", 3, "personDomainPart",
 				"authority-person:2:kth2");
 		coraClientSpy.MCR.assertParameters("indexData", 4, "personDomainPart",
@@ -381,6 +403,7 @@ public class ClassicCoraPersonSynchronizerTest {
 	@Test
 	public void testSynchronizeRecordResultHandledCorrectlyWhenDomainPartsForUpdate() {
 		setUpFedoraPersonConverterWithDomainParts(3);
+
 		synchronizerMessaging.synchronizeUpdated("person", "someRecordId", dataDivider);
 
 		HttpHandlerSpy factoredHttpHandler = httpHandlerFactory.factoredHttpHandlerSpy;
@@ -388,8 +411,20 @@ public class ClassicCoraPersonSynchronizerTest {
 				.get(0);
 
 		assertCorrectCommonResultHandledCorrectly(factoredHttpHandler, factoredFedoraConverter, 8);
-		assertEquals(dbStorage.methodName, "update");
 
+		dbStorage.MCR.assertMethodNotCalled("deleteByTypeAndId");
+		dbStorage.MCR.assertParameters("update", 0, "person", "someRecordId");
+		dbStorage.MCR.assertParameters("create", 0, "personDomainPart", "authority-person:0:kth0");
+		dbStorage.MCR.assertParameters("create", 1, "personDomainPart", "authority-person:1:kth1");
+		dbStorage.MCR.assertParameters("create", 2, "personDomainPart", "authority-person:2:kth2");
+
+		coraClientSpy.MCR.assertParameters("indexData", 0, "person", "someRecordId");
+		coraClientSpy.MCR.assertParameters("indexData", 1, "personDomainPart",
+				"authority-person:0:kth0");
+		coraClientSpy.MCR.assertParameters("indexData", 2, "personDomainPart",
+				"authority-person:1:kth1");
+		coraClientSpy.MCR.assertParameters("indexData", 3, "personDomainPart",
+				"authority-person:2:kth2");
 	}
 
 	private void setUpFedoraPersonConverterWithDomainParts(int noOfDomainParts) {
@@ -413,7 +448,21 @@ public class ClassicCoraPersonSynchronizerTest {
 				.get(0);
 
 		assertCorrectCommonResultHandledCorrectly(factoredHttpHandler, factoredFedoraConverter, 8);
-		assertEquals(dbStorage.methodName, "create");
+
+		dbStorage.MCR.assertMethodNotCalled("deleteByTypeAndId");
+		dbStorage.MCR.assertMethodNotCalled("update");
+		dbStorage.MCR.assertParameters("create", 0, "person", "someRecordId");
+		dbStorage.MCR.assertParameters("create", 1, "personDomainPart", "authority-person:0:kth0");
+		dbStorage.MCR.assertParameters("create", 2, "personDomainPart", "authority-person:1:kth1");
+		dbStorage.MCR.assertParameters("create", 3, "personDomainPart", "authority-person:2:kth2");
+
+		coraClientSpy.MCR.assertParameters("indexData", 0, "person", "someRecordId");
+		coraClientSpy.MCR.assertParameters("indexData", 1, "personDomainPart",
+				"authority-person:0:kth0");
+		coraClientSpy.MCR.assertParameters("indexData", 2, "personDomainPart",
+				"authority-person:1:kth1");
+		coraClientSpy.MCR.assertParameters("indexData", 3, "personDomainPart",
+				"authority-person:2:kth2");
 
 	}
 

@@ -35,7 +35,6 @@ public class RecordStorageSpy implements RecordStorage {
 	public List<String> alteredRecordIds = new ArrayList<>();
 	public List<String> readRecordIds = new ArrayList<>();
 	public List<DataGroup> handledDataGroups = new ArrayList<>();
-	public String methodName = "";
 	public List<String> dataDividers = new ArrayList<>();
 	public List<DataGroup> collectedDataDataGroups = new ArrayList<>();
 	public List<DataGroup> linkListDataGroups = new ArrayList<>();
@@ -64,7 +63,6 @@ public class RecordStorageSpy implements RecordStorage {
 		collectedDataDataGroups.add(collectedTerms);
 		linkListDataGroups.add(linkList);
 		dataDividers.add(dataDivider);
-		methodName = "create";
 	}
 
 	@Override
@@ -72,7 +70,6 @@ public class RecordStorageSpy implements RecordStorage {
 		MCR.addCall("type", type, "id", id);
 		alteredRecordTypes.add(type);
 		alteredRecordIds.add(id);
-		methodName = "delete";
 	}
 
 	@Override
@@ -93,8 +90,6 @@ public class RecordStorageSpy implements RecordStorage {
 		collectedDataDataGroups.add(collectedTerms);
 		linkListDataGroups.add(linkList);
 		dataDividers.add(dataDivider);
-		methodName = "update";
-
 	}
 
 	@Override

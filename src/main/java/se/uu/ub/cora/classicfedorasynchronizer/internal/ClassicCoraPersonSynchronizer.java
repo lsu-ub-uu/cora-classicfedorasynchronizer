@@ -217,18 +217,28 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 	}
 
 	private void updateAndIndexPersonDomainParts(List<String> oldDomainPartIds) {
-		handleNewDomainParts(oldDomainPartIds);
-		removeOldDomainParts(oldDomainPartIds);
+		handleDomainPartsThatExistsInUpdatedPerson(oldDomainPartIds);
+		removeDomainPartsThatAreRemovedComparedToUpdatedPerson(oldDomainPartIds);
 	}
 
-	private void handleNewDomainParts(List<String> oldDomainPartIds) {
+	private void handleDomainPartsThatExistsInUpdatedPerson(List<String> oldDomainPartIds) {
 		for (String domainPartId : domainPartIds) {
-			oldDomainPartIds.remove(domainPartId);
-			updateAndIndexPersonDomainPart(domainPartId);
+			updateOrCreateDomainPartFromUpdatedPerson(oldDomainPartIds, domainPartId);
 		}
 	}
 
-	private void removeOldDomainParts(List<String> oldDomainPartIds) {
+	private void updateOrCreateDomainPartFromUpdatedPerson(List<String> oldDomainPartIds,
+			String domainPartId) {
+		boolean existsSinceBefore = oldDomainPartIds.remove(domainPartId);
+		if (existsSinceBefore) {
+			updateAndIndexPersonDomainPart(domainPartId);
+		} else {
+			createAndIndexDomainPart(domainPartId);
+		}
+	}
+
+	private void removeDomainPartsThatAreRemovedComparedToUpdatedPerson(
+			List<String> oldDomainPartIds) {
 		for (String partId : oldDomainPartIds) {
 			removeDomainPartAndIndex(partId);
 		}
@@ -258,7 +268,7 @@ public class ClassicCoraPersonSynchronizer implements ClassicCoraSynchronizer {
 
 	private void removeDomainPartsAndIndexes(DataGroup readDataGroup) {
 		List<String> partIds = getPersonDomainPartIdsFromPerson(readDataGroup);
-		removeOldDomainParts(partIds);
+		removeDomainPartsThatAreRemovedComparedToUpdatedPerson(partIds);
 	}
 
 	private void removeDomainPartAndIndex(String domainPartId) {
