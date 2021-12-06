@@ -22,9 +22,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class PropertiesLoader {
+public class PropertiesFileLoader {
 
-	private PropertiesLoader() {
+	private PropertiesFileLoader() {
 
 	}
 
@@ -36,19 +36,21 @@ public class PropertiesLoader {
 		return args.length == 1;
 	}
 
-	public static Properties readPropertiesFromFile(String[] args) throws IOException {
-		String propertiesFileName = getFilenameFromArgsOrDefault(args);
-		try (InputStream input = PropertiesLoader.class.getClassLoader()
+	public static Properties readPropertiesFromFile(String[] args, String defaultFileName)
+			throws IOException {
+		String propertiesFileName = getFilenameFromArgsOrDefault(args, defaultFileName);
+		try (InputStream input = PropertiesFileLoader.class.getClassLoader()
 				.getResourceAsStream(propertiesFileName)) {
 			return loadProperitesFromFile(input);
 		}
 	}
 
-	private static String getFilenameFromArgsOrDefault(String[] args) {
+	private static String getFilenameFromArgsOrDefault(String[] args, String defaultFileName) {
 		if (args.length > 0) {
 			return args[0];
 		}
-		return "synchronizer.properties";
+		// return "synchronizer.properties";
+		return defaultFileName;
 	}
 
 	private static Properties loadProperitesFromFile(InputStream input) throws IOException {
@@ -56,4 +58,5 @@ public class PropertiesLoader {
 		properties.load(input);
 		return properties;
 	}
+
 }

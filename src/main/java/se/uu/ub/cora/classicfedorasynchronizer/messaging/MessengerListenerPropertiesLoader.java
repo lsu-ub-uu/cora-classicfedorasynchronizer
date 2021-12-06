@@ -21,7 +21,7 @@ package se.uu.ub.cora.classicfedorasynchronizer.messaging;
 import java.io.IOException;
 import java.util.Properties;
 
-import se.uu.ub.cora.classicfedorasynchronizer.internal.PropertiesLoader;
+import se.uu.ub.cora.classicfedorasynchronizer.internal.PropertiesFileLoader;
 
 class MessengerListenerPropertiesLoader {
 	private static final int NUMBER_OF_ARGUMENTS = 13;
@@ -37,8 +37,8 @@ class MessengerListenerPropertiesLoader {
 	}
 
 	private Properties load() throws IOException {
-		if (PropertiesLoader.propertiesShouldBeReadFromFile(args)) {
-			return PropertiesLoader.readPropertiesFromFile(args);
+		if (PropertiesFileLoader.propertiesShouldBeReadFromFile(args)) {
+			return PropertiesFileLoader.readPropertiesFromFile(args, "synchronizer.properties");
 		} else if (propertiesProvidedAsArguments()) {
 			return loadProperitesFromArgs();
 		}

@@ -23,33 +23,39 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import se.uu.ub.cora.classicfedorasynchronizer.internal.PropertiesLoader;
+import se.uu.ub.cora.classicfedorasynchronizer.internal.PropertiesFileLoader;
 
 class FedoraToDbBatchPropertiesLoader {
-	private static final int NUMBER_OF_ARGUMENTS = 8;
 	private String[] args;
+	private int numberOfArguments;
+	private String defaultPropertiesFileName;
 
-	private FedoraToDbBatchPropertiesLoader(String[] args) {
+	private FedoraToDbBatchPropertiesLoader(String[] args, int numberOfArguments,
+			String defaultPropertiesFileName) {
 		this.args = args;
+		this.numberOfArguments = numberOfArguments;
+		this.defaultPropertiesFileName = defaultPropertiesFileName;
 	}
 
-	public static Map<String, String> createInitInfo(String[] args) throws IOException {
-		FedoraToDbBatchPropertiesLoader loader = new FedoraToDbBatchPropertiesLoader(args);
+	public static Map<String, String> createInitInfo(String[] args, int numberOfExpectedArguments,
+			String defaultPropertiesFileName) throws IOException {
+		FedoraToDbBatchPropertiesLoader loader = new FedoraToDbBatchPropertiesLoader(args,
+				numberOfExpectedArguments, defaultPropertiesFileName);
 		Properties properties = loader.load();
-		return createInitInfoFromProperties(properties);
+		return loader.createInitInfoFromProperties(properties);
 	}
 
 	private Properties load() throws IOException {
-		if (PropertiesLoader.propertiesShouldBeReadFromFile(args)) {
-			return PropertiesLoader.readPropertiesFromFile(args);
+		if (PropertiesFileLoader.propertiesShouldBeReadFromFile(args)) {
+			return PropertiesFileLoader.readPropertiesFromFile(args, defaultPropertiesFileName);
 		} else if (propertiesProvidedAsArguments()) {
 			return loadProperitesFromArgs();
 		}
-		throw new RuntimeException("Number of arguments should be " + NUMBER_OF_ARGUMENTS + ".");
+		throw new RuntimeException("Number of arguments should be " + numberOfArguments + ".");
 	}
 
 	private boolean propertiesProvidedAsArguments() {
-		return args.length == NUMBER_OF_ARGUMENTS;
+		return args.length == numberOfArguments;
 	}
 
 	private Properties loadProperitesFromArgs() {
@@ -63,11 +69,14 @@ class FedoraToDbBatchPropertiesLoader {
 		properties.put("cora.baseUrl", args[5]);
 		properties.put("cora.userId", args[6]);
 		properties.put("cora.apptoken", args[7]);
+		if (numberOfArguments > 8) {
+			properties.put("cora.afterTimestamp", args[8]);
+		}
 
 		return properties;
 	}
 
-	private static Map<String, String> createInitInfoFromProperties(Properties properties) {
+	private Map<String, String> createInitInfoFromProperties(Properties properties) {
 		Map<String, String> initInfo = new HashMap<>();
 		addPropertyToInitInfo(initInfo, properties, "databaseUrl", "database.url");
 		addPropertyToInitInfo(initInfo, properties, "databaseUser", "database.user");
@@ -78,25 +87,27 @@ class FedoraToDbBatchPropertiesLoader {
 		addPropertyToInitInfo(initInfo, properties, "coraBaseUrl", "cora.baseUrl");
 		addPropertyToInitInfo(initInfo, properties, "coraUserId", "cora.userId");
 		addPropertyToInitInfo(initInfo, properties, "coraApptoken", "cora.apptoken");
+		if (numberOfArguments > 8) {
+			addPropertyToInitInfo(initInfo, properties, "afterTimestamp", "cora.afterTimestamp");
+		}
 		return initInfo;
 	}
 
-	private static void addPropertyToInitInfo(Map<String, String> initInfo, Properties properties,
+	private void addPropertyToInitInfo(Map<String, String> initInfo, Properties properties,
 			String key, String propertyName) {
 		initInfo.put(key, extractPropertyThrowErrorIfNotFound(properties, propertyName));
 	}
 
-	private static String extractPropertyThrowErrorIfNotFound(Properties properties,
-			String propertyName) {
+	private String extractPropertyThrowErrorIfNotFound(Properties properties, String propertyName) {
 		throwErrorIfPropertyNameIsMissing(properties, propertyName);
 		return properties.getProperty(propertyName);
 	}
 
-	private static void throwErrorIfPropertyNameIsMissing(Properties properties,
-			String propertyName) {
+	private void throwErrorIfPropertyNameIsMissing(Properties properties, String propertyName) {
 		if (!properties.containsKey(propertyName)) {
 			throw new RuntimeException(
 					"Property with name " + propertyName + " not found in properties");
 		}
 	}
+
 }

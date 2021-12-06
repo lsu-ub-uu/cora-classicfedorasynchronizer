@@ -29,7 +29,7 @@ public class PropertiesLoaderTest {
 
 	@Test
 	public void testConstructorIsPrivate() throws Exception {
-		Constructor<PropertiesLoader> constructor = PropertiesLoader.class.getDeclaredConstructor();
+		Constructor<PropertiesFileLoader> constructor = PropertiesFileLoader.class.getDeclaredConstructor();
 		assertTrue(Modifier.isPrivate(constructor.getModifiers()));
 		constructor.setAccessible(true);
 		constructor.newInstance();

@@ -34,12 +34,12 @@ import se.uu.ub.cora.fedora.reader.FedoraReaderFactory;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 
-public class FedoraToDbBatch {
+public class FedoraToDbCatchUpBatch {
 
 	private static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 	private static final String PERSON = "person";
 	private static final String PERSON_DOMAIN_PART = "personDomainPart";
-	private static Logger logger = LoggerProvider.getLoggerForClass(FedoraToDbBatch.class);
+	private static Logger logger = LoggerProvider.getLoggerForClass(FedoraToDbCatchUpBatch.class);
 	static String synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory";
 	static String fedoraReaderFactoryClassName = "se.uu.ub.cora.fedora.reader.FedoraReaderFactoryImp";
 	static ClassicCoraSynchronizerFactory synchronizerFactory;
@@ -51,17 +51,17 @@ public class FedoraToDbBatch {
 			.ofPattern(DATE_TIME_PATTERN);
 	private static String startBatchTime;
 
-	FedoraToDbBatch() {
+	FedoraToDbCatchUpBatch() {
 	}
 
 	public static void main(String[] args) {
-		FedoraToDbBatch.args = args;
-		logger.logInfoUsingMessage("FedoraToDbBatch starting...");
+		FedoraToDbCatchUpBatch.args = args;
+		logger.logInfoUsingMessage("FedoraToDbCatchUpBatch starting...");
 		try {
 			tryToSynchronize();
 		} catch (Exception e) {
 			logger.logFatalUsingMessageAndException(
-					"Error running FedoraToDbBatch: " + e.getMessage(), e);
+					"Error running FedoraToDbCatchUpBatch: " + e.getMessage(), e);
 		}
 	}
 
@@ -77,11 +77,12 @@ public class FedoraToDbBatch {
 		Map<String, String> initInfo = createInitInfoFromArgs();
 		constructSynchronizerFactory(initInfo);
 		constructFedoraReaderFactory(initInfo);
-		logger.logInfoUsingMessage("FedoraToDbBatch started");
+		logger.logInfoUsingMessage("FedoraToDbCatchUpBatch started");
 	}
 
 	private static Map<String, String> createInitInfoFromArgs() throws IOException {
-		return FedoraToDbBatchPropertiesLoader.createInitInfo(args, 8, "synchronizer.properties");
+		return FedoraToDbBatchPropertiesLoader.createInitInfo(args, 9,
+				"fedoraToDbCatchUp.properties");
 	}
 
 	private static void constructSynchronizerFactory(Map<String, String> initInfo)
