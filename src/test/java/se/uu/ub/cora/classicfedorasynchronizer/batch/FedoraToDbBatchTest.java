@@ -309,7 +309,7 @@ public class FedoraToDbBatchTest {
 		LocalDateTime dateTimeAfter = whatTimeIsIt().plus(2, ChronoUnit.SECONDS);
 		FedoraReaderSpy fedoraReader = getFedoraReader();
 
-		fedoraReader.MCR.assertParameters("readPidsForTypeDeletedAfter", 0, "person");
+		fedoraReader.MCR.assertParameters("readPidsForTypeDeletedAfter", 0, "authority-person");
 		LocalDateTime batchStartedDateTime = getBatchStartedDateTime(fedoraReader);
 
 		assertTrue(dateTimeBefore.isBefore(batchStartedDateTime));
