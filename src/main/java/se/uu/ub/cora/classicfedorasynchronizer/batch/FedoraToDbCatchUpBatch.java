@@ -34,13 +34,13 @@ import se.uu.ub.cora.fedora.reader.FedoraReaderFactory;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 
-public class FedoraToDbBatch {
+public class FedoraToDbCatchUpBatch {
 
 	private static final String AUTHORITY_PERSON = "authority-person";
 	private static final String PERSON = "person";
 	private static final String PERSON_DOMAIN_PART = "personDomainPart";
 	private static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss'Z'";
-	private static Logger logger = LoggerProvider.getLoggerForClass(FedoraToDbBatch.class);
+	private static Logger logger = LoggerProvider.getLoggerForClass(FedoraToDbCatchUpBatch.class);
 	static String synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory";
 	static String fedoraReaderFactoryClassName = "se.uu.ub.cora.fedora.reader.FedoraReaderFactoryImp";
 	static ClassicCoraSynchronizerFactory synchronizerFactory;
@@ -51,18 +51,19 @@ public class FedoraToDbBatch {
 	private static DateTimeFormatter dateTimeFormatter = DateTimeFormatter
 			.ofPattern(DATE_TIME_PATTERN);
 	private static String startBatchTime;
+	private static String afterTimestamp;
 
-	FedoraToDbBatch() {
+	FedoraToDbCatchUpBatch() {
 	}
 
 	public static void main(String[] args) {
-		FedoraToDbBatch.args = args;
-		logger.logInfoUsingMessage("FedoraToDbBatch starting...");
+		FedoraToDbCatchUpBatch.args = args;
+		logger.logInfoUsingMessage("FedoraToDbCatchUpBatch starting...");
 		try {
 			tryToSynchronize();
 		} catch (Exception e) {
 			logger.logFatalUsingMessageAndException(
-					"Error running FedoraToDbBatch: " + e.getMessage(), e);
+					"Error running FedoraToDbCatchUpBatch: " + e.getMessage(), e);
 		}
 	}
 
@@ -78,11 +79,13 @@ public class FedoraToDbBatch {
 		Map<String, String> initInfo = createInitInfoFromArgs();
 		constructSynchronizerFactory(initInfo);
 		constructFedoraReaderFactory(initInfo);
-		logger.logInfoUsingMessage("FedoraToDbBatch started");
+		afterTimestamp = initInfo.get("afterTimestamp");
+		logger.logInfoUsingMessage("FedoraToDbCatchUpBatch started");
 	}
 
 	private static Map<String, String> createInitInfoFromArgs() throws IOException {
-		return FedoraToDbBatchPropertiesLoader.createInitInfo(args, 8, "synchronizer.properties");
+		return FedoraToDbBatchPropertiesLoader.createInitInfo(args, 9,
+				"fedoraToDbCatchUp.properties");
 	}
 
 	private static void constructSynchronizerFactory(Map<String, String> initInfo)
@@ -107,8 +110,9 @@ public class FedoraToDbBatch {
 
 	private static void synchronize() {
 		recordAndLogBatchStartTime();
-		createAllActiveRecordsForPerson();
-		deletePersonRecordsDeletedAfterStartOfBatchJob();
+		synchronizeRecordsForCreatedAfter();
+		synchronizeRecordsForCreatedBeforeAndUpdatedAfter();
+		synchronizeRecordsForDeletedAfter();
 		indexAllRecords();
 	}
 
@@ -142,25 +146,14 @@ public class FedoraToDbBatch {
 		return currentDateTime.format(dateTimeFormatter);
 	}
 
-	private static void createAllActiveRecordsForPerson() {
-		List<String> listOfPids = getListOfActivePidsForPersonFromFedora();
+	private static void synchronizeRecordsForCreatedAfter() {
+		List<String> listOfPids = getListOfActivePidsForCreatedAfterFromFedora();
 		synchronizeRecords("create", listOfPids);
 	}
 
-	private static List<String> getListOfActivePidsForPersonFromFedora() {
-		logger.logInfoUsingMessage("Fetching all active person records");
-		return fedoraReader.readPidsForType(AUTHORITY_PERSON);
-	}
-
-	private static void deletePersonRecordsDeletedAfterStartOfBatchJob() {
-		List<String> listOfPids = getListOfDeletedPidsForPersonAfterTime();
-		synchronizeRecords("delete", listOfPids);
-	}
-
-	private static List<String> getListOfDeletedPidsForPersonAfterTime() {
-		logger.logInfoUsingMessage(
-				"Fetching person records deleted after starting batch at: " + startBatchTime);
-		return fedoraReader.readPidsForTypeDeletedAfter(AUTHORITY_PERSON, startBatchTime);
+	private static List<String> getListOfActivePidsForCreatedAfterFromFedora() {
+		logger.logInfoUsingMessage("Fetching created records after timestamp: " + afterTimestamp);
+		return fedoraReader.readPidsForTypeCreatedAfter(AUTHORITY_PERSON, afterTimestamp);
 	}
 
 	private static void synchronizeRecords(String action, List<String> listOfPids) {
@@ -176,10 +169,33 @@ public class FedoraToDbBatch {
 		logger.logInfoUsingMessage("Synchronizing done");
 	}
 
+	private static void synchronizeRecordsForCreatedBeforeAndUpdatedAfter() {
+		List<String> listOfPids = getListOfActivePidsForCreatedBeforeAndUpdatedAfterFromFedora();
+		synchronizeRecords("update", listOfPids);
+	}
+
+	private static List<String> getListOfActivePidsForCreatedBeforeAndUpdatedAfterFromFedora() {
+		logger.logInfoUsingMessage("Fetching updated records after timestamp: " + afterTimestamp);
+		return fedoraReader.readPidsForTypeCreatedBeforeAndUpdatedAfter(AUTHORITY_PERSON,
+				afterTimestamp);
+	}
+
+	private static void synchronizeRecordsForDeletedAfter() {
+		List<String> listOfPids = getListOfDeletedPidsForPersonAfterTime();
+		synchronizeRecords("delete", listOfPids);
+	}
+
+	private static List<String> getListOfDeletedPidsForPersonAfterTime() {
+		logger.logInfoUsingMessage("Fetching deleted records after timestamp: " + afterTimestamp);
+		return fedoraReader.readPidsForTypeDeletedAfter(AUTHORITY_PERSON, afterTimestamp);
+	}
+
 	private static void synchronizeRecord(String action, String recordId) {
 		try {
 			if ("create".equals(action)) {
 				synchronizer.synchronizeCreated(PERSON, recordId, "diva");
+			} else if ("update".equals(action)) {
+				synchronizer.synchronizeUpdated(PERSON, recordId, "diva");
 			} else {
 				synchronizer.synchronizeDeleted(PERSON, recordId, "diva");
 			}
