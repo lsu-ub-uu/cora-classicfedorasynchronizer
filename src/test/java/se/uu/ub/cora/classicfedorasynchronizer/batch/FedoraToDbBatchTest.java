@@ -169,7 +169,7 @@ public class FedoraToDbBatchTest {
 
 		assertEquals(factoredFedoraReader.type, "authority-person");
 
-		List<String> listToReturn = factoredFedoraReader.listToReturn;
+		List<String> listToReturn = factoredFedoraReader.listAll;
 		assertCorrectCallToSynchronizer(synchronizer, 0, listToReturn.get(0));
 		assertCorrectCallToSynchronizer(synchronizer, 1, listToReturn.get(1));
 		assertCorrectCallToSynchronizer(synchronizer, 2, listToReturn.get(2));
@@ -344,6 +344,9 @@ public class FedoraToDbBatchTest {
 
 		ClassicCoraSynchronizerSpy synchronizer = getSynchronizerSpy();
 		FedoraReaderSpy fedoraReader = getFedoraReader();
+
+		fedoraReader.MCR.assertParameter("readPidsForTypeDeletedAfter", 0, "type",
+				"authority-person");
 
 		List<String> listToReturn = (List<String>) fedoraReader.MCR
 				.getReturnValue("readPidsForTypeDeletedAfter", 0);

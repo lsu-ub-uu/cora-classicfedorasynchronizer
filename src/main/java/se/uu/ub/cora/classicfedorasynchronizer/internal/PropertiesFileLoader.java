@@ -49,7 +49,6 @@ public class PropertiesFileLoader {
 		if (args.length > 0) {
 			return args[0];
 		}
-		// return "synchronizer.properties";
 		return defaultFileName;
 	}
 

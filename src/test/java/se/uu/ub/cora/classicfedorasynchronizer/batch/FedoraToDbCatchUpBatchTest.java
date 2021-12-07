@@ -28,7 +28,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
@@ -53,20 +52,21 @@ public class FedoraToDbCatchUpBatchTest {
 	public void setUp() {
 		args = new String[] { "args-someDatabaseUrl", "args-dbUserName", "args-dbUserPassword",
 				"args-someFedoraBaseUrl", "args-someApptokenVerifierUrl", "args-someCoraBaseUrl",
-				"args-someCoraUserId", "args-someCoraApptoken", "2021-10-10'T'10:10:10'Z'" };
+				"args-someCoraUserId", "args-someCoraApptoken", "2021-10-10T10:10:10Z" };
 		loggerFactorySpy.resetLogs(testedClassName);
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 	}
 
 	@Test
 	public void testConstructorIsPrivate() throws Exception {
-		Constructor<FedoraToDbBatch> constructor = FedoraToDbBatch.class.getDeclaredConstructor();
+		Constructor<FedoraToDbCatchUpBatch> constructor = FedoraToDbCatchUpBatch.class
+				.getDeclaredConstructor();
 		assertFalse(constructorIsPublic(constructor));
 		constructor.setAccessible(true);
 		constructor.newInstance();
 	}
 
-	private boolean constructorIsPublic(Constructor<FedoraToDbBatch> constructor) {
+	private boolean constructorIsPublic(Constructor<FedoraToDbCatchUpBatch> constructor) {
 		return Modifier.isPublic(constructor.getModifiers());
 	}
 
@@ -93,23 +93,28 @@ public class FedoraToDbCatchUpBatchTest {
 		assertEquals(getInfoLogNo(1), "FedoraToDbCatchUpBatch started");
 		assertTrue(getInfoLogNo(2).startsWith("Batch started at: "));
 		assertTrue(getInfoLogNo(2).endsWith("Z"));
-		// assertTrue(getInfoLogNo(3).startsWith("Fetching all created records from "));
-		// assertTrue(getInfoLogNo(3).endsWith("Z"));
-		// assertEquals(getInfoLogNo(4), "Synchronizing 3 records");
-		// assertEquals(getInfoLogNo(5), "Synchronizing(1/3) recordId: auhority-person:104");
-		// assertEquals(getInfoLogNo(6), "Synchronizing(2/3) recordId: auhority-person:22");
-		// assertEquals(getInfoLogNo(7), "Synchronizing(3/3) recordId: auhority-person:2131");
-		// assertEquals(getInfoLogNo(8), "Synchronizing done");
-		// assertTrue(getInfoLogNo(9)
-		// .startsWith("Fetching person records deleted after starting batch at: "));
-		// assertTrue(getInfoLogNo(9).endsWith("Z"));
-		// assertEquals(getInfoLogNo(10), "Synchronizing 2 records");
-		// assertEquals(getInfoLogNo(11), "Synchronizing(1/2) recordId: auhority-person:127");
-		// assertEquals(getInfoLogNo(12), "Synchronizing(2/2) recordId: auhority-person:1211");
-		// assertEquals(getInfoLogNo(13), "Synchronizing done");
-		// assertEquals(getInfoLogNo(14), "Start indexing for all persons");
-		// assertEquals(getInfoLogNo(15), "Start indexing for all personDomainParts");
-		// assertEquals(getInfoLogNo(16), "See API for status of batchJobs");
+		assertEquals(getInfoLogNo(3),
+				"Fetching created records after timestamp: 2021-10-10T10:10:10Z");
+		assertEquals(getInfoLogNo(4), "Synchronizing 3 records");
+		assertEquals(getInfoLogNo(5), "Synchronizing(1/3) recordId: auhority-person:104");
+		assertEquals(getInfoLogNo(6), "Synchronizing(2/3) recordId: auhority-person:22");
+		assertEquals(getInfoLogNo(7), "Synchronizing(3/3) recordId: auhority-person:2131");
+		assertEquals(getInfoLogNo(8), "Synchronizing done");
+		assertEquals(getInfoLogNo(9),
+				"Fetching updated records after timestamp: 2021-10-10T10:10:10Z");
+		assertEquals(getInfoLogNo(10), "Synchronizing 2 records");
+		assertEquals(getInfoLogNo(11), "Synchronizing(1/2) recordId: auhority-person:245");
+		assertEquals(getInfoLogNo(12), "Synchronizing(2/2) recordId: auhority-person:322");
+		assertEquals(getInfoLogNo(13), "Synchronizing done");
+		assertEquals(getInfoLogNo(14),
+				"Fetching deleted records after timestamp: 2021-10-10T10:10:10Z");
+		assertEquals(getInfoLogNo(15), "Synchronizing 2 records");
+		assertEquals(getInfoLogNo(16), "Synchronizing(1/2) recordId: auhority-person:127");
+		assertEquals(getInfoLogNo(17), "Synchronizing(2/2) recordId: auhority-person:1211");
+		assertEquals(getInfoLogNo(18), "Synchronizing done");
+		assertEquals(getInfoLogNo(19), "Start indexing for all persons");
+		assertEquals(getInfoLogNo(20), "Start indexing for all personDomainParts");
+		assertEquals(getInfoLogNo(21), "See API for status of batchJobs");
 	}
 
 	private void setFactoryClassNamesToSpies() {
@@ -151,11 +156,11 @@ public class FedoraToDbCatchUpBatchTest {
 		assertEquals(initInfo.get("coraBaseUrl"), prefix + "someCoraBaseUrl");
 		assertEquals(initInfo.get("coraUserId"), prefix + "someCoraUserId");
 		assertEquals(initInfo.get("coraApptoken"), prefix + "someCoraApptoken");
-		assertEquals(initInfo.get("afterTimestamp"), "2021-10-10'T'10:10:10'Z'");
+		assertEquals(initInfo.get("afterTimestamp"), "2021-10-10T10:10:10Z");
 	}
 
 	@Test
-	public void testFactorSynchronizerUsingFactorySpy() throws Exception {
+	public void testCreatedAfter() throws Exception {
 		setFactoryClassNamesToSpies();
 
 		FedoraToDbCatchUpBatch.main(args);
@@ -167,14 +172,15 @@ public class FedoraToDbCatchUpBatchTest {
 		assertEquals(fedoraReaderFactory.baseUrl, "args-someFedoraBaseUrl");
 		FedoraReaderSpy factoredFedoraReader = fedoraReaderFactory.factoredFedoraReader;
 
-		assertEquals(factoredFedoraReader.type, "authority-person");
+		factoredFedoraReader.MCR.assertParameters("readPidsForTypeCreatedAfter", 0,
+				"authority-person", "2021-10-10T10:10:10Z");
 
-		List<String> listToReturn = factoredFedoraReader.listToReturn;
+		List<String> listToReturn = (List<String>) factoredFedoraReader.MCR
+				.getReturnValue("readPidsForTypeCreatedAfter", 0);
+		assertEquals(listToReturn.size(), 3);
 		assertCorrectCallToSynchronizer(synchronizer, 0, listToReturn.get(0));
 		assertCorrectCallToSynchronizer(synchronizer, 1, listToReturn.get(1));
 		assertCorrectCallToSynchronizer(synchronizer, 2, listToReturn.get(2));
-		assertCorrectCallToSynchronizer(synchronizer, 3, listToReturn.get(3));
-		assertCorrectCallToSynchronizer(synchronizer, 4, listToReturn.get(4));
 	}
 
 	private void assertCorrectCallToSynchronizer(ClassicCoraSynchronizerSpy synchronizer,
@@ -276,7 +282,7 @@ public class FedoraToDbCatchUpBatchTest {
 		FedoraToDbCatchUpBatch.main(args);
 		int exceptionNo = 0;
 		assertEquals(getErrorLogNo(exceptionNo),
-				"Error synchronizing recordId: auhority-person:245");
+				"Error synchronizing recordId: auhority-person:104");
 		Exception exception = getErrorExceptionNo(exceptionNo);
 		assertEquals(exception.getMessage(), "Record not found error from spy");
 
@@ -300,22 +306,22 @@ public class FedoraToDbCatchUpBatchTest {
 		return loggerFactorySpy.getErrorLogMessageUsingClassNameAndNo(testedClassName, messageNo);
 	}
 
-	@Test
-	public void testDeletedAfterDateTime() throws Exception {
-		setFactoryClassNamesToSpies();
-
-		LocalDateTime dateTimeBefore = whatTimeIsIt().minus(2, ChronoUnit.SECONDS);
-		FedoraToDbBatch.main(args);
-		LocalDateTime dateTimeAfter = whatTimeIsIt().plus(2, ChronoUnit.SECONDS);
-		FedoraReaderSpy fedoraReader = getFedoraReader();
-
-		fedoraReader.MCR.assertParameters("readPidsForTypeDeletedAfter", 0, "person");
-		LocalDateTime batchStartedDateTime = getBatchStartedDateTime(fedoraReader);
-
-		assertTrue(dateTimeBefore.isBefore(batchStartedDateTime));
-		assertTrue(dateTimeAfter.isAfter(batchStartedDateTime));
-
-	}
+	// @Test
+	// public void testDeletedAfterDateTime() throws Exception {
+	// setFactoryClassNamesToSpies();
+	//
+	// LocalDateTime dateTimeBefore = whatTimeIsIt().minus(2, ChronoUnit.SECONDS);
+	// FedoraToDbCatchUpBatch.main(args);
+	// LocalDateTime dateTimeAfter = whatTimeIsIt().plus(2, ChronoUnit.SECONDS);
+	// FedoraReaderSpy fedoraReader = getFedoraReader();
+	//
+	// fedoraReader.MCR.assertParameters("readPidsForTypeDeletedAfter", 0, "authority-person");
+	// LocalDateTime batchStartedDateTime = getBatchStartedDateTime(fedoraReader);
+	//
+	// assertTrue(dateTimeBefore.isBefore(batchStartedDateTime));
+	// assertTrue(dateTimeAfter.isAfter(batchStartedDateTime));
+	//
+	// }
 
 	private LocalDateTime whatTimeIsIt() {
 		return LocalDateTime.now();
@@ -337,6 +343,30 @@ public class FedoraToDbCatchUpBatchTest {
 	}
 
 	@Test
+	public void testCreatedBeforeAndUpdatedAfter() throws Exception {
+		setFactoryClassNamesToSpies();
+
+		FedoraToDbCatchUpBatch.main(args);
+
+		ClassicCoraSynchronizerSpy synchronizer = getSynchronizerSpy();
+		FedoraReaderSpy fedoraReader = getFedoraReader();
+
+		fedoraReader.MCR.assertParameters("readPidsForTypeCreatedBeforeAndUpdatedAfter", 0,
+				"authority-person", "2021-10-10T10:10:10Z");
+
+		List<String> listToReturn = (List<String>) fedoraReader.MCR
+				.getReturnValue("readPidsForTypeCreatedBeforeAndUpdatedAfter", 0);
+
+		synchronizer.MCR.assertParameters("synchronizeUpdated", 0, "person", listToReturn.get(0),
+				"diva");
+		synchronizer.MCR.assertParameters("synchronizeUpdated", 1, "person", listToReturn.get(1),
+				"diva");
+
+		synchronizer.MCR.assertNumberOfCallsToMethod("synchronizeDeleted", 2);
+		synchronizer.MCR.assertNumberOfCallsToMethod("synchronizeCreated", 3);
+	}
+
+	@Test
 	public void testDeletedAfter() throws Exception {
 		setFactoryClassNamesToSpies();
 
@@ -344,6 +374,9 @@ public class FedoraToDbCatchUpBatchTest {
 
 		ClassicCoraSynchronizerSpy synchronizer = getSynchronizerSpy();
 		FedoraReaderSpy fedoraReader = getFedoraReader();
+
+		fedoraReader.MCR.assertParameters("readPidsForTypeDeletedAfter", 0, "authority-person",
+				"2021-10-10T10:10:10Z");
 
 		List<String> listToReturn = (List<String>) fedoraReader.MCR
 				.getReturnValue("readPidsForTypeDeletedAfter", 0);
@@ -354,7 +387,7 @@ public class FedoraToDbCatchUpBatchTest {
 				"diva");
 
 		synchronizer.MCR.assertNumberOfCallsToMethod("synchronizeDeleted", 2);
-		synchronizer.MCR.assertNumberOfCallsToMethod("synchronizeCreated", 5);
+		synchronizer.MCR.assertNumberOfCallsToMethod("synchronizeCreated", 3);
 	}
 
 	private ClassicCoraSynchronizerSpy getSynchronizerSpy() {

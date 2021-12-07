@@ -29,7 +29,7 @@ public class FedoraReaderSpy implements FedoraReader {
 
 	public String type;
 	public DataGroup filter;
-	public List<String> listToReturn = List.of("auhority-person:245", "auhority-person:322",
+	public List<String> listAll = List.of("auhority-person:245", "auhority-person:322",
 			"auhority-person:4029", "auhority-person:127", "auhority-person:1211");
 	public List<String> listCreatedAfter = List.of("auhority-person:104", "auhority-person:22",
 			"auhority-person:2131");
@@ -57,8 +57,12 @@ public class FedoraReaderSpy implements FedoraReader {
 
 	@Override
 	public List<String> readPidsForType(String type) {
+		MCR.addCall("type", type);
+
 		this.type = type;
-		return listToReturn;
+
+		MCR.addReturned(listAll);
+		return listAll;
 	}
 
 	@Override

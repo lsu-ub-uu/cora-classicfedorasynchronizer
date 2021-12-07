@@ -36,9 +36,10 @@ import se.uu.ub.cora.logger.LoggerProvider;
 
 public class FedoraToDbBatch {
 
-	private static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+	private static final String AUTHORITY_PERSON = "authority-person";
 	private static final String PERSON = "person";
 	private static final String PERSON_DOMAIN_PART = "personDomainPart";
+	private static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 	private static Logger logger = LoggerProvider.getLoggerForClass(FedoraToDbBatch.class);
 	static String synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory";
 	static String fedoraReaderFactoryClassName = "se.uu.ub.cora.fedora.reader.FedoraReaderFactoryImp";
@@ -148,7 +149,7 @@ public class FedoraToDbBatch {
 
 	private static List<String> getListOfActivePidsForPersonFromFedora() {
 		logger.logInfoUsingMessage("Fetching all active person records");
-		return fedoraReader.readPidsForType("authority-person");
+		return fedoraReader.readPidsForType(AUTHORITY_PERSON);
 	}
 
 	private static void deletePersonRecordsDeletedAfterStartOfBatchJob() {
@@ -159,7 +160,7 @@ public class FedoraToDbBatch {
 	private static List<String> getListOfDeletedPidsForPersonAfterTime() {
 		logger.logInfoUsingMessage(
 				"Fetching person records deleted after starting batch at: " + startBatchTime);
-		return fedoraReader.readPidsForTypeDeletedAfter(PERSON, startBatchTime);
+		return fedoraReader.readPidsForTypeDeletedAfter(AUTHORITY_PERSON, startBatchTime);
 	}
 
 	private static void synchronizeRecords(String action, List<String> listOfPids) {
