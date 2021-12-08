@@ -27,13 +27,13 @@ import se.uu.ub.cora.classicfedorasynchronizer.internal.PropertiesFileLoader;
 
 class FedoraToDbBatchPropertiesLoader {
 	private String[] args;
-	private int numberOfArguments;
+	private int expectedNumberOfArguments;
 	private String defaultPropertiesFileName;
 
 	private FedoraToDbBatchPropertiesLoader(String[] args, int numberOfArguments,
 			String defaultPropertiesFileName) {
 		this.args = args;
-		this.numberOfArguments = numberOfArguments;
+		this.expectedNumberOfArguments = numberOfArguments;
 		this.defaultPropertiesFileName = defaultPropertiesFileName;
 	}
 
@@ -51,11 +51,12 @@ class FedoraToDbBatchPropertiesLoader {
 		} else if (propertiesProvidedAsArguments()) {
 			return loadProperitesFromArgs();
 		}
-		throw new RuntimeException("Number of arguments should be " + numberOfArguments + ".");
+		throw new RuntimeException(
+				"Number of arguments should be " + expectedNumberOfArguments + ".");
 	}
 
 	private boolean propertiesProvidedAsArguments() {
-		return args.length == numberOfArguments;
+		return args.length == expectedNumberOfArguments;
 	}
 
 	private Properties loadProperitesFromArgs() {
@@ -69,7 +70,7 @@ class FedoraToDbBatchPropertiesLoader {
 		properties.put("cora.baseUrl", args[5]);
 		properties.put("cora.userId", args[6]);
 		properties.put("cora.apptoken", args[7]);
-		if (numberOfArguments > 8) {
+		if (expectedNumberOfArguments > 8) {
 			properties.put("cora.afterTimestamp", args[8]);
 		}
 
@@ -87,7 +88,7 @@ class FedoraToDbBatchPropertiesLoader {
 		addPropertyToInitInfo(initInfo, properties, "coraBaseUrl", "cora.baseUrl");
 		addPropertyToInitInfo(initInfo, properties, "coraUserId", "cora.userId");
 		addPropertyToInitInfo(initInfo, properties, "coraApptoken", "cora.apptoken");
-		if (numberOfArguments > 8) {
+		if (expectedNumberOfArguments > 8) {
 			addPropertyToInitInfo(initInfo, properties, "afterTimestamp", "cora.afterTimestamp");
 		}
 		return initInfo;

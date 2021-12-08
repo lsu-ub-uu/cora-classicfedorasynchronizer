@@ -36,6 +36,7 @@ import se.uu.ub.cora.logger.LoggerProvider;
 
 public class FedoraToDbCatchUpBatch {
 
+	private static final int NUMBER_OF_ARGUMENTS_FOR_CATCHUP = 9;
 	private static final String AUTHORITY_PERSON = "authority-person";
 	private static final String PERSON = "person";
 	private static final String PERSON_DOMAIN_PART = "personDomainPart";
@@ -50,7 +51,6 @@ public class FedoraToDbCatchUpBatch {
 	private static FedoraReader fedoraReader;
 	private static DateTimeFormatter dateTimeFormatter = DateTimeFormatter
 			.ofPattern(DATE_TIME_PATTERN);
-	private static String startBatchTime;
 	private static String afterTimestamp;
 
 	FedoraToDbCatchUpBatch() {
@@ -84,7 +84,7 @@ public class FedoraToDbCatchUpBatch {
 	}
 
 	private static Map<String, String> createInitInfoFromArgs() throws IOException {
-		return FedoraToDbBatchPropertiesLoader.createInitInfo(args, 9,
+		return FedoraToDbBatchPropertiesLoader.createInitInfo(args, NUMBER_OF_ARGUMENTS_FOR_CATCHUP,
 				"fedoraToDbCatchUp.properties");
 	}
 
@@ -111,7 +111,7 @@ public class FedoraToDbCatchUpBatch {
 	private static void synchronize() {
 		recordAndLogBatchStartTime();
 		synchronizeRecordsForCreatedAfter();
-		synchronizeRecordsForCreatedBeforeAndUpdatedAfter();
+		synchronizeRecordsForUpdatedAfter();
 		synchronizeRecordsForDeletedAfter();
 		indexAllRecords();
 	}
@@ -137,7 +137,7 @@ public class FedoraToDbCatchUpBatch {
 	}
 
 	private static void recordAndLogBatchStartTime() {
-		startBatchTime = getCurrentFormattedTime();
+		String startBatchTime = getCurrentFormattedTime();
 		logger.logInfoUsingMessage("Batch started at: " + startBatchTime);
 	}
 
@@ -169,15 +169,14 @@ public class FedoraToDbCatchUpBatch {
 		logger.logInfoUsingMessage("Synchronizing done");
 	}
 
-	private static void synchronizeRecordsForCreatedBeforeAndUpdatedAfter() {
-		List<String> listOfPids = getListOfActivePidsForCreatedBeforeAndUpdatedAfterFromFedora();
+	private static void synchronizeRecordsForUpdatedAfter() {
+		List<String> listOfPids = getListOfActivePidsForUpdatedAfterFromFedora();
 		synchronizeRecords("update", listOfPids);
 	}
 
-	private static List<String> getListOfActivePidsForCreatedBeforeAndUpdatedAfterFromFedora() {
+	private static List<String> getListOfActivePidsForUpdatedAfterFromFedora() {
 		logger.logInfoUsingMessage("Fetching updated records after timestamp: " + afterTimestamp);
-		return fedoraReader.readPidsForTypeCreatedBeforeAndUpdatedAfter(AUTHORITY_PERSON,
-				afterTimestamp);
+		return fedoraReader.readPidsForTypeUpdatedAfter(AUTHORITY_PERSON, afterTimestamp);
 	}
 
 	private static void synchronizeRecordsForDeletedAfter() {

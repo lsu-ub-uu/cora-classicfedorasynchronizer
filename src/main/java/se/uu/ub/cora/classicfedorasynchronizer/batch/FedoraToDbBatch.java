@@ -36,6 +36,7 @@ import se.uu.ub.cora.logger.LoggerProvider;
 
 public class FedoraToDbBatch {
 
+	private static final int NUMBER_OF_ARGUMENTS_FOR_BATCHLOADER = 8;
 	private static final String AUTHORITY_PERSON = "authority-person";
 	private static final String PERSON = "person";
 	private static final String PERSON_DOMAIN_PART = "personDomainPart";
@@ -82,7 +83,8 @@ public class FedoraToDbBatch {
 	}
 
 	private static Map<String, String> createInitInfoFromArgs() throws IOException {
-		return FedoraToDbBatchPropertiesLoader.createInitInfo(args, 8, "synchronizer.properties");
+		return FedoraToDbBatchPropertiesLoader.createInitInfo(args,
+				NUMBER_OF_ARGUMENTS_FOR_BATCHLOADER, "synchronizer.properties");
 	}
 
 	private static void constructSynchronizerFactory(Map<String, String> initInfo)
