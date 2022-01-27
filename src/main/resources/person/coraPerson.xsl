@@ -92,7 +92,7 @@
                     </linkedRecordId>
                 </createdBy>
                 <tsCreated>
-                    <xsl:value-of select="timestamp"></xsl:value-of>
+                    <xsl:value-of select="concat(substring(timestamp, 1, 23),'000', 'Z')"/>
                 </tsCreated>
             </xsl:for-each>
             <dataDivider>
@@ -118,7 +118,7 @@
                         </linkedRecordId>
                     </updatedBy>
                     <tsUpdated>
-                        <xsl:value-of select="timestamp"></xsl:value-of>
+                        <xsl:value-of select="concat(substring(timestamp, 1, 23),'000', 'Z')"/>
                     </tsUpdated>
                 </updated>
             </xsl:for-each> 
