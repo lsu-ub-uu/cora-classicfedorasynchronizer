@@ -18,7 +18,7 @@
 	</parent>
 
 	<artifactId>classicfedorasynchronizer</artifactId>
-	<version>1.7.0</version>
+	<version>1.7.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Classic fedora synchronizer</name>
 
@@ -46,7 +46,7 @@
 		<connection>scm:git:https://github.com/lsu-ub-uu/cora-classicfedorasynchronizer.git</connection>
 		<developerConnection>scm:git:https://github.com/lsu-ub-uu/cora-classicfedorasynchronizer.git</developerConnection>
 		<url>https://github.com/lsu-ub-uu/cora-classicfedorasynchronizer.git</url>
-		<tag>classicfedorasynchronizer-1.7.0</tag>
+		<tag>release/1.7</tag>
 	</scm>
 
 	<dependencies>
