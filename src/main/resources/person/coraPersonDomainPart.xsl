@@ -129,6 +129,9 @@
                     </xsl:for-each>
                     <xsl:for-each select="../../../identifiers/identifier[type = 'LOCAL'][domain = $domain]">
                         <identifier>
+                            <xsl:attribute name="repeatId">
+                                <xsl:value-of select="position() - 1"></xsl:value-of>
+                            </xsl:attribute>
                             <xsl:value-of select="value"/>
                         </identifier>
                     </xsl:for-each>
