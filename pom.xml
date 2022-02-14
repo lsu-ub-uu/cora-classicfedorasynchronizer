@@ -39,7 +39,7 @@
 		<activemq.version>1.4.0</activemq.version>
 		<javaclient.version>1.12.0</javaclient.version>
 		<testutils.version>1.2.0</testutils.version>
-		<corafedora3x.version>1.0-SNAPSHOT</corafedora3x.version>
+		<corafedora3x.version>2.0.0</corafedora3x.version>
 	</properties>
 
 	<scm>
