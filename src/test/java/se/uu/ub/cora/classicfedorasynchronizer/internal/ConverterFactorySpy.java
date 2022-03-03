@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Uppsala University Library
+ * Copyright 2021, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -18,15 +18,22 @@
  */
 package se.uu.ub.cora.classicfedorasynchronizer.internal;
 
-import se.uu.ub.cora.converter.Converter;
 import se.uu.ub.cora.converter.ConverterFactory;
+import se.uu.ub.cora.converter.ExternallyConvertibleToStringConverter;
+import se.uu.ub.cora.converter.StringToExternallyConvertibleConverter;
 
 public class ConverterFactorySpy implements ConverterFactory {
 
 	public ConverterSpy factoredConverter;
 
 	@Override
-	public Converter factorConverter() {
+	public ExternallyConvertibleToStringConverter factorExternallyConvertableToStringConverter() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public StringToExternallyConvertibleConverter factorStringToExternallyConvertableConverter() {
 		factoredConverter = new ConverterSpy();
 		return factoredConverter;
 	}

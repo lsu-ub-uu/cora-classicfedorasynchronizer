@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Uppsala University Library
+ * Copyright 2021, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -18,21 +18,15 @@
  */
 package se.uu.ub.cora.classicfedorasynchronizer.internal;
 
-import se.uu.ub.cora.converter.Converter;
+import se.uu.ub.cora.converter.StringToExternallyConvertibleConverter;
 import se.uu.ub.cora.data.DataElement;
 
-public class ConverterSpy implements Converter {
+public class ConverterSpy implements StringToExternallyConvertibleConverter {
 
 	public DataElement dataElement;
 	public String dataString;
 	public String stringToReturn = "some returned string from converter spy";
 	public DataGroupSpy dataGroupToReturn;
-
-	@Override
-	public String convert(DataElement dataElement) {
-		this.dataElement = dataElement;
-		return stringToReturn;
-	}
 
 	@Override
 	public DataElement convert(String dataString) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Uppsala University Library
+ * Copyright 2021, 2022 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -21,8 +21,8 @@ package se.uu.ub.cora.classicfedorasynchronizer.internal;
 import java.util.Map;
 
 import se.uu.ub.cora.classicfedorasynchronizer.FedoraToCoraConverter;
-import se.uu.ub.cora.converter.Converter;
 import se.uu.ub.cora.converter.ConverterProvider;
+import se.uu.ub.cora.converter.StringToExternallyConvertibleConverter;
 import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.xmlutils.transformer.CoraTransformation;
 
@@ -41,7 +41,8 @@ public class FedoraToCoraConverterImp implements FedoraToCoraConverter {
 	}
 
 	private DataGroup convertXml(String coraXml) {
-		Converter converter = ConverterProvider.getConverter("xml");
+		StringToExternallyConvertibleConverter converter = ConverterProvider
+				.getStringToExternallyConvertibleConverter("xml");
 		return (DataGroup) converter.convert(coraXml);
 	}
 
