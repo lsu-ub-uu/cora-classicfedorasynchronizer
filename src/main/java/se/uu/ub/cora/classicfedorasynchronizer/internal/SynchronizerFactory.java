@@ -77,7 +77,7 @@ public class SynchronizerFactory implements ClassicCoraSynchronizerFactory {
 	private void initializeFedoraConverterFactory() {
 		CoraTransformationFactory coraTransformationFactory = new XsltTransformationFactory();
 		this.fedoraConverterFactory = DivaFedoraConverterFactoryImp
-				.usingFedoraURLAndTransformerFactory(coraTransformationFactory);
+				.usingTransformerFactory(coraTransformationFactory);
 	}
 
 	private void initializeCoraClient() {

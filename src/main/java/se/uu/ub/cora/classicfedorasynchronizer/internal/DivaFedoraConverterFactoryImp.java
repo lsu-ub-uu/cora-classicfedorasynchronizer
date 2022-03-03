@@ -31,7 +31,7 @@ public class DivaFedoraConverterFactoryImp implements FedoraConverterFactory {
 	private static final String PERSON_DOMAIN_PART_XSLT_PATH = "person/coraPersonDomainPart.xsl";
 	private CoraTransformationFactory coraTransformationFactory;
 
-	public static DivaFedoraConverterFactoryImp usingFedoraURLAndTransformerFactory(
+	public static DivaFedoraConverterFactoryImp usingTransformerFactory(
 			CoraTransformationFactory transformationFactory) {
 		return new DivaFedoraConverterFactoryImp(transformationFactory);
 	}

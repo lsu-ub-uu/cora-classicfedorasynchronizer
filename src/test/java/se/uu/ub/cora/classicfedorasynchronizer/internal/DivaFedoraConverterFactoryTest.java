@@ -38,7 +38,7 @@ public class DivaFedoraConverterFactoryTest {
 	public void beforeMethod() {
 		transformationFactory = new TransformationFactorySpy();
 		fedoraToCoraConverterFactoryImp = DivaFedoraConverterFactoryImp
-				.usingFedoraURLAndTransformerFactory(transformationFactory);
+				.usingTransformerFactory(transformationFactory);
 	}
 
 	@Test
