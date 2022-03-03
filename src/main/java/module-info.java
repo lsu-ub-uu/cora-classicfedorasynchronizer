@@ -11,8 +11,4 @@ module se.uu.ub.cora.classicfedorasynchronizer {
 	requires se.uu.ub.cora.fedora;
 
 	exports se.uu.ub.cora.classicfedorasynchronizer.messaging;
-
-	// only export to diva fitnesse where we test transformations
-	exports se.uu.ub.cora.classicfedorasynchronizer to se.uu.ub.diva.cora.fitnesse;
-	exports se.uu.ub.cora.classicfedorasynchronizer.internal to se.uu.ub.diva.cora.fitnesse;
 }
