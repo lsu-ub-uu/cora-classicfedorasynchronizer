@@ -25,12 +25,12 @@
         <xsl:apply-templates select="authorityPerson"/>
     </xsl:template>
     <xsl:template match="authorityPerson">
-            <xsl:for-each select="affiliations/affiliation[string-length(domain) &gt; 0][generate-id(.)=generate-id(key('domain', domain))]/domain | identifiers/identifier[type = 'LOCAL'][generate-id(.)=generate-id(key('domain', domain))]/domain">
-                <xsl:sort/>
-                <xsl:variable name="domain">
-                    <xsl:value-of select="."/>
-                </xsl:variable>
-                <xsl:if test=".=$domainFilter">
+        <xsl:for-each select="affiliations/affiliation[string-length(domain) &gt; 0][generate-id(.)=generate-id(key('domain', domain))]/domain | identifiers/identifier[type = 'LOCAL'][generate-id(.)=generate-id(key('domain', domain))]/domain">
+            <xsl:sort/>
+            <xsl:variable name="domain">
+                <xsl:value-of select="."/>
+            </xsl:variable>
+            <xsl:if test=".=$domainFilter">
                 
                 <personDomainPart>
                     <recordInfo>
@@ -64,7 +64,9 @@
                         <dataDivider>
                             <linkedRecordType>system</linkedRecordType>
                             <linkedRecordId>diva</linkedRecordId>
-                        </dataDivider>        
+                        </dataDivider>
+                      <xsl:choose>
+                         <xsl:when test="../../../recordInfo/events/event[type = 'UPDATE']">
                         <xsl:for-each select="../../../recordInfo/events/event[type = 'UPDATE']">
                             <updated>
                                 <xsl:attribute name="repeatId">
@@ -87,22 +89,50 @@
                                     <xsl:value-of select="concat(substring(timestamp, 1, 23),'000', 'Z')"/>
                                 </tsUpdated>
                             </updated>
-                        </xsl:for-each> 
+                         </xsl:for-each>
+                         </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:for-each select="../../../recordInfo/events/event[type = 'CREATE']">
+                                <updated>
+                                    <xsl:attribute name="repeatId">
+                                        <xsl:value-of select="position() - 1"></xsl:value-of>
+                                    </xsl:attribute>
+                                <updatedBy>
+                                    <linkedRecordType>user</linkedRecordType>
+                                    <linkedRecordId>
+                                        <xsl:choose>
+                                            <xsl:when test="string-length(userId) &gt; 0">
+                                                <xsl:value-of select="userId"></xsl:value-of>
+                                            </xsl:when>
+                                            <xsl:otherwise>                    
+                                                <xsl:text>SYSTEM</xsl:text>
+                                            </xsl:otherwise>
+                                        </xsl:choose>
+                                    </linkedRecordId>
+                                </updatedBy>
+                                    <tsUpdated>
+                                        <xsl:value-of select="concat(substring(timestamp, 1, 23),'000', 'Z')"/>
+                                    </tsUpdated>
+                                </updated>
+                            </xsl:for-each>
+                        </xsl:otherwise>
+                       </xsl:choose>
+                        
                         <domain>
                             <xsl:value-of select="."/>
                         </domain>
                         <xsl:for-each select="../../../publicRecord">
-                <public>
-                    <xsl:choose>
-                        <xsl:when test=". = 'true'">
-                            <xsl:text>yes</xsl:text>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:text>no</xsl:text>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </public>
-            </xsl:for-each>
+                            <public>
+                                <xsl:choose>
+                                    <xsl:when test=". = 'true'">
+                                        <xsl:text>yes</xsl:text>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <xsl:text>no</xsl:text>
+                                    </xsl:otherwise>
+                                </xsl:choose>
+                            </public>
+                        </xsl:for-each>
                     </recordInfo>                   
                     <xsl:for-each select="../../../affiliations/affiliation[domain = $domain]">
                         <affiliation>
@@ -136,7 +166,7 @@
                         </identifier>
                     </xsl:for-each>
                 </personDomainPart>
-                </xsl:if>
-            </xsl:for-each>
+            </xsl:if>
+        </xsl:for-each>
     </xsl:template>
 </xsl:stylesheet>

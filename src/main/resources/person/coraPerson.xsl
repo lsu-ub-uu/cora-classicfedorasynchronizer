@@ -98,7 +98,9 @@
             <dataDivider>
                 <linkedRecordType>system</linkedRecordType>
                 <linkedRecordId>diva</linkedRecordId>
-            </dataDivider>        
+            </dataDivider>
+            <xsl:choose>
+                <xsl:when test="events/event[type = 'UPDATE']">
             <xsl:for-each select="events/event[type = 'UPDATE']">
                 <updated>
                     <xsl:attribute name="repeatId">
@@ -121,7 +123,34 @@
                         <xsl:value-of select="concat(substring(timestamp, 1, 23),'000', 'Z')"/>
                     </tsUpdated>
                 </updated>
-            </xsl:for-each> 
+            </xsl:for-each>
+                </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:for-each select="events/event[type = 'CREATE']">
+                            <updated>
+                                <xsl:attribute name="repeatId">
+                                    <xsl:value-of select="position() - 1"></xsl:value-of>
+                                </xsl:attribute>
+                            <updatedBy>
+                                <linkedRecordType>user</linkedRecordType>
+                                <linkedRecordId>
+                                    <xsl:choose>
+                                        <xsl:when test="string-length(userId) &gt; 0">
+                                            <xsl:value-of select="userId"></xsl:value-of>
+                                        </xsl:when>
+                                        <xsl:otherwise>                    
+                                            <xsl:text>SYSTEM</xsl:text>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </linkedRecordId>
+                            </updatedBy>
+                            <tsUpdated>
+                                <xsl:value-of select="concat(substring(timestamp, 1, 23),'000', 'Z')"/>
+                            </tsUpdated>
+                          </updated>
+                        </xsl:for-each>
+                    </xsl:otherwise>
+            </xsl:choose>
             <public>
 				<xsl:choose>
 					<xsl:when test="not(../publicRecord)">
