@@ -18,8 +18,8 @@
  */
 package se.uu.ub.cora.classicfedorasynchronizer.batch;
 
-import se.uu.ub.cora.fedora.reader.FedoraReader;
-import se.uu.ub.cora.fedora.reader.FedoraReaderFactory;
+import se.uu.ub.cora.fedoralegacy.reader.FedoraReader;
+import se.uu.ub.cora.fedoralegacy.reader.FedoraReaderFactory;
 import se.uu.ub.cora.httphandler.HttpHandlerFactory;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 

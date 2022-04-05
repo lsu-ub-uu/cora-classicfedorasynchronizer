@@ -21,7 +21,7 @@ package se.uu.ub.cora.classicfedorasynchronizer.batch;
 import java.util.List;
 
 import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.fedora.reader.FedoraReader;
+import se.uu.ub.cora.fedoralegacy.reader.FedoraReader;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class FedoraReaderSpy implements FedoraReader {

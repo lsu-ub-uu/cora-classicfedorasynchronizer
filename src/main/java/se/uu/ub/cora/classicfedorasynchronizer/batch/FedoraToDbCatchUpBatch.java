@@ -29,8 +29,8 @@ import java.util.Map;
 
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizer;
 import se.uu.ub.cora.classicfedorasynchronizer.ClassicCoraSynchronizerFactory;
-import se.uu.ub.cora.fedora.reader.FedoraReader;
-import se.uu.ub.cora.fedora.reader.FedoraReaderFactory;
+import se.uu.ub.cora.fedoralegacy.reader.FedoraReader;
+import se.uu.ub.cora.fedoralegacy.reader.FedoraReaderFactory;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 
