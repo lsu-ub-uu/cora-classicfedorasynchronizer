@@ -37,9 +37,9 @@
 		<converter.version>2.1.0</converter.version>
 		<messaging.version>2.5.0</messaging.version>
 		<activemq.version>1.5.0</activemq.version>
-		<javaclient.version>1.13.0</javaclient.version>
+		<javaclient.version>1.14.0</javaclient.version>
 		<testutils.version>1.2.0</testutils.version>
-		<corafedora3x.version>4.0-SNAPSHOT</corafedora3x.version>
+		<corafedora3x.version>4.0.0</corafedora3x.version>
 	</properties>
 
 	<scm>
