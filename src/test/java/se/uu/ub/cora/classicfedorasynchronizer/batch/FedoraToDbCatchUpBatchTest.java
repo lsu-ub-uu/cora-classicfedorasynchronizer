@@ -73,7 +73,7 @@ public class FedoraToDbCatchUpBatchTest {
 		assertEquals(synchronizerFactoryClassName,
 				"se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory");
 		assertEquals(fedoraReaderFactoryClassName,
-				"se.uu.ub.cora.fedora.reader.FedoraReaderFactoryImp");
+				"se.uu.ub.cora.fedoralegacy.reader.FedoraReaderFactoryImp");
 	}
 
 	@Test

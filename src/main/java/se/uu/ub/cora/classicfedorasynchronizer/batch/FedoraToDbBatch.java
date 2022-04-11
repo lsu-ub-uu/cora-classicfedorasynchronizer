@@ -43,7 +43,7 @@ public class FedoraToDbBatch {
 	private static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 	private static Logger logger = LoggerProvider.getLoggerForClass(FedoraToDbBatch.class);
 	static String synchronizerFactoryClassName = "se.uu.ub.cora.classicfedorasynchronizer.internal.SynchronizerFactory";
-	static String fedoraReaderFactoryClassName = "se.uu.ub.cora.fedora.reader.FedoraReaderFactoryImp";
+	static String fedoraReaderFactoryClassName = "se.uu.ub.cora.fedoralegacy.reader.FedoraReaderFactoryImp";
 	static ClassicCoraSynchronizerFactory synchronizerFactory;
 	static FedoraReaderFactory fedoraReaderFactory;
 	private static ClassicCoraSynchronizer synchronizer;
