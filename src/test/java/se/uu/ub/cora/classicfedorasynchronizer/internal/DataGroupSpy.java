@@ -24,7 +24,7 @@ import java.util.List;
 
 import se.uu.ub.cora.data.DataAtomic;
 import se.uu.ub.cora.data.DataAttribute;
-import se.uu.ub.cora.data.DataElement;
+import se.uu.ub.cora.data.DataChild;
 import se.uu.ub.cora.data.DataGroup;
 
 public class DataGroupSpy implements DataGroup {
@@ -75,19 +75,19 @@ public class DataGroupSpy implements DataGroup {
 	}
 
 	@Override
-	public void addChildren(Collection<DataElement> dataElements) {
+	public void addChildren(Collection<DataChild> dataElements) {
 
 	}
 
 	@Override
-	public List<DataElement> getChildren() {
+	public List<DataChild> getChildren() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<DataElement> getAllChildrenWithNameInData(String nameInData) {
-		List<DataElement> childrenToReturn = new ArrayList<>();
+	public List<DataChild> getAllChildrenWithNameInData(String nameInData) {
+		List<DataChild> childrenToReturn = new ArrayList<>();
 		if ("personDomainPart".equals(nameInData)) {
 			for (int i = 0; i < numberOfDomainParts; i++) {
 				DataGroupSpy dataGroupSpy = new DataGroupSpy("personDomainPart");
@@ -99,14 +99,14 @@ public class DataGroupSpy implements DataGroup {
 	}
 
 	@Override
-	public List<DataElement> getAllChildrenWithNameInDataAndAttributes(String nameInData,
+	public List<DataChild> getAllChildrenWithNameInDataAndAttributes(String nameInData,
 			DataAttribute... childAttributes) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public DataElement getFirstChildWithNameInData(String nameInData) {
+	public DataChild getFirstChildWithNameInData(String nameInData) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -131,7 +131,7 @@ public class DataGroupSpy implements DataGroup {
 	}
 
 	@Override
-	public void addChild(DataElement dataElement) {
+	public void addChild(DataChild dataElement) {
 
 	}
 
@@ -201,6 +201,13 @@ public class DataGroupSpy implements DataGroup {
 
 	@Override
 	public Collection<DataAttribute> getAttributes() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Collection<DataAtomic> getAllDataAtomicsWithNameInDataAndAttributes(
+			String childNameInData, DataAttribute... childAttributes) {
 		// TODO Auto-generated method stub
 		return null;
 	}

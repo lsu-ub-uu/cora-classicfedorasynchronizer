@@ -19,17 +19,18 @@
 package se.uu.ub.cora.classicfedorasynchronizer.internal;
 
 import se.uu.ub.cora.converter.StringToExternallyConvertibleConverter;
-import se.uu.ub.cora.data.DataElement;
+import se.uu.ub.cora.data.DataChild;
+import se.uu.ub.cora.data.ExternallyConvertible;
 
 public class ConverterSpy implements StringToExternallyConvertibleConverter {
 
-	public DataElement dataElement;
+	public DataChild dataElement;
 	public String dataString;
 	public String stringToReturn = "some returned string from converter spy";
 	public DataGroupSpy dataGroupToReturn;
 
 	@Override
-	public DataElement convert(String dataString) {
+	public ExternallyConvertible convert(String dataString) {
 		this.dataString = dataString;
 		dataGroupToReturn = new DataGroupSpy("someNameInData");
 		return dataGroupToReturn;
