@@ -25,20 +25,20 @@
 	<properties>
 		<logger.version>2.5.0</logger.version>
 		<coralog4j.version>2.9.0</coralog4j.version>
-		<converter.version>3.0.0</converter.version>
+		<converter.version>3.1.0</converter.version>
 		<httphandler.version>2.6.0</httphandler.version>
 		<json.version>3.3.0</json.version>
-		<coradata.version>7.0.0</coradata.version>
-		<basicdata.version>4.0.0</basicdata.version>
-		<xmlutils.version>1.6.0</xmlutils.version>
-		<storage.version>6.2.0</storage.version>
-		<sqlstorage.version>2.0.0</sqlstorage.version>
-		<xmlconverter.version>2.1.0</xmlconverter.version>
+		<coradata.version>7.1.0</coradata.version>
+		<basicdata.version>4.1.0</basicdata.version>
+		<xmlutils.version>1.7.0</xmlutils.version>
+		<storage.version>6.4.0</storage.version>
+		<sqlstorage.version>2.1.0</sqlstorage.version>
+		<xmlconverter.version>2.2.0</xmlconverter.version>
 		<messaging.version>2.6.0</messaging.version>
 		<activemq.version>1.7.0</activemq.version>
 		<javaclient.version>1.15.0</javaclient.version>
-		<testutils.version>1.4.0</testutils.version>
-		<corafedora3x.version>4.2.0</corafedora3x.version>
+		<testutils.version>1.5.0</testutils.version>
+		<corafedora3x.version>4.3.0</corafedora3x.version>
 		
 		<mavenshadeplugin.version>3.3.0</mavenshadeplugin.version>
 		<moditectmavenplugin.version>1.0.0.RC2</moditectmavenplugin.version>
